@@ -6,10 +6,21 @@ import { sessionPlugin } from './plugins/session'
 import { tenantPlugin } from './plugins/tenant'
 import { rbacPlugin } from './plugins/rbac'
 import { rateLimit } from './plugins/rate-limit'
-import { securityHeadersPlugin } from './plugins/security-headers'
+
+const HEADERS: Record<string, string> = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+}
 
 const app = new Elysia()
-  .use(securityHeadersPlugin)
+  .onBeforeHandle(({ set }) => {
+    Object.assign(set.headers, HEADERS)
+  })
   .use(cors({
     origin: env.CORS_ORIGIN,
     credentials: true,

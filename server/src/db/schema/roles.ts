@@ -16,7 +16,7 @@ import { tenants } from './tenants'
 export const roles = mysqlTable(
   'roles',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     name: varchar('name', { length: 50 }).notNull(),
     description: text('description'),
     isDefault: int('is_default').default(0),

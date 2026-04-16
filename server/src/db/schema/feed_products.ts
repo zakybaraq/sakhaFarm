@@ -15,7 +15,7 @@ import {
 export const feedProducts = mysqlTable(
   'feed_products',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     code: varchar('code', { length: 20 }).notNull(),
     name: varchar('name', { length: 100 }).notNull(),
     phase: varchar('phase', { length: 20 }).notNull(),

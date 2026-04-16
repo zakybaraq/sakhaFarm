@@ -16,7 +16,7 @@ import { units } from './units'
 export const plasmas = mysqlTable(
   'plasmas',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     unitId: int('unit_id').notNull().references(() => units.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 100 }).notNull(),
     farmerName: varchar('farmer_name', { length: 100 }),

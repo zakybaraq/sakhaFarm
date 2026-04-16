@@ -16,7 +16,7 @@ import { permissions } from './permissions'
 export const rolePermissions = mysqlTable(
   'role_permissions',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     roleId: int('role_id').notNull().references(() => roles.id, { onDelete: 'cascade' }),
     permissionId: int('permission_id').notNull().references(() => permissions.id, { onDelete: 'cascade' }),
     action: varchar('action', { length: 10 }).notNull(),

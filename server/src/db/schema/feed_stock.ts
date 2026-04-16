@@ -17,7 +17,7 @@ import { feedProducts } from './feed_products'
 export const feedStock = mysqlTable(
   'feed_stock',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     plasmaId: int('plasma_id').notNull().references(() => plasmas.id, { onDelete: 'cascade' }),
     feedProductId: int('feed_product_id').notNull().references(() => feedProducts.id, { onDelete: 'restrict' }),
     openingStockKg: decimal('opening_stock_kg', { precision: 10, scale: 3 }).default('0'),

@@ -15,7 +15,7 @@ import { tenants } from './tenants'
 export const units = mysqlTable(
   'units',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     tenantId: int('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 100 }).notNull(),
     code: varchar('code', { length: 20 }).notNull(),

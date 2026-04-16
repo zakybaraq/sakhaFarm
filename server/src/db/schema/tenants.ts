@@ -17,7 +17,7 @@ export const tenants = mysqlTable(
   'tenants',
   {
     /** Auto-incrementing primary key. */
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     /** Human-readable tenant name, max 100 characters. */
     name: varchar('name', { length: 100 }).notNull(),
     /** URL-safe slug identifier, max 50 characters. */

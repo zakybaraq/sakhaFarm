@@ -17,7 +17,7 @@ import { plasmas } from './plasmas'
 export const cycles = mysqlTable(
   'cycles',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     plasmaId: int('plasma_id').notNull().references(() => plasmas.id, { onDelete: 'cascade' }),
     cycleNumber: int('cycle_number').notNull(),
     docType: varchar('doc_type', { length: 50 }).notNull(),

@@ -19,7 +19,7 @@ import { cycles } from './cycles'
 export const dailyRecordings = mysqlTable(
   'daily_recordings',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     cycleId: int('cycle_id').notNull().references(() => cycles.id, { onDelete: 'cascade' }),
     recordingDate: date('recording_date').notNull(),
     dayAge: int('day_age').notNull(),

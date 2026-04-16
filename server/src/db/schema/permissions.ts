@@ -1,6 +1,6 @@
 import {
   mysqlTable,
-  serial,
+  int,
   varchar,
   text,
   timestamp,
@@ -13,7 +13,7 @@ import {
 export const permissions = mysqlTable(
   'permissions',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     name: varchar('name', { length: 100 }).notNull(),
     description: text('description'),
     category: varchar('category', { length: 50 }).notNull(),

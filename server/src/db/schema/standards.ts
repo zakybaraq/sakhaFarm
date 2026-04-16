@@ -16,7 +16,7 @@ import {
 export const standards = mysqlTable(
   'standards',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     docType: varchar('doc_type', { length: 50 }).notNull(),
     dayAge: int('day_age').notNull(),
     standardBwG: decimal('standard_bw_g', { precision: 10, scale: 3 }).notNull(),
