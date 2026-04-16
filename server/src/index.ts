@@ -31,6 +31,7 @@ const app = new Elysia()
   .use(tenantPlugin)
   .use(rbacPlugin)
   .use(rbacController)
+  .use(usersController)
   .use(authController)
   .get('/api/health', () => ({
     status: 'ok',
