@@ -53,6 +53,7 @@ Plans:
 
 ### Phase 3: RBAC Manager & User Management
 **Goal**: Build complete RBAC management system (roles, permissions CRUD) and user management module for superadmin.
+**Plans:** 3 plans
 **Deliverables**:
 - **Backend — RBAC Manager**:
   - Role CRUD endpoints: create, list, get, update, soft-delete roles
@@ -90,6 +91,11 @@ Plans:
 - All RBAC mutations logged in audit_logs with actor info
 - Junior developer can understand the permission check flow by reading code
 **Depends on**: Phase 2
+
+Plans:
+- [ ] 03-01-PLAN.md — RBAC Manager: role CRUD, permission CRUD, role-permission assignment with audit logging
+- [ ] 03-02-PLAN.md — User Management: user CRUD, password reset, search/filter, CSV bulk import
+- [ ] 03-03-PLAN.md — Wiring: seed default permissions/roles, register routes in server entry point
 
 ### Phase 4: Unit, Plasma & Cycle CRUD
 **Goal**: Complete CRUD for organizational hierarchy: Unit → Plasma → Cycle.
