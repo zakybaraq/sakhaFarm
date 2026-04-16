@@ -29,6 +29,7 @@ export const cycles = mysqlTable(
     totalFeedKg: decimal('total_feed_kg', { precision: 10, scale: 3 }).default('0'),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+    deletedAt: timestamp('deleted_at'),
   },
   (table) => ({
     idxCyclesPlasma: index('idx_cycles_plasma').on(table.plasmaId),
