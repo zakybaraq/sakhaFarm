@@ -5,6 +5,7 @@ import { authController } from './modules/auth/auth.controller'
 import { usersController } from './modules/users/users.routes'
 import { rbacController } from './modules/rbac/rbac.routes'
 import { plasmaController } from './modules/plasma/plasma.routes'
+import { cycleController } from './modules/cycle/cycle.routes'
 import { sessionPlugin } from './plugins/session'
 import { tenantPlugin } from './plugins/tenant'
 import { rbacPlugin } from './plugins/rbac'
@@ -43,6 +44,7 @@ const app = new Elysia()
   .use(rateLimitPlugin)
   .use(rbacController)
   .use(plasmaController)
+  .use(cycleController)
   .use(usersController)
   .use(authController)
   .get('/api/health', () => ({
