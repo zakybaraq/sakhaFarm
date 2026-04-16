@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: — Core Farm Management
-status: Executing Phase 4
+status: Executing Phase 5
 last_updated: "2026-04-16T21:49:07.701Z"
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 15
-  completed_plans: 7
+  completed_plans: 8
   percent: 47
 ---
 
@@ -28,7 +28,7 @@ progress:
 | 2. Authentication, Session & Multi-Tenancy | 🔧 In Progress | Planning + executing |
 | 3. RBAC Manager & User Management | ⏳ Pending | Role/permission CRUD, user CRUD for superadmin |
 | 4. Unit, Plasma & Cycle CRUD | 🔧 In Progress | Phase 4 Plan 03 (Cycle CRUD) complete |
-| 5. Daily Recording & Standard Comparison | ⏳ Pending | Auto FCR/IP/SR calculations |
+| 5. Daily Recording & Standard Comparison | 🔧 In Progress | Plan 01 (Recording CRUD) complete |
 | 6. Feed Inventory Management | ⏳ Pending | Surat Jalan + stock tracking |
 | 7. Inventory Resume & Reporting | ⏳ Pending | Aggregate queries, export |
 | 8. Frontend — Layout & Dashboard | ⏳ Pending | Separated Sidebar/Navbar/Footer |
@@ -94,6 +94,7 @@ Run `/gsd-plan-phase 2` to create detailed execution plan for Phase 2 Wave 3 (ra
 - **Plan 2** (Session, Tenant, RBAC middleware): ✅ Complete — 2026-04-17, commit 9925d77
 - **Plan 03-01** (RBAC Manager backend): ✅ Complete — 2026-04-17, commit aa4e40a
 - **Plan 04-03** (Cycle CRUD backend): ✅ Complete — 2026-04-17, commit 81287e8
+- **Plan 05-01** (Recording CRUD): ✅ Complete — 2026-04-17, commits 875e7ba, 48d01aa
 
 ## Performance Metrics
 
@@ -103,3 +104,4 @@ Run `/gsd-plan-phase 2` to create detailed execution plan for Phase 2 Wave 3 (ra
 | 04-02 | ~8min | 2 | 5 | 2026-04-17 |
 | 04-03 | ~15min | 3 | 7 | 2026-04-17 |
 | Phase 04-unit-plasma-cycle-crud P03 | ~15min | 3 tasks | 7 files |
+| Plan 05-01 (Recording CRUD) | ~5min | 4 tasks | 4 files |
