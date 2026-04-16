@@ -1,6 +1,20 @@
 import { Elysia, t } from 'elysia'
 import { lucia } from '../../auth/lucia'
-import { registerUser, loginUser, logoutUser, validateUserSession } from './auth.service'
+import { db } from '../../config/database'
+import { users } from '../../db/schema'
+import { eq } from 'drizzle-orm'
+import {
+  registerUser,
+  loginUser,
+  logoutUser,
+  validateUserSession,
+  getUserProfile,
+  changePassword,
+  adminResetPassword,
+  getUserSessions,
+  revokeSession,
+  revokeAllOtherSessions,
+} from './auth.service'
 
 export const authController = new Elysia({ prefix: '/api/auth' })
   .post(
@@ -62,4 +76,105 @@ export const authController = new Elysia({ prefix: '/api/auth' })
       return { error: 'Session expired' }
     }
     return { user: { id: user.id, email: user.email, name: user.name } }
+  })
+  .get('/profile', async ({ cookie }) => {
+    const sessionId = cookie.auth_session?.value as string | undefined
+    if (!sessionId) {
+      return { error: 'Not authenticated' }
+    }
+    const { user, session } = await validateUserSession(sessionId)
+    if (!user || !session) {
+      return { error: 'Session expired' }
+    }
+    const profile = await getUserProfile(user.id)
+    return { profile }
+  })
+  .put(
+    '/profile',
+    async ({ cookie, body }) => {
+      const sessionId = cookie.auth_session?.value as string | undefined
+      if (!sessionId) {
+        return { error: 'Not authenticated' }
+      }
+      const { user, session } = await validateUserSession(sessionId)
+      if (!user || !session) {
+        return { error: 'Session expired' }
+      }
+      await db.update(users).set({ name: body.name }).where(eq(users.id, user.id))
+      return { success: true }
+    },
+    {
+      body: t.Object({
+        name: t.String({ minLength: 2, maxLength: 100 }),
+      }),
+    },
+  )
+  .post(
+    '/change-password',
+    async ({ cookie, body }) => {
+      const sessionId = cookie.auth_session?.value as string | undefined
+      if (!sessionId) {
+        return { error: 'Not authenticated' }
+      }
+      const { user, session } = await validateUserSession(sessionId)
+      if (!user || !session) {
+        return { error: 'Session expired' }
+      }
+      await changePassword(user.id, body.currentPassword, body.newPassword)
+      return { success: true }
+    },
+    {
+      body: t.Object({
+        currentPassword: t.String(),
+        newPassword: t.String(),
+      }),
+    },
+  )
+  .post(
+    '/reset-password',
+    async ({ cookie, body }) => {
+      const sessionId = cookie.auth_session?.value as string | undefined
+      if (!sessionId) {
+        return { error: 'Not authenticated' }
+      }
+      const { user, session } = await validateUserSession(sessionId)
+      if (!user || !session) {
+        return { error: 'Not authenticated' }
+      }
+      const tempPassword = await adminResetPassword(body.userId, user.id)
+      return { success: true, tempPassword }
+    },
+    {
+      body: t.Object({
+        userId: t.String(),
+      }),
+    },
+  )
+  .get('/sessions', async ({ cookie }) => {
+    const sessionId = cookie.auth_session?.value as string | undefined
+    if (!sessionId) {
+      return { error: 'Not authenticated' }
+    }
+    const { user, session } = await validateUserSession(sessionId)
+    if (!user || !session) {
+      return { error: 'Session expired' }
+    }
+    const sessions = await getUserSessions(user.id)
+    return { sessions }
+  })
+  .delete('/sessions/:id', async ({ params }) => {
+    await revokeSession(params.id)
+    return { success: true }
+  })
+  .delete('/sessions', async ({ cookie }) => {
+    const sessionId = cookie.auth_session?.value as string | undefined
+    if (!sessionId) {
+      return { error: 'Not authenticated' }
+    }
+    const { user, session } = await validateUserSession(sessionId)
+    if (!user || !session) {
+      return { error: 'Session expired' }
+    }
+    await revokeAllOtherSessions(user.id, sessionId)
+    return { success: true }
   })
