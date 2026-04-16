@@ -99,7 +99,7 @@ Plans:
 
 ### Phase 4: Unit, Plasma & Cycle CRUD
 **Goal**: Complete CRUD for organizational hierarchy: Unit → Plasma → Cycle.
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 **Deliverables**:
 - Unit CRUD endpoints (create, list, get, update, soft-delete)
 - Plasma CRUD endpoints (with unit assignment, capacity tracking)
@@ -115,9 +115,9 @@ Plans:
 **Depends on**: Phase 3
 
 Plans:
-- [ ] 04-01-PLAN.md — Unit module: CRUD with tenant isolation, soft-delete, active plasmas guard
-- [ ] 04-02-PLAN.md — Plasma module: CRUD with unit ownership verification, active cycles guard
-- [ ] 04-03-PLAN.md — Cycle module: Chick-In, status transitions, schema migration, route registration
+- [x] 04-01-PLAN.md — Unit module: CRUD with tenant isolation, soft-delete, active plasmas guard
+- [x] 04-02-PLAN.md — Plasma module: CRUD with unit ownership verification, active cycles guard
+- [x] 04-03-PLAN.md — Cycle module: Chick-In, status transitions, schema migration, route registration
 
 Plans:
 - [ ] 04-01-PLAN.md — Unit module: CRUD with tenant isolation, soft-delete, active plasmas guard
