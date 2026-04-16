@@ -31,6 +31,7 @@ export const dailyRecordings = mysqlTable(
     notes: text('notes'),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+    deletedAt: timestamp('deleted_at'),
   },
   (table) => ({
     cycleDateUnique: unique('uq_cycle_recording_date').on(table.cycleId, table.recordingDate),

@@ -7,6 +7,8 @@ import {
   updateRecording,
   softDeleteRecording,
 } from './recordings.service'
+import { importBulk } from './recordings.bulk'
+import { getCycleSummary } from './recordings.summary'
 import {
   RecordingNotFoundError,
   CycleNotActiveError,
@@ -152,6 +154,32 @@ export const recordingsController = new Elysia({ prefix: '/api/recordings' })
       beforeHandle: requirePermission('recording.delete'),
       params: t.Object({
         id: t.String({ format: 'integer' }),
+      }),
+    },
+  )
+  .post(
+    '/bulk',
+    async ({ body, store, cookie, headers, tenantId }) => {
+      const currentTenantId = getTenantId(store, headers, tenantId)
+      if (!currentTenantId || currentTenantId === 0) {
+        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+      }
+      const sessionId = cookie.auth_session?.value as string | undefined
+      const userId = sessionId || 'system'
+
+      const result = await importBulk(
+        body.csv,
+        body.cycleId,
+        currentTenantId,
+        userId,
+      )
+      return result
+    },
+    {
+      beforeHandle: requirePermission('recording.create'),
+      body: t.Object({
+        csv: t.String(),
+        cycleId: t.Number(),
       }),
     },
   )
