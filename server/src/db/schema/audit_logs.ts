@@ -13,13 +13,13 @@ import { users } from './users'
  * Audit logs table — records user actions with before/after values
  * for compliance, debugging, and security auditing.
  *
- * Note: userId is varchar(15) to match Lucia-generated user IDs.
+ * Note: userId is varchar(16) to match Lucia-generated user IDs.
  */
 export const auditLogs = mysqlTable(
   'audit_logs',
   {
     id: int('id').autoincrement().primaryKey(),
-    userId: varchar('user_id', { length: 15 }).notNull().references(() => users.id, { onDelete: 'restrict' }),
+    userId: varchar('user_id', { length: 16 }).notNull().references(() => users.id, { onDelete: 'restrict' }),
     action: varchar('action', { length: 100 }).notNull(),
     resource: varchar('resource', { length: 100 }),
     resourceId: varchar('resource_id', { length: 100 }),

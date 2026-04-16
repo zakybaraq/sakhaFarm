@@ -16,7 +16,7 @@ import { users } from './users'
  * Feed movements table — records all feed stock movements (in/out)
  * with quantity in both kg and zak, linked to a reference.
  *
- * Note: createdBy is varchar(15) to match Lucia-generated user IDs.
+ * Note: createdBy is varchar(16) to match Lucia-generated user IDs.
  */
 export const feedMovements = mysqlTable(
   'feed_movements',
@@ -30,7 +30,7 @@ export const feedMovements = mysqlTable(
     referenceType: varchar('reference_type', { length: 30 }),
     referenceId: int('reference_id'),
     notes: text('notes'),
-    createdBy: varchar('created_by', { length: 15 }).references(() => users.id, { onDelete: 'set null' }),
+    createdBy: varchar('created_by', { length: 16 }).references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at').defaultNow(),
   },
   (table) => ({

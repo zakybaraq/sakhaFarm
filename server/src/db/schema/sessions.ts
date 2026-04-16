@@ -10,7 +10,7 @@ export const sessions = mysqlTable(
   'sessions',
   {
     id: varchar('id', { length: 255 }).primaryKey(),
-    userId: varchar('user_id', { length: 15 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 16 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
     expiresAt: timestamp('expires_at').notNull(),
   },
   (table) => ({

@@ -12,14 +12,14 @@ import { tenants } from './tenants'
  * Users table — authenticated users belonging to a tenant and role.
  *
  * Adapted for Lucia Auth v3:
- * - `id` is varchar(15) — Lucia generates IDs via `generateIdFromEntropySize(10)`
+ * - `id` is varchar(16) — Lucia generates IDs via `generateIdFromEntropySize(10)`
  * - `passwordHash` stores the Argon2id hash (Lucia v3 does NOT use a keys table)
- * - All FK references from other tables must also be varchar(15)
+ * - All FK references from other tables must also be varchar(16)
  */
 export const users = mysqlTable(
   'users',
   {
-    id: varchar('id', { length: 15 }).primaryKey(),
+    id: varchar('id', { length: 16 }).primaryKey(),
     email: varchar('email', { length: 255 }).notNull(),
     passwordHash: varchar('password_hash', { length: 255 }).notNull(),
     name: varchar('name', { length: 100 }).notNull(),

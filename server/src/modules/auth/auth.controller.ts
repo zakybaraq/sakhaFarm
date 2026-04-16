@@ -6,9 +6,12 @@ export const authController = new Elysia({ prefix: '/api/auth' })
   .post(
     '/register',
     async ({ body, cookie }) => {
-      const { sessionCookie } = await registerUser(body.email, body.password, body.name, body.roleId, body.tenantId)
-      sessionCookie.set(cookie)
-      return { success: true }
+      const { userId, sessionCookie } = await registerUser(body.email, body.password, body.name, body.roleId, body.tenantId)
+      cookie[sessionCookie.name].set({
+        value: sessionCookie.value,
+        ...sessionCookie.attributes,
+      })
+      return { success: true, userId }
     },
     {
       body: t.Object({
@@ -24,8 +27,11 @@ export const authController = new Elysia({ prefix: '/api/auth' })
     '/login',
     async ({ body, cookie }) => {
       const { user, sessionCookie } = await loginUser(body.email, body.password)
-      sessionCookie.set(cookie)
-      return { success: true, user: { id: user.userId, email: user.email, name: user.name } }
+      cookie[sessionCookie.name].set({
+        value: sessionCookie.value,
+        ...sessionCookie.attributes,
+      })
+      return { success: true, user: { id: user.id, email: user.email, name: user.name } }
     },
     {
       body: t.Object({
@@ -35,16 +41,19 @@ export const authController = new Elysia({ prefix: '/api/auth' })
     },
   )
   .post('/logout', async ({ cookie }) => {
-    const sessionId = cookie.auth_session?.value
+    const sessionId = cookie.auth_session?.value as string | undefined
     if (sessionId) {
       await logoutUser(sessionId)
     }
     const blankCookie = lucia.createBlankSessionCookie()
-    blankCookie.set(cookie)
+    cookie[blankCookie.name].set({
+      value: blankCookie.value,
+      ...blankCookie.attributes,
+    })
     return { success: true }
   })
   .get('/me', async ({ cookie }) => {
-    const sessionId = cookie.auth_session?.value
+    const sessionId = cookie.auth_session?.value as string | undefined
     if (!sessionId) {
       return { error: 'Not authenticated' }
     }
@@ -52,5 +61,5 @@ export const authController = new Elysia({ prefix: '/api/auth' })
     if (!user || !session) {
       return { error: 'Session expired' }
     }
-    return { user: { id: user.userId, email: user.email, name: user.name } }
+    return { user: { id: user.id, email: user.email, name: user.name } }
   })
