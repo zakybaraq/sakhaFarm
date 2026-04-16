@@ -2,6 +2,8 @@ import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { env, validateEnv } from './config/env'
 import { authController } from './modules/auth/auth.controller'
+import { usersController } from './modules/users/users.routes'
+import { rbacController } from './modules/rbac/rbac.routes'
 import { sessionPlugin } from './plugins/session'
 import { tenantPlugin } from './plugins/tenant'
 import { rbacPlugin } from './plugins/rbac'
@@ -28,6 +30,7 @@ const app = new Elysia()
   .use(sessionPlugin)
   .use(tenantPlugin)
   .use(rbacPlugin)
+  .use(rbacController)
   .use(authController)
   .get('/api/health', () => ({
     status: 'ok',
