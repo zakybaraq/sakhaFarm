@@ -1,18 +1,14 @@
 import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { env, validateEnv } from './config/env'
-
-/**
- * SakhaFarm API — Poultry Plasma Farm Management System
- * 
- * Main application entry point. Configures middleware, plugins, and routes.
- */
+import { authController } from './modules/auth/auth.controller'
 
 const app = new Elysia()
   .use(cors({
     origin: env.CORS_ORIGIN,
     credentials: true,
   }))
+  .use(authController)
   .get('/api/health', () => ({
     status: 'ok',
     timestamp: new Date().toISOString(),

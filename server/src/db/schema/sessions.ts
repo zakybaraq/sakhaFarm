@@ -2,23 +2,19 @@ import {
   mysqlTable,
   varchar,
   timestamp,
-  json,
   index,
 } from 'drizzle-orm/mysql-core'
+import { users } from './users'
 
-/**
- * Sessions table — stores session data for authentication,
- * keyed by session ID with JSON payload and expiration.
- */
 export const sessions = mysqlTable(
   'sessions',
   {
     id: varchar('id', { length: 255 }).primaryKey(),
-    data: json('data').notNull(),
+    userId: varchar('user_id', { length: 15 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
     expiresAt: timestamp('expires_at').notNull(),
-    createdAt: timestamp('created_at').defaultNow(),
   },
   (table) => ({
+    idxSessionsUser: index('idx_sessions_user').on(table.userId),
     idxSessionsExpires: index('idx_sessions_expires').on(table.expiresAt),
   })
 )
