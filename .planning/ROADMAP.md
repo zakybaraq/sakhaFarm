@@ -22,10 +22,10 @@
 **Depends on**: None
 
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo scaffold, server config (env, DB, Redis), Elysia entry, Vitest
-- [ ] 01-02-PLAN.md — Complete Drizzle schema for all 16 tables with FK, indexes, constraints
-- [ ] 01-03-PLAN.md — Migration generation, seed script for initial data
-- [ ] 01-04-PLAN.md — Client scaffold (Vite + React + MUI + TanStack Query + Router + Vitest)
+- [ ] 02-01-PLAN.md — Lucia Auth setup, user/session schema, register/login/logout endpoints
+- [ ] 02-02-PLAN.md — Session, tenant, and RBAC middleware
+- [ ] 02-03-PLAN.md — Rate limiting, brute-force protection, security headers
+- [ ] 02-04-PLAN.md — Profile endpoint, password change, session invalidation, force-password-change
 
 ### Phase 2: Authentication, Session & Multi-Tenancy
 **Goal**: Implement JWT authentication with Redis-backed sessions, cookie security, RBAC middleware, and tenant isolation.
