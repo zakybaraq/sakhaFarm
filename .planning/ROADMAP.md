@@ -4,6 +4,7 @@
 
 ### Phase 1: Project Setup & Database Schema
 **Goal**: Initialize monorepo structure, configure Elysia + Drizzle + MySQL + Redis + Vitest, create complete database schema with migrations.
+**Plans:** 4 plans
 **Deliverables**:
 - Monorepo scaffold: `server/` (Elysia) + `client/` (React + Vite)
 - Server: tsconfig, Elysia setup, Drizzle MySQL connection pool, Redis client, Vitest config
@@ -19,6 +20,12 @@
 - All 16+ tables created with correct constraints, indexes, foreign keys
 - `bun run test` runs Vitest with 0 failures (empty test suite passes)
 **Depends on**: None
+
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo scaffold, server config (env, DB, Redis), Elysia entry, Vitest
+- [ ] 01-02-PLAN.md — Complete Drizzle schema for all 16 tables with FK, indexes, constraints
+- [ ] 01-03-PLAN.md — Migration generation, seed script for initial data
+- [ ] 01-04-PLAN.md — Client scaffold (Vite + React + MUI + TanStack Query + Router + Vitest)
 
 ### Phase 2: Authentication, Session & Multi-Tenancy
 **Goal**: Implement JWT authentication with Redis-backed sessions, cookie security, RBAC middleware, and tenant isolation.
