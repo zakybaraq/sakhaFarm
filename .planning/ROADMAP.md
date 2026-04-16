@@ -93,7 +93,7 @@ Plans:
 **Depends on**: Phase 2
 
 Plans:
-- [ ] 03-01-PLAN.md — RBAC Manager: role CRUD, permission CRUD, role-permission assignment with audit logging
+- [x] 03-01-PLAN.md — RBAC Manager: role CRUD, permission CRUD, role-permission assignment with audit logging ✅
 - [ ] 03-02-PLAN.md — User Management: user CRUD, password reset, search/filter, CSV bulk import
 - [ ] 03-03-PLAN.md — Wiring: seed default permissions/roles, register routes in server entry point
 
