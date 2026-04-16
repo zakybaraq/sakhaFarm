@@ -1,0 +1,16 @@
+{
+  "name": "sakhafarm",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:server": "bun run --cwd server dev",
+    "dev:client": "bun run --cwd client dev",
+    "dev": "bun run --bun concurrently --names \"server,client\" --prefix-colors \"blue,green\" \"bun run --cwd server dev\" \"bun run --cwd client dev\"",
+    "test": "bun run --cwd server test && bun run --cwd client test",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

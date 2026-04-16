@@ -1,0 +1,35 @@
+{
+  "projectName": "SakhaFarm",
+  "milestone": "v1.0",
+  "currentPhase": 0,
+  "totalPhases": 10,
+  "techStack": {
+    "runtime": "bun",
+    "backend": "elysia",
+    "orm": "drizzle",
+    "database": "mysql",
+    "cache": "redis",
+    "frontend": "react-vite",
+    "ui": "mui",
+    "testing": "vitest",
+    "session": "redis-backed",
+    "security": "jwt+csrf+rbac+csp"
+  },
+  "workflow": {
+    "autoMode": false,
+    "skipResearch": false,
+    "requireVerification": true
+  },
+  "pendingUserInputs": [
+    "CSV/Excel files for feed product types"
+  ],
+  "focusAreas": [
+    "session-cookie-security",
+    "cybersecurity-hardening",
+    "modern-minimalist-ui",
+    "separated-layout-components",
+    "rbac-manager",
+    "user-management",
+    "code-documentation-standards"
+  ]
+}

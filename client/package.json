@@ -1,0 +1,35 @@
+{
+  "name": "sakhafarm-client",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0",
+    "@tanstack/react-query": "^5.76.0",
+    "@mui/material": "^7.1.0",
+    "@mui/icons-material": "^7.1.0",
+    "@mui/x-charts": "^8.5.0",
+    "@mui/x-data-grid": "^8.5.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.5.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.0",
+    "vitest": "^3.1.0",
+    "@testing-library/react": "^16.3.0",
+    "jsdom": "^26.1.0"
+  }
+}
