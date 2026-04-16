@@ -1,0 +1,1 @@
+export { recordingsController } from './recordings.controller'
