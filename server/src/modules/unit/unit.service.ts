@@ -41,7 +41,7 @@ export async function createUnit(
     tenantId,
   })
 
-  const newId = (result as any).insertId
+  const newId = result[0].insertId
 
   try {
     await db.insert(auditLogs).values({

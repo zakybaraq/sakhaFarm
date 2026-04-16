@@ -59,7 +59,7 @@ describe('Plasma Service', () => {
     await db.insert(tenants).values({
       id: TEST_TENANT_ID,
       name: 'Test Tenant',
-      code: 'TEST',
+      slug: 'test-tenant',
     }).onDuplicateKeyUpdate({ set: { name: 'Test Tenant' } })
 
     // Create test unit

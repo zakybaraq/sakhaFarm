@@ -89,7 +89,7 @@ describe('unit.service.ts', () => {
         where: vi.fn().mockResolvedValue([]),
       }
       const mockInsert = {
-        values: vi.fn().mockResolvedValue({ insertId: 1 }),
+        values: vi.fn().mockResolvedValue([{ insertId: 1 }]),
       }
       const mockAuditInsert = {
         values: vi.fn().mockResolvedValue(undefined),
