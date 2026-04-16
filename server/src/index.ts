@@ -5,8 +5,11 @@ import { authController } from './modules/auth/auth.controller'
 import { sessionPlugin } from './plugins/session'
 import { tenantPlugin } from './plugins/tenant'
 import { rbacPlugin } from './plugins/rbac'
+import { rateLimit } from './plugins/rate-limit'
+import { securityHeadersPlugin } from './plugins/security-headers'
 
 const app = new Elysia()
+  .use(securityHeadersPlugin)
   .use(cors({
     origin: env.CORS_ORIGIN,
     credentials: true,

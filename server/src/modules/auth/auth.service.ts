@@ -2,8 +2,12 @@ import { hash, verify } from '@node-rs/argon2'
 import { generateIdFromEntropySize } from 'lucia'
 import { lucia } from '../../auth/lucia'
 import { db } from '../../config/database'
+import { redis } from '../../config/redis'
 import { users } from '../../db/schema'
 import { eq } from 'drizzle-orm'
+
+const BRUTE_FORCE_WINDOW = 900
+const BRUTE_FORCE_MAX_ATTEMPTS = 5
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
 
@@ -63,9 +67,19 @@ export async function registerUser(
  * Authenticates user with email and password.
  */
 export async function loginUser(email: string, password: string) {
-  const existingUser = await db.select().from(users).where(eq(users.email, email.toLowerCase()))
+  const normalizedEmail = email.toLowerCase()
+  const bruteForceKey = `bruteforce:login:${normalizedEmail}`
+
+  const redisAttempts = await redis.get(bruteForceKey)
+  if (redisAttempts && parseInt(redisAttempts, 10) >= BRUTE_FORCE_MAX_ATTEMPTS) {
+    throw new Error('Account temporarily locked due to too many failed login attempts')
+  }
+
+  const existingUser = await db.select().from(users).where(eq(users.email, normalizedEmail))
 
   if (existingUser.length === 0) {
+    await redis.incr(bruteForceKey)
+    await redis.expire(bruteForceKey, BRUTE_FORCE_WINDOW)
     throw new Error('Invalid email or password')
   }
 
@@ -83,6 +97,9 @@ export async function loginUser(email: string, password: string) {
   })
 
   if (!validPassword) {
+    await redis.incr(bruteForceKey)
+    await redis.expire(bruteForceKey, BRUTE_FORCE_WINDOW)
+
     const attempts = (user.failedLoginAttempts || 0) + 1
     await db.update(users).set({ failedLoginAttempts: attempts }).where(eq(users.id, user.id))
     if (attempts >= 5) {
@@ -90,6 +107,8 @@ export async function loginUser(email: string, password: string) {
     }
     throw new Error('Invalid email or password')
   }
+
+  await redis.del(bruteForceKey)
 
   const session = await lucia.createSession(user.id, {})
   const sessionCookie = lucia.createSessionCookie(session.id)
