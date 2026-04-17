@@ -119,13 +119,9 @@ Plans:
 - [x] 04-02-PLAN.md — Plasma module: CRUD with unit ownership verification, active cycles guard
 - [x] 04-03-PLAN.md — Cycle module: Chick-In, status transitions, schema migration, route registration
 
-Plans:
-- [ ] 04-01-PLAN.md — Unit module: CRUD with tenant isolation, soft-delete, active plasmas guard
-- [ ] 04-02-PLAN.md — Plasma module: CRUD with unit ownership verification, active cycles guard
-- [ ] 04-03-PLAN.md — Cycle module: Chick-In, status transitions, schema migration, route registration
-
 ### Phase 5: Daily Recording & Standard Comparison
 **Goal**: Implement daily recording input with automatic FCR, IP, SR calculations and BW deviation from standards.
+**Plans:** 2 plans
 **Deliverables**:
 - Daily recording endpoint (date, dead, culled, remaining_population, body_weight)
 - Auto-calculate: cumulative mortality, deplesi %, SR
@@ -141,15 +137,19 @@ Plans:
 - Recording for completed cycle rejected (400)
 **Depends on**: Phase 4
 
+Plans:
+- [x] 05-01-PLAN.md — Recording CRUD with validation (future dates, active cycles check)
+- [x] 05-02-PLAN.md — Bulk import CSV, cycle summary with IP calculation
+
 ### Phase 6: Feed Inventory Management
 **Goal**: Implement feed stock tracking with Surat Jalan (in) and Recording consumption (out).
+**Plans:** 2 plans
 **Deliverables**:
 - Feed product master CRUD (code, name, phase, default unit)
 - Surat Jalan endpoint: feed delivery that increases plasma stock
 - Feed consumption recording: deducts stock per feed type
 - Stock calculation: opening + in - out = closing (in both Zak and Kg)
 - Real-time stock query per plasma per feed type
-- Low stock alert threshold
 - Database transaction: stock update is atomic
 - Audit logging on all stock movements
 **Success Criteria**:
@@ -159,6 +159,10 @@ Plans:
 - Concurrent stock updates don't cause race conditions (transaction test)
 - Negative stock prevented (validation error)
 **Depends on**: Phase 4, Phase 5
+
+Plans:
+- [ ] 06-01-PLAN.md — Feed product CRUD + Surat Jalan (in) with atomic stock update
+- [ ] 06-02-PLAN.md — Feed consumption (out) + stock query with negative stock protection
 
 ### Phase 7: Inventory Resume & Reporting
 **Goal**: Build aggregate reports for stock resume and daily performance across units.
@@ -178,18 +182,26 @@ Plans:
 
 ### Phase 8: Frontend — React Layout & Dashboard
 **Goal**: Build the modern minimalist UI layout with separated Sidebar, Navbar, Footer components and core dashboard.
+**Plans:** 3 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — TypeScript types, API client, auth system, server endpoint extension
+- [ ] 08-02-PLAN.md — MUI theme extension, layout components (Sidebar/Navbar/Footer), Login page, routing
+- [ ] 08-03-PLAN.md — Dashboard KPI cards, API modules, TanStack Query hooks
+
 **Deliverables**:
 - Vite + React 18 setup with React Router + TanStack Query
 - MUI theme: custom minimalist design (neutral palette, green accent, subtle shadows)
 - **Layout components** (separated):
   - `Sidebar.tsx` — Collapsible navigation, role-aware menu items, active state highlighting
-  - `Navbar.tsx` — Top bar with breadcrumbs, user dropdown, tenant switcher, notification bell
+  - `Navbar.tsx` — Top bar with breadcrumbs, user dropdown, notification bell
   - `Footer.tsx` — App version, copyright, system status indicator
   - `Layout.tsx` — Composes all three + content outlet with responsive breakpoints
 - Login page with clean minimalist form
 - Dashboard: KPI cards (active cycles, avg FCR, avg IP, low stock alerts)
-- Unit list → Plasma list → Cycle detail navigation
 - Protected route wrapper with auth check
+- Server-side /api/auth/permissions endpoint for menu filtering
+- Server-side /api/auth/me extended with roleId and tenantId
 **Success Criteria**:
 - Sidebar collapses/expands smoothly, menu items reflect user role
 - Navbar shows correct breadcrumbs per route
