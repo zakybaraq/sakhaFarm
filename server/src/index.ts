@@ -7,6 +7,9 @@ import { rbacController } from './modules/rbac/rbac.routes'
 import { plasmaController } from './modules/plasma/plasma.routes'
 import { unitController } from './modules/unit/unit.routes'
 import { cycleController } from './modules/cycle/cycle.routes'
+import { recordingsController } from './modules/recordings/recordings.routes'
+import { reportingController } from './modules/reporting/reporting.routes'
+import { feedController } from './modules/feed/feed.routes'
 import { sessionPlugin } from './plugins/session'
 import { tenantPlugin } from './plugins/tenant'
 import { rbacPlugin } from './plugins/rbac'
@@ -29,7 +32,15 @@ const app = new Elysia()
     if (request.method !== 'GET') {
       const origin = request.headers.get('Origin')
       const host = request.headers.get('Host')
-      if (!origin || !host || !verifyRequestOrigin(origin, [host])) {
+      if (!origin || !host) {
+        set.status = 403
+        return { error: 'Invalid origin', code: 'CSRF_ERROR' }
+      }
+      const allowedOrigins = [env.CORS_ORIGIN, `http://${host}`]
+      const isOriginAllowed = allowedOrigins.some(allowed => 
+        origin === allowed || (allowed.startsWith('http://localhost') && origin.startsWith('http://localhost'))
+      )
+      if (!isOriginAllowed && !verifyRequestOrigin(origin, [host])) {
         set.status = 403
         return { error: 'Invalid origin', code: 'CSRF_ERROR' }
       }
@@ -47,6 +58,9 @@ const app = new Elysia()
   .use(unitController)
   .use(plasmaController)
   .use(cycleController)
+  .use(recordingsController)
+  .use(reportingController)
+  .use(feedController)
   .use(usersController)
   .use(authController)
   .get('/api/health', () => ({

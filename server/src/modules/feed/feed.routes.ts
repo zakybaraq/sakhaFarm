@@ -1,0 +1,1 @@
+export { feedController } from './feed.controller'

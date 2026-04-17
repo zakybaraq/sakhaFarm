@@ -53,3 +53,27 @@ export class UserNotFoundError extends Error {
     this.name = 'UserNotFoundError'
   }
 }
+
+/**
+ * Thrown when a password does not meet strength requirements.
+ *
+ * @param message - Description of the password requirement that was not met
+ */
+export class WeakPasswordError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'WeakPasswordError'
+  }
+}
+
+/**
+ * Thrown when attempting to assign a non-existent tenant to a user.
+ *
+ * @param tenantId - The invalid tenant ID
+ */
+export class InvalidTenantError extends Error {
+  constructor(tenantId: number) {
+    super(`Tenant ID ${tenantId} does not exist`)
+    this.name = 'InvalidTenantError'
+  }
+}

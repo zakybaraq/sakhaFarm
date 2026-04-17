@@ -28,72 +28,74 @@ export async function createCycle(
   userId: string,
 ) {
   if (!VALID_DOC_TYPES.includes(input.docType as (typeof VALID_DOC_TYPES)[number])) {
-    throw new Error(`Invalid DOC type. Must be one of: ${VALID_DOC_TYPES.join(', ')}`)
+    throw new InvalidDocTypeError(input.docType, [...VALID_DOC_TYPES])
   }
 
-  const plasma = await db
-    .select()
-    .from(plasmas)
-    .leftJoin(units, eq(plasmas.unitId, units.id))
-    .where(
-      and(
-        eq(plasmas.id, input.plasmaId),
-        eq(units.tenantId, tenantId),
-        isNull(plasmas.deletedAt),
-      ),
-    )
-    .limit(1)
+  return db.transaction(async (tx) => {
+    const plasma = await tx
+      .select()
+      .from(plasmas)
+      .leftJoin(units, eq(plasmas.unitId, units.id))
+      .where(
+        and(
+          eq(plasmas.id, input.plasmaId),
+          eq(units.tenantId, tenantId),
+          isNull(plasmas.deletedAt),
+        ),
+      )
+      .limit(1)
 
-  if (plasma.length === 0) {
-    throw new CycleNotInTenantPlasmaError(input.plasmaId)
-  }
+    if (plasma.length === 0) {
+      throw new CycleNotInTenantPlasmaError(input.plasmaId)
+    }
 
-  const plasmaCapacity = plasma[0].plasmas.capacity ?? 0
-  if (input.initialPopulation > plasmaCapacity) {
-    throw new CycleCapacityExceededError(input.initialPopulation, plasmaCapacity)
-  }
+    const plasmaCapacity = plasma[0].plasmas.capacity ?? 0
+    if (input.initialPopulation > plasmaCapacity) {
+      throw new CycleCapacityExceededError(input.initialPopulation, plasmaCapacity)
+    }
 
-  const cycleNumberResult = await db
-    .select({ max: max(cycles.cycleNumber) })
-    .from(cycles)
-    .where(eq(cycles.plasmaId, input.plasmaId))
+    const cycleNumberResult = await tx
+      .select({ max: max(cycles.cycleNumber) })
+      .from(cycles)
+      .where(eq(cycles.plasmaId, input.plasmaId))
 
-  const cycleNumber = (cycleNumberResult[0]?.max ?? 0) + 1
+    const cycleNumber = (cycleNumberResult[0]?.max ?? 0) + 1
 
-  const result = await db.insert(cycles).values({
-    plasmaId: input.plasmaId,
-    cycleNumber,
-    docType: input.docType,
-    chickInDate: new Date(input.chickInDate),
-    initialPopulation: input.initialPopulation,
-    status: 'active',
-    totalFeedKg: '0',
-  })
-
-  const newId = result[0].insertId
-
-  try {
-    await db.insert(auditLogs).values({
-      userId,
-      action: 'create',
-      resource: 'cycle',
-      resourceId: String(newId),
-      newValue: JSON.stringify({ ...input, cycleNumber, status: 'active' }),
+    const result = await tx.insert(cycles).values({
+      plasmaId: input.plasmaId,
+      cycleNumber,
+      docType: input.docType,
+      chickInDate: new Date(input.chickInDate),
+      initialPopulation: input.initialPopulation,
+      status: 'active',
+      totalFeedKg: '0',
     })
-  } catch {
-    // Fire-and-forget audit logging
-  }
 
-  return {
-    id: newId,
-    plasmaId: input.plasmaId,
-    cycleNumber,
-    docType: input.docType,
-    chickInDate: input.chickInDate,
-    initialPopulation: input.initialPopulation,
-    status: 'active',
-    totalFeedKg: '0',
-  }
+    const newId = result[0].insertId
+
+    try {
+      await tx.insert(auditLogs).values({
+        userId,
+        action: 'create',
+        resource: 'cycle',
+        resourceId: String(newId),
+        newValue: JSON.stringify({ ...input, cycleNumber, status: 'active' }),
+      })
+    } catch {
+      // Fire-and-forget audit logging
+    }
+
+    return {
+      id: newId,
+      plasmaId: input.plasmaId,
+      cycleNumber,
+      docType: input.docType,
+      chickInDate: input.chickInDate,
+      initialPopulation: input.initialPopulation,
+      status: 'active',
+      totalFeedKg: '0',
+    }
+  })
 }
 
 /**
@@ -198,7 +200,7 @@ export async function updateCycle(
   }
 
   if (input.docType && !VALID_DOC_TYPES.includes(input.docType as (typeof VALID_DOC_TYPES)[number])) {
-    throw new Error(`Invalid DOC type. Must be one of: ${VALID_DOC_TYPES.join(', ')}`)
+    throw new InvalidDocTypeError(input.docType, [...VALID_DOC_TYPES])
   }
 
   if (input.initialPopulation !== undefined && existing.capacity != null) {
@@ -337,7 +339,7 @@ export async function failCycle(
 
   await db
     .update(cycles)
-    .set({ status: 'failed', harvestDate: new Date(input.harvestDate) })
+    .set({ status: 'failed', harvestDate: new Date(input.harvestDate), notes: input.notes ?? null })
     .where(eq(cycles.id, id))
 
   try {

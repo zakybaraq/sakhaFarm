@@ -11,21 +11,22 @@ import {
   updateUnit,
   softDeleteUnit,
 } from '../../server/src/modules/unit/unit.service'
-import { db } from '../../server/src/config/database'
-import { units, plasmas, auditLogs } from '../../server/src/db/schema'
-import { eq, and, isNull, desc, ne, count } from 'drizzle-orm'
 
-// Mock the database module
-vi.mock('../../server/src/config/database', () => ({
-  db: {
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    transaction: vi.fn(),
-  },
+const { mockSelect, mockInsert, mockUpdate, mockTransaction } = vi.hoisted(() => ({
+  mockSelect: vi.fn(),
+  mockInsert: vi.fn(),
+  mockUpdate: vi.fn(),
+  mockTransaction: vi.fn(),
 }))
 
-const mockDb = vi.mocked(db)
+vi.mock('../../server/src/config/database', () => ({
+  db: {
+    select: mockSelect,
+    insert: mockInsert,
+    update: mockUpdate,
+    transaction: mockTransaction,
+  },
+}))
 
 describe('unit.errors.ts', () => {
   describe('UnitNotFoundError', () => {
@@ -76,7 +77,7 @@ describe('unit.service.ts', () => {
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue([{ id: 1, code: 'UK-001' }]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         createUnit({ name: 'Unit Kuningan', code: 'UK-001', location: 'Kuningan' }, TENANT_ID, USER_ID),
@@ -95,8 +96,8 @@ describe('unit.service.ts', () => {
         values: vi.fn().mockResolvedValue(undefined),
       }
 
-      mockDb.select.mockReturnValue(mockSelect as any)
-      mockDb.insert
+      mockSelect.mockReturnValue(mockSelect as any)
+      mockInsert
         .mockReturnValueOnce(mockInsert as any)
         .mockReturnValueOnce(mockAuditInsert as any)
 
@@ -122,7 +123,7 @@ describe('unit.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockResolvedValue(mockUnits),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       const result = await listUnits(TENANT_ID)
 
@@ -135,7 +136,7 @@ describe('unit.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       const result = await listUnits(TENANT_ID)
 
@@ -150,7 +151,7 @@ describe('unit.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(getUnit(999, TENANT_ID)).rejects.toThrow(UnitNotFoundError)
     })
@@ -162,7 +163,7 @@ describe('unit.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([mockUnit]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       const result = await getUnit(1, TENANT_ID)
 
@@ -177,7 +178,7 @@ describe('unit.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         updateUnit(999, { name: 'New Name' }, TENANT_ID, USER_ID),
@@ -199,9 +200,9 @@ describe('unit.service.ts', () => {
         values: vi.fn().mockResolvedValue(undefined),
       }
 
-      mockDb.select.mockReturnValue(mockSelect as any)
-      mockDb.update.mockReturnValue(mockUpdate as any)
-      mockDb.insert.mockReturnValue(mockAuditInsert as any)
+      mockSelect.mockReturnValue(mockSelect as any)
+      mockUpdate.mockReturnValue(mockUpdate as any)
+      mockInsert.mockReturnValue(mockAuditInsert as any)
 
       const result = await updateUnit(1, { name: 'New Name' }, TENANT_ID, USER_ID)
 
@@ -216,7 +217,7 @@ describe('unit.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(softDeleteUnit(999, TENANT_ID, USER_ID)).rejects.toThrow(UnitNotFoundError)
     })
@@ -233,7 +234,7 @@ describe('unit.service.ts', () => {
         where: vi.fn().mockResolvedValue([{ count: 2 }]),
       }
 
-      mockDb.select
+      mockSelect
         .mockReturnValueOnce(mockSelect as any)
         .mockReturnValueOnce(mockPlasmaSelect as any)
 
@@ -259,11 +260,11 @@ describe('unit.service.ts', () => {
         values: vi.fn().mockResolvedValue(undefined),
       }
 
-      mockDb.select
+      mockSelect
         .mockReturnValueOnce(mockSelect as any)
         .mockReturnValueOnce(mockPlasmaSelect as any)
-      mockDb.update.mockReturnValue(mockUpdate as any)
-      mockDb.insert.mockReturnValue(mockAuditInsert as any)
+      mockUpdate.mockReturnValue(mockUpdate as any)
+      mockInsert.mockReturnValue(mockAuditInsert as any)
 
       const result = await softDeleteUnit(1, TENANT_ID, USER_ID)
 

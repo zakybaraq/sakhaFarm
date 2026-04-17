@@ -1,6 +1,6 @@
 import { db } from '../../config/database'
 import { roles, permissions, rolePermissions, users } from '../../db/schema'
-import { eq, and, eq as drizzleEq } from 'drizzle-orm'
+import { eq, and, ne, sql } from 'drizzle-orm'
 import { RoleHasUsersError, DefaultRoleError, PermissionAssignmentError } from './rbac.errors'
 
 /**
@@ -25,14 +25,15 @@ export async function createRole(name: string, description: string, tenantId: nu
 /**
  * Lists all roles for a given tenant.
  *
- * @param tenantId - Tenant ID to filter by (null returns system-level roles)
- * @returns Array of role records
+ * @param tenantId - Tenant ID to filter by (required — never returns unscoped data)
+ * @returns Array of role records for the specified tenant
+ * @throws Error if tenantId is null
  */
 export async function listRoles(tenantId: number | null) {
-  if (tenantId !== null) {
-    return await db.select().from(roles).where(eq(roles.tenantId, tenantId))
+  if (tenantId === null) {
+    throw new Error('tenantId is required — cannot list roles without tenant context')
   }
-  return await db.select().from(roles)
+  return await db.select().from(roles).where(and(eq(roles.tenantId, tenantId), ne(roles.isDefault, -1)))
 }
 
 /**
@@ -42,7 +43,7 @@ export async function listRoles(tenantId: number | null) {
  * @returns Role record or undefined if not found
  */
 export async function getRole(id: number) {
-  const result = await db.select().from(roles).where(eq(roles.id, id)).limit(1)
+  const result = await db.select().from(roles).where(and(eq(roles.id, id), ne(roles.isDefault, -1))).limit(1)
   return result[0]
 }
 
@@ -55,6 +56,15 @@ export async function getRole(id: number) {
  * @returns Updated role record
  */
 export async function updateRole(id: number, name: string, description: string) {
+  const role = await getRole(id)
+  if (!role) {
+    throw new Error('Role not found')
+  }
+
+  if (role.isDefault === 1) {
+    throw new DefaultRoleError(role.name)
+  }
+
   await db.update(roles)
     .set({ name, description })
     .where(eq(roles.id, id))
@@ -205,6 +215,11 @@ export async function assignPermission(roleId: number, permissionId: number, act
  * @throws PermissionAssignmentError if assignment not found
  */
 export async function removePermission(roleId: number, permissionId: number) {
+  const role = await getRole(roleId)
+  if (!role) {
+    throw new PermissionAssignmentError(`Role ${roleId} not found`)
+  }
+
   const existing = await db
     .select()
     .from(rolePermissions)
@@ -224,6 +239,7 @@ export async function removePermission(roleId: number, permissionId: number) {
 
 /**
  * Lists all permissions assigned to a role, joined with permission details.
+ * Super Admin gets all permissions implicitly (bypass).
  *
  * @param roleId - Role ID
  * @returns Array of permission assignments with permission metadata
@@ -232,6 +248,19 @@ export async function getRolePermissions(roleId: number) {
   const role = await getRole(roleId)
   if (!role) {
     throw new Error('Role not found')
+  }
+
+  if (role.name === 'Super Admin') {
+    return await db
+      .select({
+        id: permissions.id,
+        action: sql`'allow'`,
+        permissionId: permissions.id,
+        permissionName: permissions.name,
+        permissionDescription: permissions.description,
+        permissionCategory: permissions.category,
+      })
+      .from(permissions)
   }
 
   return await db

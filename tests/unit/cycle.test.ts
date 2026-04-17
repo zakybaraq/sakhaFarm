@@ -5,6 +5,7 @@ import {
   InvalidCycleStatusTransitionError,
   CycleNotInTenantPlasmaError,
   CycleHasRecordingsError,
+  InvalidDocTypeError,
 } from '../../server/src/modules/cycle/cycle.errors'
 import {
   createCycle,
@@ -15,19 +16,22 @@ import {
   completeCycle,
   failCycle,
 } from '../../server/src/modules/cycle/cycle.service'
-import { db } from '../../server/src/config/database'
 
-// Mock the database module
-vi.mock('../../server/src/config/database', () => ({
-  db: {
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    transaction: vi.fn(),
-  },
+const { mockSelect, mockInsert, mockUpdate, mockTransaction } = vi.hoisted(() => ({
+  mockSelect: vi.fn(),
+  mockInsert: vi.fn(),
+  mockUpdate: vi.fn(),
+  mockTransaction: vi.fn(),
 }))
 
-const mockDb = vi.mocked(db)
+vi.mock('../../server/src/config/database', () => ({
+  db: {
+    select: mockSelect,
+    insert: mockInsert,
+    update: mockUpdate,
+    transaction: mockTransaction,
+  },
+}))
 
 describe('cycle.errors.ts', () => {
   describe('CycleNotFoundError', () => {
@@ -74,6 +78,19 @@ describe('cycle.errors.ts', () => {
       expect(error.message).toBe('Cannot delete cycle "3": 0 daily recording(s) exist')
     })
   })
+
+  describe('InvalidDocTypeError', () => {
+    it('should create error with correct message and name', () => {
+      const error = new InvalidDocTypeError('InvalidType', ['CP', 'Patriot', 'Ayam Unggul', 'MBU'])
+      expect(error.message).toBe('Invalid DOC type "InvalidType". Must be one of: CP, Patriot, Ayam Unggul, MBU')
+      expect(error.name).toBe('InvalidDocTypeError')
+    })
+
+    it('should include provided type in message', () => {
+      const error = new InvalidDocTypeError('BROILER', ['CP', 'Cobb'])
+      expect(error.message).toContain('BROILER')
+    })
+  })
 })
 
 describe('cycle.service.ts', () => {
@@ -107,7 +124,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         createCycle(
@@ -125,7 +142,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([{ plasmas: { id: PLASMA_ID, capacity: 2000 } }]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         createCycle(
@@ -155,10 +172,10 @@ describe('cycle.service.ts', () => {
         values: vi.fn().mockResolvedValue(undefined),
       }
 
-      mockDb.select
+      mockSelect
         .mockReturnValueOnce(mockSelect as any)
         .mockReturnValueOnce(mockMaxSelect as any)
-      mockDb.insert
+      mockInsert
         .mockReturnValueOnce(mockInsert as any)
         .mockReturnValueOnce(mockAuditInsert as any)
 
@@ -185,7 +202,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockResolvedValue(mockCycles),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       const result = await listCycles(TENANT_ID)
 
@@ -200,7 +217,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(getCycle(999, TENANT_ID)).rejects.toThrow(CycleNotFoundError)
     })
@@ -213,7 +230,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([mockCycle]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       const result = await getCycle(1, TENANT_ID)
 
@@ -231,7 +248,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockResolvedValue(mockCycles),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       const result = await listCycles(TENANT_ID, PLASMA_ID)
 
@@ -248,7 +265,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockResolvedValue(mockCycles),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       const result = await listCycles(TENANT_ID, undefined, 'active')
 
@@ -264,7 +281,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(getCycle(999, TENANT_ID)).rejects.toThrow(CycleNotFoundError)
     })
@@ -277,7 +294,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([mockCycle]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       const result = await getCycle(1, TENANT_ID)
 
@@ -293,7 +310,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         updateCycle(999, { docType: 'CP' }, TENANT_ID, USER_ID),
@@ -308,7 +325,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([existingCycle]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         updateCycle(1, { docType: 'Patriot' }, TENANT_ID, USER_ID),
@@ -331,9 +348,9 @@ describe('cycle.service.ts', () => {
         values: vi.fn().mockResolvedValue(undefined),
       }
 
-      mockDb.select.mockReturnValue(mockSelect as any)
-      mockDb.update.mockReturnValue(mockUpdate as any)
-      mockDb.insert.mockReturnValue(mockAuditInsert as any)
+      mockSelect.mockReturnValue(mockSelect as any)
+      mockUpdate.mockReturnValue(mockUpdate as any)
+      mockInsert.mockReturnValue(mockAuditInsert as any)
 
       const result = await updateCycle(1, { docType: 'Patriot' }, TENANT_ID, USER_ID)
 
@@ -349,7 +366,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(softDeleteCycle(999, TENANT_ID, USER_ID)).rejects.toThrow(CycleNotFoundError)
     })
@@ -367,7 +384,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockResolvedValue([{ count: 5 }]),
       }
 
-      mockDb.select
+      mockSelect
         .mockReturnValueOnce(mockSelect as any)
         .mockReturnValueOnce(mockRecordingSelect as any)
 
@@ -394,11 +411,11 @@ describe('cycle.service.ts', () => {
         values: vi.fn().mockResolvedValue(undefined),
       }
 
-      mockDb.select
+      mockSelect
         .mockReturnValueOnce(mockSelect as any)
         .mockReturnValueOnce(mockRecordingSelect as any)
-      mockDb.update.mockReturnValue(mockUpdate as any)
-      mockDb.insert.mockReturnValue(mockAuditInsert as any)
+      mockUpdate.mockReturnValue(mockUpdate as any)
+      mockInsert.mockReturnValue(mockAuditInsert as any)
 
       const result = await softDeleteCycle(1, TENANT_ID, USER_ID)
 
@@ -414,7 +431,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         completeCycle(999, { harvestDate: '2026-02-01', finalPopulation: 2800 }, TENANT_ID, USER_ID),
@@ -429,7 +446,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([existingCycle]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         completeCycle(1, { harvestDate: '2026-02-01', finalPopulation: 2800 }, TENANT_ID, USER_ID),
@@ -452,9 +469,9 @@ describe('cycle.service.ts', () => {
         values: vi.fn().mockResolvedValue(undefined),
       }
 
-      mockDb.select.mockReturnValue(mockSelect as any)
-      mockDb.update.mockReturnValue(mockUpdate as any)
-      mockDb.insert.mockReturnValue(mockAuditInsert as any)
+      mockSelect.mockReturnValue(mockSelect as any)
+      mockUpdate.mockReturnValue(mockUpdate as any)
+      mockInsert.mockReturnValue(mockAuditInsert as any)
 
       const result = await completeCycle(1, { harvestDate: '2026-02-01', finalPopulation: 2800 }, TENANT_ID, USER_ID)
 
@@ -470,7 +487,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         failCycle(999, { harvestDate: '2026-02-01', notes: 'Disease outbreak' }, TENANT_ID, USER_ID),
@@ -485,7 +502,7 @@ describe('cycle.service.ts', () => {
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([existingCycle]),
       }
-      mockDb.select.mockReturnValue(mockSelect as any)
+      mockSelect.mockReturnValue(mockSelect as any)
 
       await expect(
         failCycle(1, { harvestDate: '2026-02-01', notes: 'Disease outbreak' }, TENANT_ID, USER_ID),
@@ -508,9 +525,9 @@ describe('cycle.service.ts', () => {
         values: vi.fn().mockResolvedValue(undefined),
       }
 
-      mockDb.select.mockReturnValue(mockSelect as any)
-      mockDb.update.mockReturnValue(mockUpdate as any)
-      mockDb.insert.mockReturnValue(mockAuditInsert as any)
+      mockSelect.mockReturnValue(mockSelect as any)
+      mockUpdate.mockReturnValue(mockUpdate as any)
+      mockInsert.mockReturnValue(mockAuditInsert as any)
 
       const result = await failCycle(1, { harvestDate: '2026-02-01', notes: 'Disease outbreak' }, TENANT_ID, USER_ID)
 

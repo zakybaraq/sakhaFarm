@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia'
+import { requirePermission } from '../../plugins/rbac'
 import {
   createRole,
   listRoles,
@@ -16,15 +17,22 @@ import {
 import { RoleHasUsersError, DefaultRoleError, PermissionAssignmentError } from './rbac.errors'
 
 export const rbacController = new Elysia({ prefix: '/api/rbac' })
-  .onError(({ code, error }) => {
+  .onError(({ code, error, set }) => {
     if (error instanceof RoleHasUsersError) {
+      set.status = 409
       return { error: error.message, type: 'RoleHasUsersError' }
     }
     if (error instanceof DefaultRoleError) {
+      set.status = 403
       return { error: error.message, type: 'DefaultRoleError' }
     }
     if (error instanceof PermissionAssignmentError) {
+      set.status = 409
       return { error: error.message, type: 'PermissionAssignmentError' }
+    }
+    if (error instanceof Error && error.message.startsWith('Permission denied:')) {
+      set.status = 403
+      return { error: error.message, code: 'FORBIDDEN' }
     }
   })
   .post(
@@ -34,6 +42,7 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
       return { success: true, role }
     },
     {
+      beforeHandle: requirePermission('rbac.create'),
       body: t.Object({
         name: t.String({ minLength: 1, maxLength: 50 }),
         description: t.String(),
@@ -41,22 +50,29 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
       }),
     },
   )
-  .get('/roles', async ({ query }) => {
+  .get('/roles', async ({ query, set }) => {
     const tenantId = query.tenantId ? parseInt(query.tenantId, 10) : null
-    const result = await listRoles(tenantId ?? null)
+    if (tenantId === null || isNaN(tenantId)) {
+      set.status = 400
+      return { error: 'tenantId query parameter is required', code: 'MISSING_TENANT_ID' }
+    }
+    const result = await listRoles(tenantId)
     return { roles: result }
   }, {
+    beforeHandle: requirePermission('rbac.read'),
     query: t.Object({
-      tenantId: t.Optional(t.String({ format: 'integer' })),
+      tenantId: t.String({ format: 'integer' }),
     }),
   })
-  .get('/roles/:id', async ({ params }) => {
+  .get('/roles/:id', async ({ params, set }) => {
     const role = await getRole(parseInt(params.id, 10))
     if (!role) {
+      set.status = 404
       return { error: 'Role not found' }
     }
     return { role }
   }, {
+    beforeHandle: requirePermission('rbac.read'),
     params: t.Object({
       id: t.String({ format: 'integer' }),
     }),
@@ -68,6 +84,7 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
       return { success: true, role }
     },
     {
+      beforeHandle: requirePermission('rbac.update'),
       params: t.Object({
         id: t.String({ format: 'integer' }),
       }),
@@ -81,6 +98,7 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
     const result = await deleteRole(parseInt(params.id, 10))
     return { success: true, ...result }
   }, {
+    beforeHandle: requirePermission('rbac.delete'),
     params: t.Object({
       id: t.String({ format: 'integer' }),
     }),
@@ -92,6 +110,7 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
       return { success: true, permission }
     },
     {
+      beforeHandle: requirePermission('rbac.create'),
       body: t.Object({
         name: t.String({ minLength: 1, maxLength: 100 }),
         description: t.String(),
@@ -103,6 +122,7 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
     const result = await listPermissions(query.category)
     return { permissions: result }
   }, {
+    beforeHandle: requirePermission('rbac.read'),
     query: t.Object({
       category: t.Optional(t.String()),
     }),
@@ -114,6 +134,7 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
     }
     return { permission }
   }, {
+    beforeHandle: requirePermission('rbac.read'),
     params: t.Object({
       id: t.String({ format: 'integer' }),
     }),
@@ -125,6 +146,7 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
       return { success: true, permission }
     },
     {
+      beforeHandle: requirePermission('rbac.update'),
       params: t.Object({
         id: t.String({ format: 'integer' }),
       }),
@@ -135,18 +157,19 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
     },
   )
   .post(
-    '/roles/:roleId/permissions',
+    '/roles/:id/permissions',
     async ({ params, body }) => {
       const result = await assignPermission(
-        parseInt(params.roleId, 10),
+        parseInt(params.id, 10),
         body.permissionId,
         body.action,
       )
       return { success: true, ...result }
     },
     {
+      beforeHandle: requirePermission('rbac.assign'),
       params: t.Object({
-        roleId: t.String({ format: 'integer' }),
+        id: t.String({ format: 'integer' }),
       }),
       body: t.Object({
         permissionId: t.Number(),
@@ -154,23 +177,25 @@ export const rbacController = new Elysia({ prefix: '/api/rbac' })
       }),
     },
   )
-  .delete('/roles/:roleId/permissions/:permissionId', async ({ params }) => {
+  .delete('/roles/:id/permissions/:permissionId', async ({ params }) => {
     const result = await removePermission(
-      parseInt(params.roleId, 10),
+      parseInt(params.id, 10),
       parseInt(params.permissionId, 10),
     )
     return { success: true, ...result }
   }, {
+    beforeHandle: requirePermission('rbac.delete'),
     params: t.Object({
-      roleId: t.String({ format: 'integer' }),
+      id: t.String({ format: 'integer' }),
       permissionId: t.String({ format: 'integer' }),
     }),
   })
-  .get('/roles/:roleId/permissions', async ({ params }) => {
-    const result = await getRolePermissions(parseInt(params.roleId, 10))
+  .get('/roles/:id/permissions', async ({ params }) => {
+    const result = await getRolePermissions(parseInt(params.id, 10))
     return { permissions: result }
   }, {
+    beforeHandle: requirePermission('rbac.read'),
     params: t.Object({
-      roleId: t.String({ format: 'integer' }),
+      id: t.String({ format: 'integer' }),
     }),
   })

@@ -1,0 +1,1 @@
+export { reportingController } from './reporting.controller'

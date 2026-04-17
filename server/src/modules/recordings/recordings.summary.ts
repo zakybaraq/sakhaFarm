@@ -1,6 +1,9 @@
 import { db } from '../../config/database'
 import { dailyRecordings, cycles as cyclesTable, standards } from '../../db/schema'
-import { eq, and, isNull, desc, sum } from 'drizzle-orm'
+import { eq, and, isNull, desc } from 'drizzle-orm'
+import { plasmas as plasmasTable } from '../../db/schema/plasmas'
+import { units as unitsTable } from '../../db/schema/units'
+import { CycleNotFoundError } from './recordings.errors'
 
 export interface CycleSummary {
   cycle: {
@@ -94,11 +97,13 @@ export async function getCycleSummary(cycleId: number, tenantId: number): Promis
       totalFeedKg: cyclesTable.totalFeedKg,
     })
     .from(cyclesTable)
-    .where(and(eq(cyclesTable.id, cycleId), isNull(cyclesTable.deletedAt)))
+    .innerJoin(plasmasTable, eq(cyclesTable.plasmaId, plasmasTable.id))
+    .innerJoin(unitsTable, eq(plasmasTable.unitId, unitsTable.id))
+    .where(and(eq(cyclesTable.id, cycleId), eq(unitsTable.tenantId, tenantId), isNull(cyclesTable.deletedAt)))
     .limit(1)
 
   if (cycleResult.length === 0) {
-    throw new Error(`Cycle ${cycleId} not found`)
+    throw new CycleNotFoundError(cycleId)
   }
 
   const cycle = cycleResult[0]

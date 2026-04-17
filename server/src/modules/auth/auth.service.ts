@@ -5,21 +5,9 @@ import { db } from '../../config/database'
 import { redis } from '../../config/redis'
 import { users, sessions, roles } from '../../db/schema'
 import { tenants } from '../../db/schema/tenants'
-import { eq, and, ne, desc } from 'drizzle-orm'
-
-const BRUTE_FORCE_WINDOW = 900
-const BRUTE_FORCE_MAX_ATTEMPTS = 5
-
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-
-/**
- * Validates password meets complexity requirements.
- */
-export function validatePasswordStrength(password: string): void {
-  if (!PASSWORD_REGEX.test(password)) {
-    throw new Error('Password must be at least 8 characters with 1 uppercase, 1 lowercase, 1 number, and 1 special character')
-  }
-}
+import { eq, and, ne, desc, sql } from 'drizzle-orm'
+import { ARGON2_OPTIONS, BRUTE_FORCE, SUPER_ADMIN_ROLE_ID } from '../../lib/constants'
+import { validatePasswordStrength, generateTempPassword } from '../../lib/password'
 
 /**
  * Registers a new user with Lucia Auth.
@@ -31,7 +19,10 @@ export async function registerUser(
   roleId: number,
   tenantId: number,
 ) {
-  validatePasswordStrength(password)
+  const validationError = validatePasswordStrength(password)
+  if (validationError) {
+    throw new Error(validationError)
+  }
 
   const existingUser = await db.select().from(users).where(eq(users.email, email.toLowerCase()))
   if (existingUser.length > 0) {
@@ -39,12 +30,7 @@ export async function registerUser(
   }
 
   const userId = generateIdFromEntropySize(10)
-  const passwordHash = await hash(password, {
-    memoryCost: 19456,
-    timeCost: 2,
-    outputLen: 32,
-    parallelism: 1,
-  })
+  const passwordHash = await hash(password, ARGON2_OPTIONS)
 
   await db.insert(users).values({
     id: userId,
@@ -72,38 +58,41 @@ export async function loginUser(email: string, password: string) {
   const bruteForceKey = `bruteforce:login:${normalizedEmail}`
 
   const redisAttempts = await redis.get(bruteForceKey)
-  if (redisAttempts && parseInt(redisAttempts, 10) >= BRUTE_FORCE_MAX_ATTEMPTS) {
-    throw new Error('Account temporarily locked due to too many failed login attempts')
+  if (redisAttempts && parseInt(redisAttempts, 10) >= BRUTE_FORCE.MAX_ATTEMPTS) {
+    throw new Error('Invalid email or password')
   }
 
   const existingUser = await db.select().from(users).where(eq(users.email, normalizedEmail))
 
   if (existingUser.length === 0) {
-    await redis.incr(bruteForceKey)
-    await redis.expire(bruteForceKey, BRUTE_FORCE_WINDOW)
+    const pipeline = redis.pipeline()
+    pipeline.incr(bruteForceKey)
+    pipeline.expire(bruteForceKey, BRUTE_FORCE.WINDOW)
+    await pipeline.exec()
     throw new Error('Invalid email or password')
   }
 
   const user = existingUser[0]
 
   if (user.isLocked === 1) {
-    throw new Error('Account is locked due to too many failed login attempts')
+    throw new Error('Invalid email or password')
   }
 
-  const validPassword = await verify(user.passwordHash, password, {
-    memoryCost: 19456,
-    timeCost: 2,
-    outputLen: 32,
-    parallelism: 1,
-  })
+  const validPassword = await verify(user.passwordHash, password, ARGON2_OPTIONS)
 
   if (!validPassword) {
-    await redis.incr(bruteForceKey)
-    await redis.expire(bruteForceKey, BRUTE_FORCE_WINDOW)
+    const pipeline = redis.pipeline()
+    pipeline.incr(bruteForceKey)
+    pipeline.expire(bruteForceKey, BRUTE_FORCE.WINDOW)
+    await pipeline.exec()
 
-    const attempts = (user.failedLoginAttempts || 0) + 1
-    await db.update(users).set({ failedLoginAttempts: attempts }).where(eq(users.id, user.id))
-    if (attempts >= 5) {
+    const result = await db.update(users)
+      .set({ failedLoginAttempts: sql`${users.failedLoginAttempts} + 1` })
+      .where(eq(users.id, user.id))
+      .returning({ failedLoginAttempts: users.failedLoginAttempts })
+
+    const attempts = result[0]?.failedLoginAttempts ?? (user.failedLoginAttempts || 0) + 1
+    if (attempts >= BRUTE_FORCE.MAX_ATTEMPTS) {
       await db.update(users).set({ isLocked: 1 }).where(eq(users.id, user.id))
     }
     throw new Error('Invalid email or password')
@@ -131,19 +120,6 @@ export async function logoutUser(sessionId: string) {
  */
 export async function validateUserSession(sessionId: string) {
   return await lucia.validateSession(sessionId)
-}
-
-/**
- * Generates a temporary password for admin password resets.
- * @returns 12-character temporary password
- */
-export function generateTempPassword(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
-  let password = ''
-  for (let i = 0; i < 12; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return password
 }
 
 /**
@@ -188,7 +164,10 @@ export async function getUserProfile(userId: string) {
  * @throws Error if current password is invalid or new password is weak
  */
 export async function changePassword(userId: string, currentPassword: string, newPassword: string) {
-  validatePasswordStrength(newPassword)
+  const validationError = validatePasswordStrength(newPassword)
+  if (validationError) {
+    throw new Error(validationError)
+  }
 
   // Get user's current password hash for verification
   const userResult = await db.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, userId)).limit(1)
@@ -197,24 +176,14 @@ export async function changePassword(userId: string, currentPassword: string, ne
   }
 
   // Verify current password using Argon2
-  const validPassword = await verify(userResult[0].passwordHash, currentPassword, {
-    memoryCost: 19456,
-    timeCost: 2,
-    outputLen: 32,
-    parallelism: 1,
-  })
+  const validPassword = await verify(userResult[0].passwordHash, currentPassword, ARGON2_OPTIONS)
 
   if (!validPassword) {
     throw new Error('Current password is incorrect')
   }
 
   // Hash new password and update user
-  const passwordHash = await hash(newPassword, {
-    memoryCost: 19456,
-    timeCost: 2,
-    outputLen: 32,
-    parallelism: 1,
-  })
+  const passwordHash = await hash(newPassword, ARGON2_OPTIONS)
   await db.update(users).set({ passwordHash, forcePasswordChange: 0 }).where(eq(users.id, userId))
 
   // Invalidate all sessions (force re-login)
@@ -229,18 +198,13 @@ export async function changePassword(userId: string, currentPassword: string, ne
  */
 export async function adminResetPassword(targetUserId: string, adminUserId: string) {
   // Verify admin exists and has Super Admin role (roleId = 1)
-  const admin = await db.select().from(users).where(eq(users.id, adminUserId)).limit(1)
-  if (admin.length === 0 || admin[0].roleId !== 1) {
+  const admin = await db.select({ roleId: users.roleId }).from(users).where(eq(users.id, adminUserId)).limit(1)
+  if (admin.length === 0 || admin[0].roleId !== SUPER_ADMIN_ROLE_ID) {
     throw new Error('Only Super Admin can reset passwords')
   }
 
   const tempPassword = generateTempPassword()
-  const passwordHash = await hash(tempPassword, {
-    memoryCost: 19456,
-    timeCost: 2,
-    outputLen: 32,
-    parallelism: 1,
-  })
+  const passwordHash = await hash(tempPassword, ARGON2_OPTIONS)
 
   await db.update(users).set({
     passwordHash,

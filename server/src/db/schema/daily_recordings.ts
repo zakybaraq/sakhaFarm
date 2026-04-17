@@ -1,6 +1,5 @@
 import {
   mysqlTable,
-  serial,
   varchar,
   int,
   timestamp,
@@ -8,13 +7,13 @@ import {
   decimal,
   text,
   index,
-  unique,
 } from 'drizzle-orm/mysql-core'
 import { cycles } from './cycles'
 
 /**
- * Daily recordings table — daily metrics recorded per cycle,
- * including mortality, body weight, and feed consumption.
+ * Daily recordings — no unique constraint on (cycleId, recordingDate) because
+ * soft-deleted rows would conflict with new entries for the same date.
+ * Deduplication is enforced at the application level.
  */
 export const dailyRecordings = mysqlTable(
   'daily_recordings',
@@ -34,7 +33,6 @@ export const dailyRecordings = mysqlTable(
     deletedAt: timestamp('deleted_at'),
   },
   (table) => ({
-    cycleDateUnique: unique('uq_cycle_recording_date').on(table.cycleId, table.recordingDate),
     idxRecordingsCycle: index('idx_recordings_cycle').on(table.cycleId),
     idxRecordingsDate: index('idx_recordings_date').on(table.recordingDate),
   })

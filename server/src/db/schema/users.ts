@@ -4,6 +4,7 @@ import {
   int,
   timestamp,
   index,
+  unique,
 } from 'drizzle-orm/mysql-core'
 import { roles } from './roles'
 import { tenants } from './tenants'
@@ -34,7 +35,7 @@ export const users = mysqlTable(
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
   },
   (table) => ({
-    emailUnique: index('idx_users_email').on(table.email),
+    emailUnique: unique('uq_users_email').on(table.email),
     idxUsersTenant: index('idx_users_tenant').on(table.tenantId),
     idxUsersRole: index('idx_users_role').on(table.roleId),
   })

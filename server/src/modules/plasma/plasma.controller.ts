@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia'
 import { requirePermission } from '../../plugins/rbac'
+import { getTenantId } from '../../plugins/tenant'
 import {
   createPlasma,
   listPlasmas,
@@ -14,25 +15,38 @@ import {
 } from './plasma.errors'
 
 export const plasmaController = new Elysia({ prefix: '/api/plasmas' })
-  .onError(({ error }) => {
+  .onError(({ error, set }) => {
     if (error instanceof PlasmaNotFoundError) {
+      set.status = 404
       return { error: error.message, code: 'PLASMA_NOT_FOUND' }
     }
     if (error instanceof PlasmaHasActiveCyclesError) {
+      set.status = 409
       return { error: error.message, code: 'PLASMA_HAS_ACTIVE_CYCLES' }
     }
     if (error instanceof PlasmaNotInTenantUnitError) {
+      set.status = 409
       return { error: error.message, code: 'PLASMA_NOT_IN_TENANT_UNIT' }
+    }
+    if (error instanceof Error && error.message === 'MISSING_TENANT_ID') {
+      set.status = 401
+      return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    }
+    if (error instanceof Error && error.message === 'MISSING_USER_ID') {
+      set.status = 401
+      return { error: 'Authentication required', code: 'MISSING_USER_ID' }
     }
   })
   .post(
     '/',
-    async ({ body, store, cookie }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
+      }
+      const userId = ctx.user.id
 
-      const plasma = await createPlasma(body, tenantId, userId)
+      const plasma = await createPlasma(ctx.body, currentTenantId, userId)
       return { success: true, plasma }
     },
     {
@@ -49,10 +63,10 @@ export const plasmaController = new Elysia({ prefix: '/api/plasmas' })
   )
   .get(
     '/',
-    async ({ query, store }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const unitId = query.unitId ? parseInt(query.unitId, 10) : undefined
-      const result = await listPlasmas(tenantId, unitId)
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      const unitId = ctx.query.unitId ? parseInt(ctx.query.unitId as string, 10) : undefined
+      const result = await listPlasmas(currentTenantId, unitId)
       return { plasmas: result }
     },
     {
@@ -64,9 +78,9 @@ export const plasmaController = new Elysia({ prefix: '/api/plasmas' })
   )
   .get(
     '/:id',
-    async ({ params, store }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const plasma = await getPlasma(parseInt(params.id, 10), tenantId)
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      const plasma = await getPlasma(parseInt(ctx.params.id, 10), currentTenantId)
       return { plasma }
     },
     {
@@ -78,12 +92,14 @@ export const plasmaController = new Elysia({ prefix: '/api/plasmas' })
   )
   .put(
     '/:id',
-    async ({ params, body, store, cookie }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
+      }
+      const userId = ctx.user.id
 
-      await updatePlasma(parseInt(params.id, 10), body, tenantId, userId)
+      await updatePlasma(parseInt(ctx.params.id, 10), ctx.body, currentTenantId, userId)
       return { success: true }
     },
     {
@@ -102,12 +118,14 @@ export const plasmaController = new Elysia({ prefix: '/api/plasmas' })
   )
   .delete(
     '/:id',
-    async ({ params, store, cookie }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
+      }
+      const userId = ctx.user.id
 
-      await softDeletePlasma(parseInt(params.id, 10), tenantId, userId)
+      await softDeletePlasma(parseInt(ctx.params.id, 10), currentTenantId, userId)
       return { success: true }
     },
     {

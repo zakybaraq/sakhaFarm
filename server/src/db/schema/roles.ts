@@ -1,11 +1,11 @@
 import {
   mysqlTable,
-  serial,
   varchar,
   text,
   int,
   timestamp,
   index,
+  unique,
 } from 'drizzle-orm/mysql-core'
 import { tenants } from './tenants'
 
@@ -24,7 +24,8 @@ export const roles = mysqlTable(
     createdAt: timestamp('created_at').defaultNow(),
   },
   (table) => ({
-    nameUnique: index('idx_roles_tenant').on(table.tenantId),
+    roleNameTenantUnique: unique('uq_roles_name_tenant').on(table.name, table.tenantId),
+    idxRolesTenant: index('idx_roles_tenant').on(table.tenantId),
   })
 )
 

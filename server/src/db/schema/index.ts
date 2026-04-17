@@ -34,6 +34,9 @@ export type { FeedStock, NewFeedStock } from './feed_stock'
 export { feedMovements } from './feed_movements'
 export type { FeedMovement, NewFeedMovement } from './feed_movements'
 
+export { feedSuratJalan } from './feed_surat_jalan'
+export type { FeedSuratJalan, NewFeedSuratJalan } from './feed_surat_jalan'
+
 export { standards } from './standards'
 export type { Standard, NewStandard } from './standards'
 

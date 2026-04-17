@@ -2,6 +2,34 @@ import { Elysia } from 'elysia'
 import { redis } from '../config/redis'
 import { env } from '../config/env'
 
+/**
+ * Extracts client IP from request headers.
+ *
+ * When behind a trusted reverse proxy, uses the rightmost value from
+ * X-Forwarded-For (set by the proxy). Falls back to X-Real-IP, then
+ * to 'unknown' for direct connections.
+ *
+ * IMPORTANT: Only deploy behind a trusted reverse proxy that strips
+ * untrusted X-Forwarded-For values. Set TRUST_PROXY=true in env to
+ * enable header-based IP extraction.
+ */
+function getClientIp(request: Request): string {
+  const trustProxy = env.TRUST_PROXY === 'true'
+
+  if (trustProxy) {
+    const forwarded = request.headers.get('x-forwarded-for')
+    if (forwarded) {
+      const ips = forwarded.split(',').map(s => s.trim())
+      const rightmostIp = ips[ips.length - 1]
+      if (rightmostIp) return rightmostIp
+    }
+    const realIp = request.headers.get('x-real-ip')
+    if (realIp) return realIp
+  }
+
+  return 'unknown'
+}
+
 export type RateLimitTier = 'login' | 'api' | 'heavy'
 
 const TIER_LIMITS: Record<RateLimitTier, { max: number; window: number }> = {
@@ -29,10 +57,7 @@ export function rateLimit(tier: RateLimitTier = 'api') {
 
   return new Elysia({ name: `rate-limit-${tier}` })
     .onBeforeHandle(async ({ request, set }) => {
-      const ip =
-        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-        request.headers.get('x-real-ip') ||
-        'unknown'
+      const ip = getClientIp(request)
       const key = `ratelimit:${tier}:${ip}`
 
       const current = await redis.incr(key)

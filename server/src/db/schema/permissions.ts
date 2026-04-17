@@ -5,6 +5,7 @@ import {
   text,
   timestamp,
   index,
+  unique,
 } from 'drizzle-orm/mysql-core'
 
 /**
@@ -20,7 +21,8 @@ export const permissions = mysqlTable(
     createdAt: timestamp('created_at').defaultNow(),
   },
   (table) => ({
-    nameUnique: index('idx_permissions_category').on(table.category),
+    permissionNameUnique: unique('uq_permissions_name').on(table.name),
+    idxPermissionsCategory: index('idx_permissions_category').on(table.category),
   })
 )
 

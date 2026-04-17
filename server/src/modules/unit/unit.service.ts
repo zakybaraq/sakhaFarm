@@ -21,41 +21,46 @@ export async function createUnit(
   tenantId: number,
   userId: string,
 ) {
-  const existing = await db
-    .select()
-    .from(units)
-    .where(
-      and(
-        eq(units.code, input.code),
-        eq(units.tenantId, tenantId),
-        isNull(units.deletedAt),
-      ),
-    )
+  return db.transaction(async (tx) => {
+    const existing = await tx
+      .select()
+      .from(units)
+      .where(
+        and(
+          eq(units.code, input.code),
+          eq(units.tenantId, tenantId),
+          isNull(units.deletedAt),
+        ),
+      )
 
-  if (existing.length > 0) {
-    throw new DuplicateUnitCodeError(input.code)
-  }
+    if (existing.length > 0) {
+      throw new DuplicateUnitCodeError(input.code)
+    }
 
-  const result = await db.insert(units).values({
-    ...input,
-    tenantId,
-  })
-
-  const newId = result[0].insertId
-
-  try {
-    await db.insert(auditLogs).values({
-      userId,
-      action: 'create',
-      resource: 'unit',
-      resourceId: String(newId),
-      newValue: JSON.stringify(input),
+    const result = await tx.insert(units).values({
+      name: input.name,
+      code: input.code,
+      location: input.location ?? null,
+      tenantId,
     })
-  } catch {
-    // Fire-and-forget audit logging
-  }
 
-  return { ...input, id: newId, tenantId }
+    const newId = result[0].insertId
+
+    try {
+      await tx.insert(auditLogs).values({
+        userId,
+        action: 'create',
+        resource: 'unit',
+        resourceId: String(newId),
+        newValue: JSON.stringify(input),
+      })
+    } catch {
+      // Fire-and-forget audit logging
+    }
+
+    const created = await tx.select().from(units).where(eq(units.id, newId)).limit(1)
+    return created[0]
+  })
 }
 
 /**
@@ -111,50 +116,52 @@ export async function updateUnit(
   tenantId: number,
   userId: string,
 ) {
-  const existing = await db
-    .select()
-    .from(units)
-    .where(and(eq(units.id, id), eq(units.tenantId, tenantId), isNull(units.deletedAt)))
-    .limit(1)
-
-  if (existing.length === 0) {
-    throw new UnitNotFoundError(id)
-  }
-
-  if (input.code) {
-    const duplicate = await db
+  return db.transaction(async (tx) => {
+    const existing = await tx
       .select()
       .from(units)
-      .where(
-        and(
-          eq(units.code, input.code),
-          ne(units.id, id),
-          eq(units.tenantId, tenantId),
-          isNull(units.deletedAt),
-        ),
-      )
+      .where(and(eq(units.id, id), eq(units.tenantId, tenantId), isNull(units.deletedAt)))
+      .limit(1)
 
-    if (duplicate.length > 0) {
-      throw new DuplicateUnitCodeError(input.code)
+    if (existing.length === 0) {
+      throw new UnitNotFoundError(id)
     }
-  }
 
-  await db.update(units).set(input).where(and(eq(units.id, id), eq(units.tenantId, tenantId)))
+    if (input.code) {
+      const duplicate = await tx
+        .select()
+        .from(units)
+        .where(
+          and(
+            eq(units.code, input.code),
+            ne(units.id, id),
+            eq(units.tenantId, tenantId),
+            isNull(units.deletedAt),
+          ),
+        )
 
-  try {
-    await db.insert(auditLogs).values({
-      userId,
-      action: 'update',
-      resource: 'unit',
-      resourceId: String(id),
-      oldValue: JSON.stringify(existing[0]),
-      newValue: JSON.stringify(input),
-    })
-  } catch {
-    // Fire-and-forget audit logging
-  }
+      if (duplicate.length > 0) {
+        throw new DuplicateUnitCodeError(input.code)
+      }
+    }
 
-  return { success: true }
+    await tx.update(units).set(input).where(and(eq(units.id, id), eq(units.tenantId, tenantId)))
+
+    try {
+      await tx.insert(auditLogs).values({
+        userId,
+        action: 'update',
+        resource: 'unit',
+        resourceId: String(id),
+        oldValue: JSON.stringify(existing[0]),
+        newValue: JSON.stringify(input),
+      })
+    } catch {
+      // Fire-and-forget audit logging
+    }
+
+    return { success: true }
+  })
 }
 
 /**

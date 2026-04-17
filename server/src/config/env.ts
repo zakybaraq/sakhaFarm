@@ -10,6 +10,7 @@ const envSchema = z.object({
   RATE_LIMIT_LOGIN: z.coerce.number().default(5),
   RATE_LIMIT_API: z.coerce.number().default(100),
   RATE_LIMIT_HEAVY: z.coerce.number().default(10),
+  TRUST_PROXY: z.enum(['true', 'false']).default('false'),
 })
 
 export function validateEnv() {

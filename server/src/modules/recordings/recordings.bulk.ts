@@ -1,6 +1,8 @@
 import { db } from '../../config/database'
 import { dailyRecordings, cycles as cyclesTable, auditLogs } from '../../db/schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, isNull, sql } from 'drizzle-orm'
+import { plasmas as plasmasTable } from '../../db/schema/plasmas'
+import { units as unitsTable } from '../../db/schema/units'
 
 export interface BulkImportRow {
   date: string
@@ -25,7 +27,7 @@ export function parseCSV(csvContent: string): BulkImportRow[] {
     throw new Error('CSV must contain at least a header row and one data row')
   }
 
-  const headers = lines[0].toLowerCase().split(',').map(h => h.trim())
+  const headers = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase())
   const requiredColumns = ['date', 'dead', 'culled', 'remaining_population', 'body_weight_g', 'feed_consumed_kg']
   
   const columnIndex: Record<string, number> = {}
@@ -44,7 +46,7 @@ export function parseCSV(csvContent: string): BulkImportRow[] {
     const line = lines[i].trim()
     if (!line) continue
 
-    const values = line.split(',').map(v => v.trim())
+    const values = parseCSVLine(line)
     
     if (values.length < requiredColumns.length) {
       throw new Error(`Row ${i + 1}: Not enough columns (expected ${requiredColumns.length}, got ${values.length})`)
@@ -62,6 +64,39 @@ export function parseCSV(csvContent: string): BulkImportRow[] {
   }
 
   return rows
+}
+
+function parseCSVLine(line: string): string[] {
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (inQuotes) {
+      if (char === '"') {
+        if (i + 1 < line.length && line[i + 1] === '"') {
+          current += '"'
+          i++
+        } else {
+          inQuotes = false
+        }
+      } else {
+        current += char
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true
+      } else if (char === ',') {
+        result.push(current)
+        current = ''
+      } else {
+        current += char
+      }
+    }
+  }
+  result.push(current)
+  return result
 }
 
 export async function validateRow(
@@ -95,7 +130,9 @@ export async function validateRow(
       status: cyclesTable.status,
     })
     .from(cyclesTable)
-    .where(and(eq(cyclesTable.id, cycleId), isNull(cyclesTable.deletedAt)))
+    .innerJoin(plasmasTable, eq(cyclesTable.plasmaId, plasmasTable.id))
+    .innerJoin(unitsTable, eq(plasmasTable.unitId, unitsTable.id))
+    .where(and(eq(cyclesTable.id, cycleId), eq(unitsTable.tenantId, tenantId), isNull(cyclesTable.deletedAt)))
     .limit(1)
 
   if (cycleResult.length === 0) {
@@ -112,7 +149,7 @@ export async function validateRow(
     .where(
       and(
         eq(dailyRecordings.cycleId, cycleId),
-        eq(dailyRecordings.recordingDate, row.date as any),
+        sql`${dailyRecordings.recordingDate} = ${row.date}`,
         isNull(dailyRecordings.deletedAt),
       ),
     )
@@ -151,63 +188,90 @@ export async function importBulk(
     }
   }
 
+  const cycleResult = await db
+    .select({
+      id: cyclesTable.id,
+      status: cyclesTable.status,
+      chickInDate: cyclesTable.chickInDate,
+    })
+    .from(cyclesTable)
+    .innerJoin(plasmasTable, eq(cyclesTable.plasmaId, plasmasTable.id))
+    .innerJoin(unitsTable, eq(plasmasTable.unitId, unitsTable.id))
+    .where(and(eq(cyclesTable.id, cycleId), eq(unitsTable.tenantId, tenantId), isNull(cyclesTable.deletedAt)))
+    .limit(1)
+
+  if (cycleResult.length === 0) {
+    return { success: false, created: 0, errors: [{ row: 0, error: `Cycle with ID ${cycleId} not found` }] }
+  }
+
+  if (cycleResult[0].status !== 'active') {
+    return { success: false, created: 0, errors: [{ row: 0, error: `Cycle ${cycleId} is not active (status: ${cycleResult[0].status})` }] }
+  }
+
+  const cycle = cycleResult[0]
+  const chickInDate = new Date(cycle.chickInDate)
+
   const errors: Array<{ row: number; error: string }> = []
-  let created = 0
+  const validRows: Array<{ row: BulkImportRow; rowIndex: number; dayAge: number }> = []
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
-
     const validationError = await validateRow(row, cycleId, tenantId)
     if (validationError) {
       errors.push({ row: i + 1, error: validationError })
       continue
     }
 
-    const cycleResult = await db
-      .select({ chickInDate: cyclesTable.chickInDate })
-      .from(cyclesTable)
-      .where(eq(cyclesTable.id, cycleId))
-      .limit(1)
-
-    const chickInDate = new Date(cycleResult[0].chickInDate)
     const recordingDate = new Date(row.date)
     const dayAge = Math.floor(
       (recordingDate.getTime() - chickInDate.getTime()) / (1000 * 60 * 60 * 24)
     )
+    validRows.push({ row, rowIndex: i, dayAge })
+  }
 
-    try {
-      await db.insert(dailyRecordings).values({
-        cycleId,
-        recordingDate: row.date as any,
-        dayAge,
-        dead: row.dead,
-        culled: row.culled,
-        remainingPopulation: row.remaining_population,
-        bodyWeightG: row.body_weight_g.toString(),
-        feedConsumedKg: row.feed_consumed_kg.toString(),
-        notes: row.notes ?? null,
-      })
-      created++
+  if (validRows.length === 0) {
+    return { success: errors.length === 0, created: 0, errors }
+  }
 
+  let created = 0
+  await db.transaction(async (tx) => {
+    for (const { row, rowIndex, dayAge } of validRows) {
       try {
-        await db.insert(auditLogs).values({
-          userId,
-          action: 'create',
-          resource: 'recording',
-          resourceId: `bulk-import-${cycleId}-${row.date}`,
-          newValue: JSON.stringify({ cycleId, ...row }),
+        await tx.insert(dailyRecordings).values({
+          cycleId,
+          recordingDate: row.date as any,
+          dayAge,
+          dead: row.dead,
+          culled: row.culled,
+          remainingPopulation: row.remaining_population,
+          bodyWeightG: row.body_weight_g.toString(),
+          feedConsumedKg: row.feed_consumed_kg.toString(),
+          notes: row.notes ?? null,
         })
-      } catch {}
-    } catch (e) {
-      errors.push({
-        row: i + 1,
-        error: e instanceof Error ? e.message : 'Failed to insert recording',
-      })
+        created++
+      } catch (e) {
+        errors.push({
+          row: rowIndex + 1,
+          error: e instanceof Error ? e.message : 'Failed to insert recording',
+        })
+      }
     }
+  })
+
+  for (const { row } of validRows) {
+    try {
+      await db.insert(auditLogs).values({
+        userId,
+        action: 'create',
+        resource: 'recording',
+        resourceId: `bulk-import-${cycleId}-${row.date}`,
+        newValue: JSON.stringify({ cycleId, ...row }),
+      })
+    } catch {}
   }
 
   return {
-    success: true,
+    success: errors.length === 0,
     created,
     errors,
   }

@@ -21,6 +21,7 @@ export const lucia = new Lucia(adapter, {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
+      httpOnly: true,
     },
   },
   getUserAttributes: (attributes) => ({

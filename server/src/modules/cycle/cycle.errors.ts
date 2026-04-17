@@ -72,3 +72,16 @@ export class CycleHasRecordingsError extends Error {
     this.name = 'CycleHasRecordingsError'
   }
 }
+
+/**
+ * Thrown when an invalid DOC type is provided during cycle creation or update.
+ *
+ * @param provided - The invalid DOC type that was provided
+ * @param validTypes - The list of valid DOC types
+ */
+export class InvalidDocTypeError extends Error {
+  constructor(provided: string, validTypes: string[]) {
+    super(`Invalid DOC type "${provided}". Must be one of: ${validTypes.join(', ')}`)
+    this.name = 'InvalidDocTypeError'
+  }
+}

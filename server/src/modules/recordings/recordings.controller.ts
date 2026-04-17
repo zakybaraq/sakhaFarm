@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia'
 import { requirePermission } from '../../plugins/rbac'
+import { getTenantId } from '../../plugins/tenant'
 import {
   createRecording,
   listRecordings,
@@ -14,13 +15,8 @@ import {
   CycleNotActiveError,
   FutureDateError,
   DuplicateRecordingDateError,
+  CycleNotFoundError,
 } from './recordings.errors'
-
-function getTenantId(store: Record<string, unknown>, headers: Record<string, string>, deriveTenantId?: number | null): number {
-  const storeTenantId = (store as Record<string, unknown>).tenantId as number | undefined
-  const headerTenantId = parseInt(headers['x-tenant-id'] || '0', 10)
-  return storeTenantId ?? deriveTenantId ?? headerTenantId
-}
 
 export const recordingsController = new Elysia({ prefix: '/api/recordings' })
   .onError(({ error, set }) => {
@@ -40,18 +36,29 @@ export const recordingsController = new Elysia({ prefix: '/api/recordings' })
       set.status = 400
       return { error: error.message, code: 'DUPLICATE_RECORDING_DATE' }
     }
+    if (error instanceof CycleNotFoundError) {
+      set.status = 404
+      return { error: error.message, code: 'CYCLE_NOT_FOUND' }
+    }
+    if (error instanceof Error && error.message === 'MISSING_TENANT_ID') {
+      set.status = 400
+      return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    }
+    if (error instanceof Error && error.message === 'MISSING_USER_ID') {
+      set.status = 401
+      return { error: 'Authentication required', code: 'MISSING_USER_ID' }
+    }
   })
   .post(
     '/',
-    async ({ body, store, cookie, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
       }
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+      const userId = ctx.user.id
 
-      const recording = await createRecording(body, currentTenantId, userId)
+      const recording = await createRecording(ctx.body, currentTenantId, userId)
       return { success: true, recording }
     },
     {
@@ -70,12 +77,9 @@ export const recordingsController = new Elysia({ prefix: '/api/recordings' })
   )
   .get(
     '/',
-    async ({ query, store, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
-      }
-      const cycleId = query.cycleId ? parseInt(query.cycleId as string, 10) : undefined
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      const cycleId = ctx.query.cycleId ? parseInt(ctx.query.cycleId as string, 10) : undefined
 
       if (!cycleId) {
         return { error: 'cycleId query parameter is required', code: 'MISSING_CYCLE_ID' }
@@ -93,12 +97,9 @@ export const recordingsController = new Elysia({ prefix: '/api/recordings' })
   )
   .get(
     '/:id',
-    async ({ params, store, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
-      }
-      const recording = await getRecording(parseInt(params.id, 10), currentTenantId)
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      const recording = await getRecording(parseInt(ctx.params.id, 10), currentTenantId)
       return { recording }
     },
     {
@@ -110,15 +111,14 @@ export const recordingsController = new Elysia({ prefix: '/api/recordings' })
   )
   .put(
     '/:id',
-    async ({ params, body, store, cookie, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
       }
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+      const userId = ctx.user.id
 
-      await updateRecording(parseInt(params.id, 10), body, currentTenantId, userId)
+      await updateRecording(parseInt(ctx.params.id, 10), ctx.body, currentTenantId, userId)
       return { success: true }
     },
     {
@@ -139,15 +139,14 @@ export const recordingsController = new Elysia({ prefix: '/api/recordings' })
   )
   .delete(
     '/:id',
-    async ({ params, store, cookie, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
       }
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+      const userId = ctx.user.id
 
-      await softDeleteRecording(parseInt(params.id, 10), currentTenantId, userId)
+      await softDeleteRecording(parseInt(ctx.params.id, 10), currentTenantId, userId)
       return { success: true }
     },
     {
@@ -159,17 +158,16 @@ export const recordingsController = new Elysia({ prefix: '/api/recordings' })
   )
   .post(
     '/bulk',
-    async ({ body, store, cookie, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
       }
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+      const userId = ctx.user.id
 
       const result = await importBulk(
-        body.csv,
-        body.cycleId,
+        ctx.body.csv,
+        ctx.body.cycleId,
         currentTenantId,
         userId,
       )

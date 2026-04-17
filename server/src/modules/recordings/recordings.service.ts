@@ -1,7 +1,9 @@
 import { db } from '../../config/database'
 import { dailyRecordings, cycles, standards, auditLogs } from '../../db/schema'
-import { eq, and, isNull, desc, sum, count, max, lte, gte } from 'drizzle-orm'
+import { eq, and, isNull, desc, sum, lte, sql } from 'drizzle-orm'
 import { cycles as cyclesTable } from '../../db/schema/cycles'
+import { plasmas as plasmasTable } from '../../db/schema/plasmas'
+import { units as unitsTable } from '../../db/schema/units'
 import {
   RecordingNotFoundError,
   CycleNotActiveError,
@@ -67,6 +69,7 @@ function calculateCumulativeMortality(
   totalCulled: number,
   initialPopulation: number,
 ): number {
+  if (initialPopulation <= 0) return 0
   return (totalDead + totalCulled) / initialPopulation * 100
 }
 
@@ -74,6 +77,7 @@ function calculateDeplesi(
   initialPopulation: number,
   remainingPopulation: number,
 ): number {
+  if (initialPopulation <= 0) return 0
   return (initialPopulation - remainingPopulation) / initialPopulation * 100
 }
 
@@ -81,6 +85,7 @@ function calculateSurvivalRate(
   initialPopulation: number,
   remainingPopulation: number,
 ): number {
+  if (initialPopulation <= 0) return 100
   return remainingPopulation / initialPopulation * 100
 }
 
@@ -109,6 +114,9 @@ function calculateDeviation(
   actualBwG: number,
   standardBwG: number,
 ): StandardDeviation {
+  if (standardBwG <= 0) {
+    return { grams: 0, percent: 0, status: 'on_standard', standardBwG: 0, actualBwG }
+  }
   const grams = actualBwG - standardBwG
   const percent = ((actualBwG - standardBwG) / standardBwG) * 100
   let status: 'above_standard' | 'on_standard' | 'below_standard' = 'on_standard'
@@ -132,7 +140,9 @@ export async function createRecording(
       status: cyclesTable.status,
     })
     .from(cyclesTable)
-    .where(and(eq(cyclesTable.id, input.cycleId), isNull(cyclesTable.deletedAt)))
+    .innerJoin(plasmasTable, eq(cyclesTable.plasmaId, plasmasTable.id))
+    .innerJoin(unitsTable, eq(plasmasTable.unitId, unitsTable.id))
+    .where(and(eq(cyclesTable.id, input.cycleId), eq(unitsTable.tenantId, tenantId), isNull(cyclesTable.deletedAt)))
     .limit(1)
 
   if (cycleResult.length === 0) {
@@ -158,7 +168,7 @@ export async function createRecording(
     .where(
       and(
         eq(dailyRecordings.cycleId, input.cycleId),
-        eq(dailyRecordings.recordingDate, input.recordingDate),
+        sql<any>`${dailyRecordings.recordingDate} = ${input.recordingDate}`,
         isNull(dailyRecordings.deletedAt),
       ),
     )
@@ -194,13 +204,13 @@ export async function createRecording(
     .where(
       and(
         eq(dailyRecordings.cycleId, input.cycleId),
-        lte(dailyRecordings.recordingDate, input.recordingDate),
+        sql`${dailyRecordings.recordingDate} <= ${input.recordingDate}`,
         isNull(dailyRecordings.deletedAt),
       ),
     )
 
-  const totalDead = parseInt(cumulativeStats[0]?.totalDead || '0', 10)
-  const totalCulled = parseInt(cumulativeStats[0]?.totalCulled || '0', 10)
+  const totalDead = Number(cumulativeStats[0]?.totalDead || 0)
+  const totalCulled = Number(cumulativeStats[0]?.totalCulled || 0)
   const cumulativeMortality = calculateCumulativeMortality(
     totalDead,
     totalCulled,
@@ -265,10 +275,13 @@ export async function listRecordings(cycleId: number, tenantId: number) {
       notes: dailyRecordings.notes,
     })
     .from(dailyRecordings)
-    .leftJoin(cyclesTable, eq(dailyRecordings.cycleId, cyclesTable.id))
+    .innerJoin(cyclesTable, eq(dailyRecordings.cycleId, cyclesTable.id))
+    .innerJoin(plasmasTable, eq(cyclesTable.plasmaId, plasmasTable.id))
+    .innerJoin(unitsTable, eq(plasmasTable.unitId, unitsTable.id))
     .where(
       and(
         eq(dailyRecordings.cycleId, cycleId),
+        eq(unitsTable.tenantId, tenantId),
         isNull(dailyRecordings.deletedAt),
       ),
     )
@@ -295,8 +308,10 @@ export async function getRecording(id: number, tenantId: number) {
       chickInDate: cyclesTable.chickInDate,
     })
     .from(dailyRecordings)
-    .leftJoin(cyclesTable, eq(dailyRecordings.cycleId, cyclesTable.id))
-    .where(and(eq(dailyRecordings.id, id), isNull(dailyRecordings.deletedAt)))
+    .innerJoin(cyclesTable, eq(dailyRecordings.cycleId, cyclesTable.id))
+    .innerJoin(plasmasTable, eq(cyclesTable.plasmaId, plasmasTable.id))
+    .innerJoin(unitsTable, eq(plasmasTable.unitId, unitsTable.id))
+    .where(and(eq(dailyRecordings.id, id), eq(unitsTable.tenantId, tenantId), isNull(dailyRecordings.deletedAt)))
     .limit(1)
 
   if (result.length === 0) {
@@ -315,13 +330,13 @@ export async function getRecording(id: number, tenantId: number) {
     .where(
       and(
         eq(dailyRecordings.cycleId, rec.cycleId),
-        lte(dailyRecordings.recordingDate, rec.recordingDate),
+        sql`${dailyRecordings.recordingDate} <= ${rec.recordingDate}`,
         isNull(dailyRecordings.deletedAt),
       ),
     )
 
-  const totalDead = parseInt(cumulativeStats[0]?.totalDead || '0', 10)
-  const totalCulled = parseInt(cumulativeStats[0]?.totalCulled || '0', 10)
+  const totalDead = Number(cumulativeStats[0]?.totalDead || 0)
+  const totalCulled = Number(cumulativeStats[0]?.totalCulled || 0)
   const cumulativeMortality = calculateCumulativeMortality(
     totalDead,
     totalCulled,
@@ -367,17 +382,79 @@ export async function updateRecording(
   userId: string,
 ) {
   const existing = await db
-    .select({ id: dailyRecordings.id })
+    .select({
+      id: dailyRecordings.id,
+      cycleId: dailyRecordings.cycleId,
+      recordingDate: dailyRecordings.recordingDate,
+      dayAge: dailyRecordings.dayAge,
+      dead: dailyRecordings.dead,
+      culled: dailyRecordings.culled,
+      remainingPopulation: dailyRecordings.remainingPopulation,
+      bodyWeightG: dailyRecordings.bodyWeightG,
+      feedConsumedKg: dailyRecordings.feedConsumedKg,
+      notes: dailyRecordings.notes,
+    })
     .from(dailyRecordings)
-    .where(and(eq(dailyRecordings.id, id), isNull(dailyRecordings.deletedAt)))
+    .innerJoin(cyclesTable, eq(dailyRecordings.cycleId, cyclesTable.id))
+    .innerJoin(plasmasTable, eq(cyclesTable.plasmaId, plasmasTable.id))
+    .innerJoin(unitsTable, eq(plasmasTable.unitId, unitsTable.id))
+    .where(and(eq(dailyRecordings.id, id), eq(unitsTable.tenantId, tenantId), isNull(dailyRecordings.deletedAt)))
     .limit(1)
 
   if (existing.length === 0) {
     throw new RecordingNotFoundError(id)
   }
 
+  if (input.recordingDate !== undefined) {
+    const today = new Date()
+    today.setHours(23, 59, 59, 999)
+    const recordingDateObj = new Date(input.recordingDate)
+    if (recordingDateObj > today) {
+      throw new FutureDateError(input.recordingDate)
+    }
+  }
+
+  if (input.recordingDate !== undefined) {
+    const recordingWithCycle = await db
+      .select({ cycleId: dailyRecordings.cycleId })
+      .from(dailyRecordings)
+      .innerJoin(cyclesTable, eq(dailyRecordings.cycleId, cyclesTable.id))
+      .innerJoin(plasmasTable, eq(cyclesTable.plasmaId, plasmasTable.id))
+      .innerJoin(unitsTable, eq(plasmasTable.unitId, unitsTable.id))
+      .where(and(eq(dailyRecordings.id, id), eq(unitsTable.tenantId, tenantId), isNull(dailyRecordings.deletedAt)))
+      .limit(1)
+
+    if (recordingWithCycle.length > 0) {
+      const existingRec = await db
+        .select({ id: dailyRecordings.id })
+        .from(dailyRecordings)
+        .where(
+          and(
+            eq(dailyRecordings.cycleId, recordingWithCycle[0].cycleId),
+            sql`${dailyRecordings.recordingDate} = ${input.recordingDate}`,
+            isNull(dailyRecordings.deletedAt),
+          ),
+        )
+        .limit(1)
+
+      if (existingRec.length > 0 && existingRec[0].id !== id) {
+        throw new DuplicateRecordingDateError(recordingWithCycle[0].cycleId, input.recordingDate)
+      }
+    }
+  }
+
   const updateData: Record<string, unknown> = {}
-  if (input.recordingDate !== undefined) updateData.recordingDate = input.recordingDate
+  if (input.recordingDate !== undefined) {
+    updateData.recordingDate = input.recordingDate
+    const cycleForAge = await db
+      .select({ chickInDate: cyclesTable.chickInDate })
+      .from(cyclesTable)
+      .where(eq(cyclesTable.id, existing[0].cycleId))
+      .limit(1)
+    if (cycleForAge.length > 0) {
+      updateData.dayAge = calculateDayAge(cycleForAge[0].chickInDate, input.recordingDate)
+    }
+  }
   if (input.dead !== undefined) updateData.dead = input.dead
   if (input.culled !== undefined) updateData.culled = input.culled
   if (input.remainingPopulation !== undefined)
@@ -411,9 +488,23 @@ export async function softDeleteRecording(
   userId: string,
 ) {
   const existing = await db
-    .select({ id: dailyRecordings.id })
+    .select({
+      id: dailyRecordings.id,
+      cycleId: dailyRecordings.cycleId,
+      recordingDate: dailyRecordings.recordingDate,
+      dayAge: dailyRecordings.dayAge,
+      dead: dailyRecordings.dead,
+      culled: dailyRecordings.culled,
+      remainingPopulation: dailyRecordings.remainingPopulation,
+      bodyWeightG: dailyRecordings.bodyWeightG,
+      feedConsumedKg: dailyRecordings.feedConsumedKg,
+      notes: dailyRecordings.notes,
+    })
     .from(dailyRecordings)
-    .where(and(eq(dailyRecordings.id, id), isNull(dailyRecordings.deletedAt)))
+    .innerJoin(cyclesTable, eq(dailyRecordings.cycleId, cyclesTable.id))
+    .innerJoin(plasmasTable, eq(cyclesTable.plasmaId, plasmasTable.id))
+    .innerJoin(unitsTable, eq(plasmasTable.unitId, unitsTable.id))
+    .where(and(eq(dailyRecordings.id, id), eq(unitsTable.tenantId, tenantId), isNull(dailyRecordings.deletedAt)))
     .limit(1)
 
   if (existing.length === 0) {
@@ -431,6 +522,7 @@ export async function softDeleteRecording(
       action: 'delete',
       resource: 'recording',
       resourceId: String(id),
+      oldValue: JSON.stringify(existing[0]),
     })
   } catch {
     // Fire-and-forget audit logging

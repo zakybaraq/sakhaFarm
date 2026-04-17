@@ -1,8 +1,8 @@
 import {
   mysqlTable,
-  serial,
   varchar,
   int,
+  text,
   timestamp,
   date,
   decimal,
@@ -27,6 +27,7 @@ export const cycles = mysqlTable(
     harvestDate: date('harvest_date'),
     finalPopulation: int('final_population'),
     totalFeedKg: decimal('total_feed_kg', { precision: 10, scale: 3 }).default('0'),
+    notes: text('notes'),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
     deletedAt: timestamp('deleted_at'),

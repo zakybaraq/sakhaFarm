@@ -240,7 +240,7 @@ export async function softDeletePlasma(id: number, tenantId: number, userId: str
   const activeCycles = await db
     .select({ count: count() })
     .from(cycles)
-    .where(and(eq(cycles.plasmaId, id), eq(cycles.status, 'active')))
+    .where(and(eq(cycles.plasmaId, id), eq(cycles.status, 'active'), isNull(cycles.deletedAt)))
 
   if (activeCycles[0].count > 0) {
     throw new PlasmaHasActiveCyclesError(id, activeCycles[0].count as number)

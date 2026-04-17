@@ -15,7 +15,10 @@ import {
   InvalidRoleError,
   UserNotFoundError,
   CsvImportError,
+  WeakPasswordError,
+  InvalidTenantError,
 } from './users.errors'
+import { requirePermission } from '../../plugins/rbac'
 
 function handleUserError(error: unknown) {
   if (error instanceof DuplicateEmailError) {
@@ -29,6 +32,12 @@ function handleUserError(error: unknown) {
   }
   if (error instanceof CsvImportError) {
     return { error: error.message, code: 'CSV_IMPORT_ERROR' }
+  }
+  if (error instanceof WeakPasswordError) {
+    return { error: error.message, code: 'WEAK_PASSWORD' }
+  }
+  if (error instanceof InvalidTenantError) {
+    return { error: error.message, code: 'INVALID_TENANT' }
   }
   if (error instanceof Error) {
     return { error: error.message }
@@ -48,6 +57,7 @@ export const usersController = new Elysia({ prefix: '/api/users' })
       }
     },
     {
+      beforeHandle: requirePermission('users.create'),
       body: t.Object({
         email: t.String({ format: 'email' }),
         password: t.String({ minLength: 8 }),
@@ -71,6 +81,7 @@ export const usersController = new Elysia({ prefix: '/api/users' })
       return { users: result }
     },
     {
+      beforeHandle: requirePermission('users.read'),
       query: t.Object({
         name: t.Optional(t.String()),
         email: t.Optional(t.String()),
@@ -96,6 +107,7 @@ export const usersController = new Elysia({ prefix: '/api/users' })
       return { users: result }
     },
     {
+      beforeHandle: requirePermission('users.read'),
       query: t.Object({
         q: t.String(),
         roleId: t.Optional(t.String()),
@@ -115,6 +127,7 @@ export const usersController = new Elysia({ prefix: '/api/users' })
       }
     },
     {
+      beforeHandle: requirePermission('users.read'),
       params: t.Object({
         id: t.String(),
       }),
@@ -131,6 +144,7 @@ export const usersController = new Elysia({ prefix: '/api/users' })
       }
     },
     {
+      beforeHandle: requirePermission('users.update'),
       params: t.Object({
         id: t.String(),
       }),
@@ -152,6 +166,7 @@ export const usersController = new Elysia({ prefix: '/api/users' })
       }
     },
     {
+      beforeHandle: requirePermission('users.update'),
       params: t.Object({
         id: t.String(),
       }),
@@ -168,6 +183,7 @@ export const usersController = new Elysia({ prefix: '/api/users' })
       }
     },
     {
+      beforeHandle: requirePermission('users.update'),
       params: t.Object({
         id: t.String(),
       }),
@@ -175,24 +191,16 @@ export const usersController = new Elysia({ prefix: '/api/users' })
   )
   .post(
     '/:id/reset-password',
-    async ({ params, cookie }) => {
-      const sessionId = cookie.auth_session?.value as string | undefined
-      if (!sessionId) {
-        return { error: 'Not authenticated' }
-      }
+    async ({ params }) => {
       try {
-        const lucia = await import('../../auth/lucia')
-        const { user, session } = await lucia.lucia.validateSession(sessionId)
-        if (!user || !session) {
-          return { error: 'Session expired' }
-        }
-        const tempPassword = await resetPassword(params.id, user.id)
+        const tempPassword = await resetPassword(params.id)
         return { success: true, tempPassword }
       } catch (error) {
         return handleUserError(error)
       }
     },
     {
+      beforeHandle: requirePermission('users.reset-password'),
       params: t.Object({
         id: t.String(),
       }),
@@ -209,6 +217,7 @@ export const usersController = new Elysia({ prefix: '/api/users' })
       }
     },
     {
+      beforeHandle: requirePermission('users.create'),
       body: t.Object({
         csvContent: t.String(),
         defaultTenantId: t.Number(),

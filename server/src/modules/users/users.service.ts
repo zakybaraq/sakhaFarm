@@ -4,13 +4,15 @@ import { lucia } from '../../auth/lucia'
 import { db } from '../../config/database'
 import { users, roles } from '../../db/schema'
 import { tenants } from '../../db/schema/tenants'
-import { eq, and, or, like, desc, SQL, sql } from 'drizzle-orm'
+import { eq, and, or, like, desc, ne, SQL, sql } from 'drizzle-orm'
 import { generateTempPassword, validatePasswordStrength } from '../../lib/password'
 import {
   DuplicateEmailError,
   InvalidRoleError,
   UserNotFoundError,
   CsvImportError,
+  WeakPasswordError,
+  InvalidTenantError,
 } from './users.errors'
 
 const ARGON2_OPTIONS = {
@@ -75,14 +77,19 @@ export async function createUser(input: CreateUserInput) {
     throw new DuplicateEmailError(normalizedEmail)
   }
 
-  const roleCheck = await db.select({ id: roles.id }).from(roles).where(eq(roles.id, input.roleId)).limit(1)
+  const roleCheck = await db.select({ id: roles.id }).from(roles).where(and(eq(roles.id, input.roleId), ne(roles.isDefault, -1))).limit(1)
   if (roleCheck.length === 0) {
     throw new InvalidRoleError(input.roleId)
   }
 
+  const tenantCheck = await db.select({ id: tenants.id }).from(tenants).where(eq(tenants.id, input.tenantId)).limit(1)
+  if (tenantCheck.length === 0) {
+    throw new InvalidTenantError(input.tenantId)
+  }
+
   const passwordError = validatePasswordStrength(input.password)
   if (passwordError) {
-    throw new Error(passwordError)
+    throw new WeakPasswordError(passwordError)
   }
 
   const userId = generateIdFromEntropySize(10)
@@ -116,13 +123,17 @@ export async function listUsers(filters?: ListUsersFilters): Promise<UserWithRel
         like(users.email, `%${filters.name}%`),
       )
       if (nameCondition) conditions.push(nameCondition)
-    } else if (filters.email) {
+    }
+    if (filters.email) {
       conditions.push(like(users.email, `%${filters.email}%`))
-    } else if (filters.roleId !== undefined) {
+    }
+    if (filters.roleId !== undefined) {
       conditions.push(eq(users.roleId, filters.roleId))
-    } else if (filters.tenantId !== undefined) {
+    }
+    if (filters.tenantId !== undefined) {
       conditions.push(eq(users.tenantId, filters.tenantId))
-    } else if (filters.status === 'active') {
+    }
+    if (filters.status === 'active') {
       conditions.push(eq(users.isActive, 1))
     } else if (filters.status === 'inactive') {
       conditions.push(eq(users.isActive, 0))
@@ -213,7 +224,7 @@ export async function updateUser(id: string, input: UpdateUserInput) {
     const duplicateCheck = await db
       .select()
       .from(users)
-      .where(and(eq(users.email, normalizedEmail), eq(users.id, id)))
+      .where(and(eq(users.email, normalizedEmail), ne(users.id, id)))
 
     if (duplicateCheck.length > 0) {
       throw new DuplicateEmailError(normalizedEmail)
@@ -221,7 +232,7 @@ export async function updateUser(id: string, input: UpdateUserInput) {
   }
 
   if (input.roleId !== undefined) {
-    const roleCheck = await db.select({ id: roles.id }).from(roles).where(eq(roles.id, input.roleId)).limit(1)
+const roleCheck = await db.select({ id: roles.id }).from(roles).where(and(eq(roles.id, input.roleId), ne(roles.isDefault, -1))).limit(1)
     if (roleCheck.length === 0) {
       throw new InvalidRoleError(input.roleId)
     }
@@ -269,12 +280,7 @@ export async function activateUser(id: string) {
 /**
  * Admin-only password reset. Generates a temporary password and invalidates sessions.
  */
-export async function resetPassword(userId: string, adminUserId: string) {
-  const admin = await db.select().from(users).where(eq(users.id, adminUserId)).limit(1)
-  if (admin.length === 0 || admin[0].roleId !== 1) {
-    throw new Error('Only Super Admin can reset passwords')
-  }
-
+export async function resetPassword(userId: string) {
   const targetUser = await db.select().from(users).where(eq(users.id, userId)).limit(1)
   if (targetUser.length === 0) {
     throw new UserNotFoundError(userId)
@@ -310,9 +316,11 @@ export async function searchUsers(query: string, filters?: ListUsersFilters): Pr
 
   if (filters?.roleId !== undefined) {
     conditions.push(eq(users.roleId, filters.roleId))
-  } else if (filters?.tenantId !== undefined) {
+  }
+  if (filters?.tenantId !== undefined) {
     conditions.push(eq(users.tenantId, filters.tenantId))
-  } else if (filters?.status === 'active') {
+  }
+  if (filters?.status === 'active') {
     conditions.push(eq(users.isActive, 1))
   } else if (filters?.status === 'inactive') {
     conditions.push(eq(users.isActive, 0))

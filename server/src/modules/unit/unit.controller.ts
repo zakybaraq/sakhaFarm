@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia'
 import { requirePermission } from '../../plugins/rbac'
+import { getTenantId } from '../../plugins/tenant'
 import {
   createUnit,
   listUnits,
@@ -14,25 +15,38 @@ import {
 } from './unit.errors'
 
 export const unitController = new Elysia({ prefix: '/api/units' })
-  .onError(({ error }) => {
+  .onError(({ error, set }) => {
     if (error instanceof UnitNotFoundError) {
+      set.status = 404
       return { error: error.message, code: 'UNIT_NOT_FOUND' }
     }
     if (error instanceof UnitHasActivePlasmasError) {
+      set.status = 409
       return { error: error.message, code: 'UNIT_HAS_ACTIVE_PLASMAS' }
     }
     if (error instanceof DuplicateUnitCodeError) {
+      set.status = 409
       return { error: error.message, code: 'DUPLICATE_UNIT_CODE' }
+    }
+    if (error instanceof Error && error.message === 'MISSING_TENANT_ID') {
+      set.status = 401
+      return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    }
+    if (error instanceof Error && error.message === 'MISSING_USER_ID') {
+      set.status = 401
+      return { error: 'Authentication required', code: 'MISSING_USER_ID' }
     }
   })
   .post(
     '/',
-    async ({ body, store, cookie }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
+      }
+      const userId = ctx.user.id
 
-      const unit = await createUnit(body, tenantId, userId)
+      const unit = await createUnit(ctx.body, currentTenantId, userId)
       return { success: true, unit }
     },
     {
@@ -46,9 +60,9 @@ export const unitController = new Elysia({ prefix: '/api/units' })
   )
   .get(
     '/',
-    async ({ store }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const result = await listUnits(tenantId)
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      const result = await listUnits(currentTenantId)
       return { units: result }
     },
     {
@@ -57,9 +71,9 @@ export const unitController = new Elysia({ prefix: '/api/units' })
   )
   .get(
     '/:id',
-    async ({ params, store }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const unit = await getUnit(parseInt(params.id, 10), tenantId)
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      const unit = await getUnit(parseInt(ctx.params.id, 10), currentTenantId)
       return { unit }
     },
     {
@@ -71,12 +85,14 @@ export const unitController = new Elysia({ prefix: '/api/units' })
   )
   .put(
     '/:id',
-    async ({ params, body, store, cookie }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
+      }
+      const userId = ctx.user.id
 
-      await updateUnit(parseInt(params.id, 10), body, tenantId, userId)
+      await updateUnit(parseInt(ctx.params.id, 10), ctx.body, currentTenantId, userId)
       return { success: true }
     },
     {
@@ -93,12 +109,14 @@ export const unitController = new Elysia({ prefix: '/api/units' })
   )
   .delete(
     '/:id',
-    async ({ params, store, cookie }) => {
-      const tenantId = (store as Record<string, unknown>).tenantId as number
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
+      }
+      const userId = ctx.user.id
 
-      await softDeleteUnit(parseInt(params.id, 10), tenantId, userId)
+      await softDeleteUnit(parseInt(ctx.params.id, 10), currentTenantId, userId)
       return { success: true }
     },
     {

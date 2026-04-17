@@ -1,28 +1,26 @@
 import { Elysia } from 'elysia'
 import { db } from '../config/database'
-import { rolePermissions, permissions } from '../db/schema'
+import { rolePermissions, permissions, users } from '../db/schema'
 import { eq, and } from 'drizzle-orm'
+import { SUPER_ADMIN_ROLE_ID } from '../lib/constants'
 
-/**
- * Creates a permission guard that checks if the current user has the specified permission.
- *
- * Super Admin (roleId === 1) bypasses all permission checks.
- *
- * @param requiredPermission - Permission string in format "resource.action" (e.g., "flock.create")
- * @returns Elysia resolve function that checks permission
- * @throws Error if user lacks the required permission
- */
 export function requirePermission(requiredPermission: string) {
-  return async ({ user }: { user: any }) => {
-    if (user && user.roleId === 1) {
-      return { permitted: true }
-    }
+  return async (ctx: any) => {
+    const user = ctx.user
 
     if (!user) {
-      throw new Error('Authentication required')
+      ctx.set.status = 401
+      return { error: 'Authentication required' }
     }
 
-    const [resource, action] = requiredPermission.split('.')
+    if (user.isActive !== 1) {
+      ctx.set.status = 403
+      return { error: 'Account is deactivated', code: 'FORBIDDEN' }
+    }
+
+    if (user.roleId === SUPER_ADMIN_ROLE_ID) {
+      return
+    }
 
     const result = await db
       .select({ action: rolePermissions.action })
@@ -38,10 +36,9 @@ export function requirePermission(requiredPermission: string) {
       .limit(1)
 
     if (result.length === 0) {
-      throw new Error(`Permission denied: ${requiredPermission}`)
+      ctx.set.status = 403
+      return { error: `Permission denied: ${requiredPermission}`, code: 'FORBIDDEN' }
     }
-
-    return { permitted: true }
   }
 }
 

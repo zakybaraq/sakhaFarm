@@ -57,3 +57,10 @@ export class DuplicateRecordingDateError extends Error {
     this.name = 'DuplicateRecordingDateError'
   }
 }
+
+export class CycleNotFoundError extends Error {
+  constructor(cycleId: number) {
+    super(`Cycle "${cycleId}" not found`)
+    this.name = 'CycleNotFoundError'
+  }
+}

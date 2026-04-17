@@ -1,6 +1,5 @@
 import {
   mysqlTable,
-  serial,
   varchar,
   int,
   timestamp,
@@ -26,7 +25,6 @@ export const units = mysqlTable(
     deletedAt: timestamp('deleted_at'),
   },
   (table) => ({
-    codeUnique: index('idx_units_code').on(table.code),
     idxUnitsTenant: index('idx_units_tenant').on(table.tenantId),
   })
 )

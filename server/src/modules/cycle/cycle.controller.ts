@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia'
 import { requirePermission } from '../../plugins/rbac'
+import { getTenantId } from '../../plugins/tenant'
 import {
   createCycle,
   listCycles,
@@ -16,43 +17,54 @@ import {
   InvalidCycleStatusTransitionError,
   CycleNotInTenantPlasmaError,
   CycleHasRecordingsError,
+  InvalidDocTypeError,
 } from './cycle.errors'
 
-function getTenantId(store: Record<string, unknown>, headers: Record<string, string>, deriveTenantId?: number | null): number {
-  const storeTenantId = (store as Record<string, unknown>).tenantId as number | undefined
-  const headerTenantId = parseInt(headers['x-tenant-id'] || '0', 10)
-  return storeTenantId ?? deriveTenantId ?? headerTenantId
-}
-
 export const cycleController = new Elysia({ prefix: '/api/cycles' })
-  .onError(({ error }) => {
+  .onError(({ error, set }) => {
     if (error instanceof CycleNotFoundError) {
+      set.status = 404
       return { error: error.message, code: 'CYCLE_NOT_FOUND' }
     }
     if (error instanceof CycleCapacityExceededError) {
+      set.status = 409
       return { error: error.message, code: 'CYCLE_CAPACITY_EXCEEDED' }
     }
     if (error instanceof InvalidCycleStatusTransitionError) {
+      set.status = 409
       return { error: error.message, code: 'INVALID_STATUS_TRANSITION' }
     }
     if (error instanceof CycleNotInTenantPlasmaError) {
+      set.status = 409
       return { error: error.message, code: 'CYCLE_NOT_IN_TENANT_PLASMA' }
     }
     if (error instanceof CycleHasRecordingsError) {
+      set.status = 409
       return { error: error.message, code: 'CYCLE_HAS_RECORDINGS' }
+    }
+    if (error instanceof InvalidDocTypeError) {
+      set.status = 400
+      return { error: error.message, code: 'INVALID_DOC_TYPE' }
+    }
+    if (error instanceof Error && error.message === 'MISSING_TENANT_ID') {
+      set.status = 400
+      return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    }
+    if (error instanceof Error && error.message === 'MISSING_USER_ID') {
+      set.status = 401
+      return { error: 'Authentication required', code: 'MISSING_USER_ID' }
     }
   })
   .post(
     '/',
-    async ({ body, store, cookie, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
       }
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+      const userId = ctx.user.id
 
-      const cycle = await createCycle(body, currentTenantId, userId)
+      const cycle = await createCycle(ctx.body, currentTenantId, userId)
       return { success: true, cycle }
     },
     {
@@ -67,13 +79,10 @@ export const cycleController = new Elysia({ prefix: '/api/cycles' })
   )
   .get(
     '/',
-    async ({ query, store, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
-      }
-      const plasmaId = query.plasmaId ? parseInt(query.plasmaId, 10) : undefined
-      const status = query.status as string | undefined
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      const plasmaId = ctx.query.plasmaId ? parseInt(ctx.query.plasmaId as string, 10) : undefined
+      const status = ctx.query.status as string | undefined
 
       const result = await listCycles(currentTenantId, plasmaId, status)
       return { cycles: result }
@@ -88,12 +97,9 @@ export const cycleController = new Elysia({ prefix: '/api/cycles' })
   )
   .get(
     '/:id',
-    async ({ params, store, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
-      }
-      const cycle = await getCycle(parseInt(params.id, 10), currentTenantId)
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      const cycle = await getCycle(parseInt(ctx.params.id, 10), currentTenantId)
       return { cycle }
     },
     {
@@ -105,15 +111,14 @@ export const cycleController = new Elysia({ prefix: '/api/cycles' })
   )
   .put(
     '/:id',
-    async ({ params, body, store, cookie, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
       }
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+      const userId = ctx.user.id
 
-      await updateCycle(parseInt(params.id, 10), body, currentTenantId, userId)
+      await updateCycle(parseInt(ctx.params.id, 10), ctx.body, currentTenantId, userId)
       return { success: true }
     },
     {
@@ -130,15 +135,14 @@ export const cycleController = new Elysia({ prefix: '/api/cycles' })
   )
   .delete(
     '/:id',
-    async ({ params, store, cookie, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
       }
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+      const userId = ctx.user.id
 
-      await softDeleteCycle(parseInt(params.id, 10), currentTenantId, userId)
+      await softDeleteCycle(parseInt(ctx.params.id, 10), currentTenantId, userId)
       return { success: true }
     },
     {
@@ -150,15 +154,14 @@ export const cycleController = new Elysia({ prefix: '/api/cycles' })
   )
   .post(
     '/:id/complete',
-    async ({ params, body, store, cookie, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
       }
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+      const userId = ctx.user.id
 
-      await completeCycle(parseInt(params.id, 10), body, currentTenantId, userId)
+      await completeCycle(parseInt(ctx.params.id, 10), ctx.body, currentTenantId, userId)
       return { success: true }
     },
     {
@@ -174,15 +177,14 @@ export const cycleController = new Elysia({ prefix: '/api/cycles' })
   )
   .post(
     '/:id/fail',
-    async ({ params, body, store, cookie, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      if (!ctx.user) {
+        throw new Error('MISSING_USER_ID')
       }
-      const sessionId = cookie.auth_session?.value as string | undefined
-      const userId = sessionId || 'system'
+      const userId = ctx.user.id
 
-      await failCycle(parseInt(params.id, 10), body, currentTenantId, userId)
+      await failCycle(parseInt(ctx.params.id, 10), ctx.body, currentTenantId, userId)
       return { success: true }
     },
     {
@@ -198,12 +200,9 @@ export const cycleController = new Elysia({ prefix: '/api/cycles' })
   )
   .get(
     '/:id/summary',
-    async ({ params, store, headers, tenantId }) => {
-      const currentTenantId = getTenantId(store, headers, tenantId)
-      if (!currentTenantId || currentTenantId === 0) {
-        return { error: 'Tenant ID is required', code: 'MISSING_TENANT_ID' }
-      }
-      const summary = await getCycleSummary(parseInt(params.id, 10), currentTenantId)
+    async (ctx) => {
+      const currentTenantId = getTenantId(ctx)
+      const summary = await getCycleSummary(parseInt(ctx.params.id, 10), currentTenantId)
       return { summary }
     },
     {
