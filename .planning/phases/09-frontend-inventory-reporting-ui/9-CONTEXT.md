@@ -27,95 +27,66 @@ date: "2026-04-17"
 
 # Phase 09: Frontend — Inventory & Reporting UI
 
-## Context
+## Locked Decisions
 
-### From ROADMAP.md
+These choices are **FINAL** — researcher and planner must NOT revisit alternatives:
 
-**Depends on**: Phase 8 (Frontend Layout & Dashboard) ✅
-
-**Deliverables:**
-- Surat Jalan form (feed delivery input) with MUI form components + validation
-- Feed stock dashboard (per unit, per plasma) with MUI DataGrid
-- Low stock alerts panel with color-coded severity
-- Resume Stock report page with filters (MUI DatePicker, Select, Autocomplete)
-- Daily Performance report page with charts (@mui/x-charts: BW curve, FCR trend)
-- Export buttons (CSV/Excel) using xlsx library
-- Audit log viewer (admin only) with searchable DataGrid
-- Daily recording form with live FCR/IP/deviation calculations
-- Standard comparison chart: Actual vs Standard BW overlay
-- RBAC Manager pages (roles, permissions, users)
-
-### From PROJECT.md (Locked Decisions)
-
-- **UI/UX Design**: Modern minimalist — clean whitespace, subtle shadows, consistent spacing
-- **Color Palette**: Neutral base (slate/gray) with green accent (#2E7D32 for farm theme)
-- **Components**: MUI with custom theme override for minimalist aesthetic
-- **Responsive**: Desktop-first, tablet-friendly, mobile-adaptive
-
-### From Prior Phases
-
-- Phase 8 CONTEXT.md already exists with layout decisions
-- Auth system ready: `/api/auth/login`, `/api/auth/me`, `/api/auth/permissions`
-- API clients ready: `client/src/api/feed.ts`, `client/src/api/reporting.ts`
-- Dashboard KPIs implemented in Phase 8
+| ID | Choice | Rationale |
+|----|--------|-----------|
+| L-01 | MUI DataGrid for all tabular data | Enterprise-grade sorting/filtering, consistent with Phase 8 |
+| L-02 | Modal popup for Surat Jalan form | Quick entry workflow, stays on current page |
+| L-03 | @mui/x-charts for charts | Official MUI library, consistent theme |
+| L-04 | xlsx library for Excel export | Better formatting, multiple sheets support |
+| L-05 | Single-page RBAC Manager with tabs | Modern dashboard pattern |
+| L-06 | Green accent #2E7D32 | From PROJECT.md design system |
+| L-07 | TanStack Query for data fetching | Already implemented in Phase 8 |
+| L-08 | React Hook Form + Zod for forms | Matches server-side validation |
+| L-09 | Desktop-first responsive | From PROJECT.md |
+| L-10 | Line chart for BW, area chart for FCR | Clear visual comparison of actual vs standard |
 
 ---
 
-## Gray Areas (Discussed & Resolved)
+## the agent's Discretion
 
-### 1. Surat Jalan Entry
-**Decision:** Modal popup for quick entry
+These areas are delegated to implementation judgment — no need to ask user:
 
-- **D-01:** Surat Jalan form opens as a modal dialog
-- **D-02:** Modal stays on current page for quick entry
-- **D-03:** Best for daily feed deliveries workflow
-
-### 2. Feed Stock Display
-**Decision:** DataGrid with filters
-
-- **D-04:** Feed stock displayed in MUI DataGrid
-- **D-05:** Column filters for unit, plasma, feed type
-- **D-06:** Sortable columns for large datasets
-
-### 3. Performance Charts
-**Decision:** Line chart for BW (with FCR area chart)
-
-- **D-07:** BW growth curve shows deviation from standard
-- **D-08:** Line chart provides clear visual comparison
-- **D-09:** FCR trend shown as area chart on same page
-
-### 4. Export Format
-**Decision:** Excel (xlsx library)
-
-- **D-10:** Export produces .xlsx files
-- **D-11:** Better formatting, cell styling, multiple sheets support
-- **D-12:** Matches enterprise use case
-
-### 5. Audit Log Viewer
-**Decision:** DataGrid with filters
-
-- **D-13:** Standard MUI DataGrid with column filters
-- **D-14:** Date, action, user filters available
-- **D-15:** Admin-only access (enforced by backend)
-
-### 6. RBAC Manager Structure
-**Decision:** Single page with tabs
-
-- **D-16:** Roles, permissions, users in one page
-- **D-17:** Tabs for fast switching between sections
-- **D-18:** Consistent with modern dashboard patterns
-
----
-
-## Agent's Discretion
-
-The following areas are delegated to the agent's judgment during implementation:
-
-- **Loading states:** Use MUI Skeleton components for all async data
-- **Empty states:** Custom empty state components with illustrations
-- **Form validation:** Use React Hook Form + Zod for Surat Jalan form
-- **Chart colors:** Green accent (#2E7D32) for actual data, gray for standard
+- **Loading states:** Use MUI Skeleton components
+- **Empty states:** Custom empty state components
+- **Chart colors:** Green (#2E7D32) for actual, gray for standard
 - **DataGrid pagination:** Default 25 rows, user-configurable
+
+---
+
+## Deferred Ideas (OUT OF SCOPE)
+
+These were discussed but NOT locked — lower priority, can revisit later:
+
+- Mobile app (out of scope per REQUIREMENTS.md)
+- IoT integration / sensor data
+- Predictive analytics / ML
+- Billing & invoicing
+- Push notification system (WhatsApp/Email)
+
+---
+
+## Dependencies
+
+- **Depends on:** Phase 8 (Frontend Layout & Dashboard) — completed
+- **Auth ready:** `/api/auth/login`, `/api/auth/me`, `/api/auth/permissions`
+- **API clients ready:** `client/src/api/feed.ts`, `client/src/api/reporting.ts`
+
+---
+
+## Deliverables (from ROADMAP.md)
+
+1. Surat Jalan form (modal) — feed delivery input with validation
+2. Feed stock dashboard — DataGrid per unit/plasma
+3. Low stock alerts — color-coded severity panel
+4. Resume Stock report — filters (DatePicker, Select, Autocomplete)
+5. Daily Performance report — @mui/x-charts (BW curve, FCR trend)
+6. Export buttons — Excel via xlsx library
+7. Audit log viewer — searchable DataGrid (admin only)
+8. RBAC Manager — roles, permissions, users tabs
 
 ---
 
@@ -128,30 +99,22 @@ The following areas are delegated to the agent's judgment during implementation:
 | Stock Resume | `/api/reporting/stock-resume` | GET |
 | Performance | `/api/reporting/performance` | GET |
 | Audit Logs | `/api/audit/logs` | GET |
-| Roles | `/api/rbac/roles` | GET/POST/PUT/DELETE |
-| Permissions | `/api/rbac/permissions` | GET |
+| RBAC Roles | `/api/rbac/roles` | GET/POST/PUT/DELETE |
+| RBAC Permissions | `/api/rbac/permissions` | GET |
 | Users | `/api/users` | GET/POST/PUT/DELETE |
 
 ---
 
 ## Patterns to Follow
 
-- **Data fetching:** TanStack Query hooks (existing pattern from Phase 8)
-- **Forms:** React Hook Form + Zod validation (following server-side Zod schemas)
-- **Charts:** @mui/x-charts line chart components
-- **Export:** xlsx library with Workbook → Worksheet → cell building
-- **Layout:** Use existing Layout.tsx component structure
-- **Theme:** Extend existing MUI theme (green accent #2E7D32)
-
----
-
-## Next Steps
-
-1. Run `/gsd-plan-phase 9` to create detailed execution plan
-2. Planner uses this CONTEXT.md to implement all 6 areas
-3. Implement Surat Jalan modal first, then Feed stock DataGrid, then charts
+- **Data fetching:** TanStack Query hooks (from Phase 8)
+- **Forms:** React Hook Form + Zod
+- **Charts:** @mui/x-charts line/area charts
+- **Export:** xlsx with Workbook → Worksheet → cells
+- **Layout:** Use existing Layout.tsx component
+- **Theme:** Extend MUI theme with green #2E7D32
 
 ---
 
 *Phase: 09-frontend-inventory-reporting-ui*
-*Context gathered: 2026-04-17*
+*Context: 2026-04-17*
