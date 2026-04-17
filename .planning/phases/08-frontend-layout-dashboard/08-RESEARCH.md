@@ -655,22 +655,19 @@ declare module '@mui/material/styles' {
 
 **Verified claims:** React Router v7 declarative routing [VERIFIED: Context7 docs confirm], TanStack Query v5 object syntax [VERIFIED: Context7 docs], MUI v7 Drawer class name changes [VERIFIED: Context7 MUI codemod docs], server cookie settings [VERIFIED: lucia.ts source code checked], server CORS [VERIFIED: index.ts checked].
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Server `/api/auth/me` returns 200 with `{ error: 'Not authenticated' }` instead of 401**
+1. **Server `/api/auth/me` returns 200 with `{ error: 'Not authenticated' }` instead of 401** ✅ RESOLVED
    - What we know: Looking at `auth.controller.ts` line 93-102, the `/me` endpoint returns `{ error: 'Not authenticated' }` or `{ error: 'Session expired' }` with a 200 status code when session is invalid.
-   - What's unclear: The client needs to check for `error` field in response body rather than relying on HTTP status codes.
-   - Recommendation: The apiClient should check for `error` field in response JSON and treat it as authentication failure. Alternatively, modify the server `/me` endpoint to return 401 status — but that's outside this phase's scope.
+   - Resolution: Plan 08-01 Task 1 — apiClient checks for `error` field in response body on 200 responses and treats it as auth failure (redirects to /login).
 
-2. **RBAC permissions endpoint requires authentication + tenantId**
+2. **RBAC permissions endpoint requires authentication + tenantId** ✅ RESOLVED
    - What we know: `/api/rbac/permissions` requires `beforeHandle: requirePermission('rbac.read')`, meaning the user needs `rbac.read` permission to list permissions.
-   - What's unclear: How to load permissions for the logged-in user without them needing `rbac.read` permission. The UI needs to know which menu items to show based on the user's role.
-   - Recommendation: The `/api/auth/me` response should include the user's `roleId` and `tenantId`. Then load permissions via `/api/rbac/roles/:id/permissions` or add a new endpoint like `/api/auth/permissions` that returns the current user's permissions without requiring `rbac.read`. This needs clarification with the planner.
+   - Resolution: Plan 08-01 Task 2 — New server endpoint `GET /api/auth/permissions` returns the current user's permissions without requiring `rbac.read`, using the authenticated user's roleId.
 
-3. **Tenant ID resolution for API calls**
+3. **Tenant ID resolution for API calls** ✅ RESOLVED
    - What we know: Backend uses `x-tenant-id` header or session-derived tenantId. The client needs to send tenantId with API requests.
-   - What's unclear: Whether the `/api/auth/me` response includes `tenantId` (it returns `{ id, email, name }`) — it might need to include `tenantId` and `roleId` for proper client-side permission filtering.
-   - Recommendation: Extend `/api/auth/me` response (or add a separate profile endpoint) to include `roleId`, `tenantId`, and permissions array.
+   - Resolution: Plan 08-01 Task 2 — Extends `/api/auth/me` response to include `roleId` and `tenantId`. Plan 08-01 Task 3 — AuthContext stores user with tenantId, which hooks use for API calls.
 
 ## Environment Availability
 
