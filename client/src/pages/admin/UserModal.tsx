@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -17,13 +17,13 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createUser } from '../../api/users'
+import { createUser, updateUser } from '../../api/users'
 import { listUnits } from '../../api/units'
 import { useQuery } from '@tanstack/react-query'
 
 const userSchema = z.object({
   email: z.string().email('Email tidak valid'),
-  password: z.string().min(8, 'Password minimal 8 karakter'),
+  password: z.string().optional(),
   name: z.string().min(2, 'Nama minimal 2 karakter'),
   roleId: z.number().min(1, 'Role wajib dipilih'),
   tenantId: z.number().min(1, 'Tenant wajib dipilih'),
@@ -34,9 +34,11 @@ type UserFormData = z.infer<typeof userSchema>
 interface UserModalProps {
   open: boolean
   onClose: () => void
+  editId?: string | null
 }
 
-export function UserModal({ open, onClose }: UserModalProps) {
+export function UserModal({ open, onClose, editId }: UserModalProps) {
+  const isEditMode = !!editId
   const queryClient = useQueryClient()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,7 +48,7 @@ export function UserModal({ open, onClose }: UserModalProps) {
     queryFn: listUnits,
   })
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<UserFormData>({
+  const { control, handleSubmit, reset: resetForm, formState: { errors } } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       email: '',
@@ -57,11 +59,25 @@ export function UserModal({ open, onClose }: UserModalProps) {
     },
   })
 
-  const createMutation = useMutation({
-    mutationFn: createUser,
+  const mutation = useMutation({
+    mutationFn: (formData: UserFormData) => {
+      if (isEditMode) {
+        const updateData: { name: string; email: string; roleId: number; password?: string } = { 
+          name: formData.name, 
+          email: formData.email, 
+          roleId: formData.roleId 
+        }
+        if (formData.password) {
+          updateData.password = formData.password
+        }
+        return updateUser(editId!, updateData)
+      }
+      const createData = { ...formData, password: formData.password || '' }
+      return createUser(createData)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      reset()
+      resetForm()
       onClose()
     },
   })
@@ -70,7 +86,7 @@ export function UserModal({ open, onClose }: UserModalProps) {
     setIsSubmitting(true)
     setError(null)
     try {
-      await createMutation.mutateAsync(data)
+      await mutation.mutateAsync(data)
     } catch (err) {
       setError('Gagal menyimpan pengguna')
     } finally {
@@ -81,7 +97,7 @@ export function UserModal({ open, onClose }: UserModalProps) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ fontSize: '20px', fontWeight: 600 }}>
-        Tambah Pengguna
+        {isEditMode ? 'Edit Pengguna' : 'Tambah Pengguna'}
       </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
@@ -169,7 +185,7 @@ export function UserModal({ open, onClose }: UserModalProps) {
             disabled={isSubmitting}
             sx={{ bgcolor: '#2E7D32' }}
           >
-            {isSubmitting ? 'Menyimpan...' : 'Simpan'}
+            {isEditMode ? 'Perbarui' : (isSubmitting ? 'Menyimpan...' : 'Simpan')}
           </Button>
         </DialogActions>
       </form>

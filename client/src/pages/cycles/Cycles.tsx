@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Box, Typography, Button, Paper, Chip } from '@mui/material'
+import { Box, Typography, Button, Paper, Chip, Switch, IconButton } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { listCycles, deleteCycle, type Cycle } from '../../api/cycles'
+import { listCycles, deleteCycle, updateCycle, type Cycle } from '../../api/cycles'
 import { listPlasmas, type Plasma } from '../../api/plasmas'
 import { useAuth } from '../../contexts/AuthContext'
 import { CycleModal } from './CycleModal'
@@ -13,6 +14,7 @@ export function CyclesPage() {
   const queryClient = useQueryClient()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [editId, setEditId] = useState<number | null>(null)
 
   const { data: plasmasData } = useQuery({
     queryKey: ['plasmas'],
@@ -34,6 +36,20 @@ export function CyclesPage() {
     },
   })
 
+  const toggleMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const cycle = data?.cycles.find((c: Cycle) => c.id === id)
+      if (!cycle) return
+      const newStatus = cycle.status === 'Active' ? 'Completed' : 'Active'
+      return updateCycle(id, { status: newStatus })
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cycles'] }),
+  })
+
+  const handleToggle = (id: number) => {
+    toggleMutation.mutate(id)
+  }
+
   const handleDelete = () => {
     if (selectedId && confirm('Apakah Anda yakin ingin menghapus siklus ini?')) {
       deleteMutation.mutate(selectedId)
@@ -43,6 +59,11 @@ export function CyclesPage() {
   const handleSelectionChange = (newSelection: unknown) => {
     const selected = newSelection as number[]
     setSelectedId(selected[0] ?? null)
+  }
+
+  const handleEdit = (row: Cycle) => {
+    setEditId(row.id)
+    setModalOpen(true)
   }
 
   const getStatusColor = (status: string) => {
@@ -73,11 +94,38 @@ export function CyclesPage() {
     { field: 'chickInDate', headerName: 'Tgl. Chick In', width: 140 },
     { field: 'initialPopulation', headerName: 'Populasi Awal', width: 140 },
     {
-      field: 'status',
+      field: 'isActive',
       headerName: 'Status',
-      width: 120,
+      width: 100,
+      renderCell: (params) => {
+        const isActive = params.row.status === 'Active'
+        return (
+          <Switch
+            checked={isActive}
+            onChange={(e) => {
+              e.stopPropagation()
+              handleToggle(params.row.id)
+            }}
+            size="small"
+          />
+        )
+      },
+    },
+    {
+      field: 'actions',
+      headerName: '',
+      width: 60,
+      sortable: false,
       renderCell: (params) => (
-        <Chip label={params.value} color={getStatusColor(params.value)} size="small" />
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleEdit(params.row)
+          }}
+        >
+          <EditIcon fontSize="small" />
+        </IconButton>
       ),
     },
   ]
@@ -116,7 +164,11 @@ export function CyclesPage() {
         />
       </Paper>
 
-      <CycleModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <CycleModal 
+        open={modalOpen} 
+        onClose={() => { setModalOpen(false); setEditId(null); }} 
+        editId={editId}
+      />
     </Box>
   )
 }

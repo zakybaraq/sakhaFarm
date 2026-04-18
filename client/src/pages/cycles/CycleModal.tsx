@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -17,7 +17,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createCycle } from '../../api/cycles'
+import { createCycle, updateCycle, listCycles } from '../../api/cycles'
 import { listPlasmas, type Plasma } from '../../api/plasmas'
 import { useQuery } from '@tanstack/react-query'
 
@@ -34,9 +34,11 @@ type CycleFormData = z.infer<typeof cycleSchema>
 interface CycleModalProps {
   open: boolean
   onClose: () => void
+  editId?: number | null
 }
 
-export function CycleModal({ open, onClose }: CycleModalProps) {
+export function CycleModal({ open, onClose, editId }: CycleModalProps) {
+  const isEditMode = !!editId
   const queryClient = useQueryClient()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,7 +48,12 @@ export function CycleModal({ open, onClose }: CycleModalProps) {
     queryFn: () => listPlasmas(),
   })
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<CycleFormData>({
+  const { data: cyclesData } = useQuery({
+    queryKey: ['cycles'],
+    queryFn: listCycles,
+  })
+
+  const { control, handleSubmit, reset: resetForm, formState: { errors } } = useForm<CycleFormData>({
     resolver: zodResolver(cycleSchema),
     defaultValues: {
       plasmaId: 0,
@@ -57,11 +64,42 @@ export function CycleModal({ open, onClose }: CycleModalProps) {
     },
   })
 
-  const createMutation = useMutation({
-    mutationFn: createCycle,
+  useEffect(() => {
+    if (editId && cyclesData?.cycles) {
+      const cycle = cyclesData.cycles.find((c: { id: number }) => c.id === editId)
+      if (cycle) {
+        resetForm({
+          plasmaId: cycle.plasmaId,
+          cycleNumber: String(cycle.cycleNumber),
+          docType: cycle.docType,
+          chickInDate: cycle.chickInDate.split('T')[0],
+          initialPopulation: cycle.initialPopulation,
+        })
+      }
+    } else {
+      resetForm({
+        plasmaId: 0,
+        cycleNumber: '',
+        docType: '',
+        chickInDate: new Date().toISOString().split('T')[0],
+        initialPopulation: 0,
+      })
+    }
+  }, [editId, cyclesData, resetForm])
+
+  const mutation = useMutation({
+    mutationFn: (formData: CycleFormData) => 
+      isEditMode 
+        ? updateCycle(editId!, { 
+            cycleNumber: Number(formData.cycleNumber),
+            docType: formData.docType,
+            chickInDate: formData.chickInDate,
+            initialPopulation: formData.initialPopulation
+          })
+        : createCycle(formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cycles'] })
-      reset()
+      resetForm()
       onClose()
     },
   })
@@ -70,7 +108,7 @@ export function CycleModal({ open, onClose }: CycleModalProps) {
     setIsSubmitting(true)
     setError(null)
     try {
-      await createMutation.mutateAsync(data)
+      await mutation.mutateAsync(data)
     } catch (err) {
       setError('Gagal menyimpan siklus')
     } finally {
@@ -81,7 +119,7 @@ export function CycleModal({ open, onClose }: CycleModalProps) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ fontSize: '20px', fontWeight: 600 }}>
-        Tambah Siklus
+        {isEditMode ? 'Edit Siklus' : 'Tambah Siklus'}
       </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
@@ -171,7 +209,7 @@ export function CycleModal({ open, onClose }: CycleModalProps) {
             disabled={isSubmitting}
             sx={{ bgcolor: '#2E7D32' }}
           >
-            {isSubmitting ? 'Menyimpan...' : 'Simpan'}
+            {isEditMode ? 'Perbarui' : (isSubmitting ? 'Menyimpan...' : 'Simpan')}
           </Button>
         </DialogActions>
       </form>

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Box, Typography, Button, Paper, Chip } from '@mui/material'
+import { Box, Typography, Button, Paper, Chip, IconButton } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listUsers, deactivateUser, activateUser, type User } from '../../api/users'
 import { useAuth } from '../../contexts/AuthContext'
@@ -12,6 +13,7 @@ export function UsersPage() {
   const queryClient = useQueryClient()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['users'],
@@ -35,6 +37,11 @@ export function UsersPage() {
     },
   })
 
+  const handleEdit = (row: User) => {
+    setEditId(row.id)
+    setModalOpen(true)
+  }
+
   const columns: GridColDef[] = [
     { field: 'name', headerName: 'Nama', flex: 1, minWidth: 200 },
     { field: 'email', headerName: 'Email', flex: 1, minWidth: 200 },
@@ -50,6 +57,23 @@ export function UsersPage() {
         }
         return <Chip label="Nonaktif" color="default" size="small" />
       },
+    },
+    {
+      field: 'actions',
+      headerName: '',
+      width: 60,
+      sortable: false,
+      renderCell: (params) => (
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleEdit(params.row)
+          }}
+        >
+          <EditIcon fontSize="small" />
+        </IconButton>
+      ),
     },
   ]
 
@@ -91,7 +115,11 @@ export function UsersPage() {
         />
       </Paper>
 
-      <UserModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <UserModal 
+        open={modalOpen} 
+        onClose={() => { setModalOpen(false); setEditId(null); }} 
+        editId={editId}
+      />
     </Box>
   )
 }

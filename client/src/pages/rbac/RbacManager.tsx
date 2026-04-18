@@ -116,10 +116,14 @@ export function RbacManager() {
       width: 120,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton size="small" onClick={() => handleEditRole(params.row)}>
+          <IconButton size="small" onClick={(e) => {
+              e.stopPropagation()
+              handleEditRole(params.row)
+            }}>
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" color="error" onClick={() => {
+          <IconButton size="small" color="error" onClick={(e) => {
+            e.stopPropagation()
             if (window.confirm(`Delete role "${params.row.name}"?`)) {
               setRoles(roles.filter(r => r.id !== params.row.id))
             }
@@ -154,13 +158,19 @@ export function RbacManager() {
       width: 200,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton size="small" onClick={() => handleEditUser(params.row)}>
+          <IconButton size="small" onClick={(e) => {
+              e.stopPropagation()
+              handleEditUser(params.row)
+            }}>
             <EditIcon fontSize="small" />
           </IconButton>
           <Switch
             size="small"
             checked={params.row.status === 'active'}
-            onChange={() => handleToggleUserStatus(params.row.id)}
+            onChange={(e) => {
+              e.stopPropagation()
+              handleToggleUserStatus(params.row.id)
+            }}
           />
         </Box>
       ),

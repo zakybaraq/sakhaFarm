@@ -42,6 +42,7 @@ export function updateCycle(id: number, data: {
   initialPopulation?: number
   status?: string
   isDeleted?: boolean
+  cycleNumber?: number
 }): Promise<{ success: boolean }> {
   return apiClient<{ success: boolean }>(`/cycles/${id}`, {
     method: 'PUT',
