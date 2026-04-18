@@ -12,11 +12,15 @@ import {
   Alert,
   Card,
   CardContent,
+  CircularProgress,
 } from '@mui/material'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import SaveIcon from '@mui/icons-material/Save'
+import { useQuery } from '@tanstack/react-query'
+import { listActiveCycles } from '../../api/cycles'
+import { useAuth } from '../../contexts/AuthContext'
 
 const recordingSchema = z.object({
   date: z.string().min(1, 'Tanggal wajib diisi'),
@@ -30,21 +34,22 @@ const recordingSchema = z.object({
 
 type RecordingFormData = z.infer<typeof recordingSchema>
 
-const mockCycles = [
-  { id: 1, cycleNumber: 'C001', docType: 'CP', startDate: '2026-03-01' },
-  { id: 2, cycleNumber: 'C002', docType: 'CP', startDate: '2026-03-15' },
-  { id: 3, cycleNumber: 'C003', docType: 'Patriot', startDate: '2026-04-01' },
-]
-
 const mockStandards: Record<string, number[]> = {
   CP: [45, 120, 380, 720, 1150, 1650],
   Patriot: [42, 115, 365, 695, 1100, 1580],
 }
 
 export function DailyRecording() {
+  const { user } = useAuth()
   const [selectedCycle, setSelectedCycle] = useState<number | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+
+  const { data: cyclesData, isLoading: cyclesLoading } = useQuery({
+    queryKey: ['cycles', 'active', user?.tenantId],
+    queryFn: () => user?.tenantId ? listActiveCycles(user.tenantId) : Promise.resolve({ cycles: [] }),
+    enabled: !!user?.tenantId,
+  })
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<RecordingFormData>({
     resolver: zodResolver(recordingSchema),
@@ -61,7 +66,7 @@ export function DailyRecording() {
 
   const watchFields = watch(['dead', 'culled', 'remainingPopulation', 'initialPopulation', 'bodyWeight', 'cycleId'])
 
-  const cycle = mockCycles.find(c => c.id === watchFields[5])
+  const cycle = cyclesData?.cycles.find(c => c.id === watchFields[5])
   const docType = cycle?.docType || 'CP'
   const standards = mockStandards[docType] || mockStandards['CP']
   const currentDay = cycle ? Math.floor((new Date().getTime() - new Date(cycle.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 : 1
@@ -136,30 +141,40 @@ export function DailyRecording() {
                 )}
               />
 
-              <Controller
-                name="cycleId"
-                control={control}
-                render={({ field }) => (
-                  <FormControl sx={{ minWidth: 200 }} error={!!errors.cycleId}>
-                    <InputLabel>Siklus</InputLabel>
-                    <Select
-                      {...field}
-                      label="Siklus"
-                      value={field.value || ''}
-                      onChange={(e) => {
-                        field.onChange(e.target.value)
-                        setSelectedCycle(e.target.value as number)
-                      }}
-                    >
-                      {mockCycles.map((c) => (
-                        <MenuItem key={c.id} value={c.id}>
-                          {c.cycleNumber} - {c.docType}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-              />
+               <Controller
+                 name="cycleId"
+                 control={control}
+                 render={({ field }) => (
+                   <FormControl sx={{ minWidth: 200 }} error={!!errors.cycleId}>
+                     <InputLabel>Siklus</InputLabel>
+                     <Select
+                       {...field}
+                       label="Siklus"
+                       value={field.value || ''}
+                       onChange={(e) => {
+                         field.onChange(e.target.value)
+                         setSelectedCycle(e.target.value as number)
+                       }}
+                     >
+                       {cyclesLoading ? (
+                         <MenuItem disabled value="">
+                           Loading cycles...
+                         </MenuItem>
+                       ) : cyclesData?.cycles && cyclesData.cycles.length > 0 ? (
+                         cyclesData.cycles.map((c) => (
+                           <MenuItem key={c.id} value={c.id}>
+                             Cycle {c.cycleNumber} ({c.docType})
+                           </MenuItem>
+                         ))
+                       ) : (
+                         <MenuItem disabled value="">
+                           No active cycles
+                         </MenuItem>
+                       )}
+                     </Select>
+                   </FormControl>
+                 )}
+               />
             </Box>
 
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
