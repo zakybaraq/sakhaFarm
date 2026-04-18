@@ -70,6 +70,41 @@
 - [06-02-PLAN.md](./phases/06-code-cleanup/06-02-PLAN.md) — API JSDoc documentation
 - [06-03-PLAN.md](./phases/06-code-cleanup/06-03-PLAN.md) — Component refactoring
 
+### Phase 7: Audit Filter UI
+**Goal**: Add filtering capabilities to audit log page.
+- Implement filter controls for date ranges, user actions, and entity types
+- Add search functionality for audit entries
+- Improve audit log usability with filtering options
+
+**Status**: Pending
+
+**Plans**:
+- [07-01-PLAN.md](./phases/07-audit-filter-ui/07-01-PLAN.md) — Audit filter UI implementation
+
+### Phase 8: Modern Responsive Table UI
+**Goal**: Replace MUI DataGrid with modern, responsive table that works well on mobile devices.
+- Replace MUI DataGrid with modern table library (TanStack Table v8)
+- Implement mobile-responsive design with touch-friendly controls
+- Ensure excellent UI/UX on all screen sizes (desktop, tablet, mobile)
+- Preserve all existing table functionality (sort, filter, pagination)
+
+**Status**: Pending
+
+**Plans**:
+- [08-01-PLAN.md](./phases/08-responsive-table-ui/08-01-PLAN.md) — Responsive table implementation
+
+### Phase 9: Frontend Fixes
+**Goal**: Fix multiple frontend issues.
+- Fix toggle on/off in action columns across all pages
+- Add delete icon for pages that require it
+- Create Reports menu with appropriate submenus
+- Fix RBAC roles data not showing (superadmin issue)
+
+**Status**: Pending
+
+**Plans**:
+- [09-01-PLAN.md](./phases/09-frontend-fixes/09-01-PLAN.md) — Frontend fixes
+
 ---
 _Started: 2026-04-18_
 _Next: `/gsd-execute-phase 6` to execute Phase 6_
