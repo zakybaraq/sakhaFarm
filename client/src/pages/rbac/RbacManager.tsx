@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -28,20 +28,10 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import SaveIcon from '@mui/icons-material/Save'
-
-interface Role {
-  id: number
-  name: string
-  description: string
-  userCount: number
-  permissionCount: number
-}
-
-interface Permission {
-  id: string
-  name: string
-  category: string
-}
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { listRoles, createRole, updateRole, deleteRole } from '../../api/rbac'
+import { listUsers, type User as ApiUser, type UsersResponse } from '../../api/users'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface User {
   id: number
@@ -52,14 +42,15 @@ interface User {
   status: 'active' | 'inactive'
 }
 
-const mockRoles: Role[] = [
-  { id: 1, name: 'Admin', description: 'Full system access', userCount: 3, permissionCount: 24 },
-  { id: 2, name: 'Manager', description: 'Manage units and reports', userCount: 5, permissionCount: 12 },
-  { id: 3, name: 'Supervisor', description: 'Oversee daily operations', userCount: 8, permissionCount: 8 },
-  { id: 4, name: 'Operator', description: 'Record daily data', userCount: 20, permissionCount: 4 },
-]
+interface RoleDisplay {
+  id: number
+  name: string
+  description: string
+  userCount: number
+  permissionCount: number
+}
 
-const mockPermissions: Permission[] = [
+const mockPermissions = [
   { id: 'units.read', name: 'View Units', category: 'units' },
   { id: 'units.create', name: 'Create Unit', category: 'units' },
   { id: 'units.update', name: 'Update Unit', category: 'units' },
@@ -98,16 +89,69 @@ const mockUsers: User[] = [
 const categories = ['units', 'plasmas', 'cycles', 'recordings', 'feed', 'reporting', 'audit', 'rbac', 'users']
 
 export function RbacManager() {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [tabValue, setTabValue] = useState(0)
   const [roleDialogOpen, setRoleDialogOpen] = useState(false)
   const [userDialogOpen, setUserDialogOpen] = useState(false)
-  const [editingRole, setEditingRole] = useState<Role | null>(null)
+  const [editingRole, setEditingRole] = useState<RoleDisplay | null>(null)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [roleForm, setRoleForm] = useState({ name: '', description: '' })
   const [userForm, setUserForm] = useState({ name: '', email: '', role: '', tenant: '' })
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
-  const [roles, setRoles] = useState<Role[]>(mockRoles)
-  const [users, setUsers] = useState<User[]>(mockUsers)
+
+  const { data: rolesData, isLoading: rolesLoading } = useQuery({
+    queryKey: ['roles', user?.tenantId],
+    queryFn: () => listRoles(user!.tenantId),
+    enabled: !!user?.tenantId,
+  })
+
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => listUsers(),
+    enabled: !!user,
+  })
+
+  const [roles, setRoles] = useState<RoleDisplay[]>([])
+  const [users, setUsers] = useState<User[]>([])
+
+  useEffect(() => {
+    if (rolesData?.roles) {
+      setRoles(rolesData.roles.map(r => ({
+        ...r,
+        userCount: 0,
+        permissionCount: 0,
+      })))
+    }
+  }, [rolesData])
+
+  useEffect(() => {
+    if (usersData) {
+      setUsers(usersData.users.map((u: UsersResponse['users'][number]) => ({
+        id: Number(u.id.slice(-8)),
+        name: u.name,
+        email: u.email,
+        role: 'User',
+        tenant: 'Tenant',
+        status: 'active',
+      })))
+    }
+  }, [usersData])
+
+  const createRoleMutation = useMutation({
+    mutationFn: createRole,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['roles'] }),
+  })
+
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => updateRole(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['roles'] }),
+  })
+
+  const deleteRoleMutation = useMutation({
+    mutationFn: deleteRole,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['roles'] }),
+  })
 
   const roleColumns: GridColDef[] = [
     { field: 'name', headerName: 'Role Name', flex: 1 },
@@ -181,7 +225,7 @@ export function RbacManager() {
     },
   ]
 
-  const handleEditRole = (role: Role) => {
+  const handleEditRole = (role: RoleDisplay) => {
     setEditingRole(role)
     setRoleForm({ name: role.name, description: role.description })
     setSelectedPermissions([])
@@ -240,7 +284,7 @@ export function RbacManager() {
   const groupedPermissions = categories.reduce((acc, category) => {
     acc[category] = mockPermissions.filter(p => p.category === category)
     return acc
-  }, {} as Record<string, Permission[]>)
+  }, {} as Record<string, typeof mockPermissions>)
 
   return (
     <Box sx={{ p: 3 }}>
@@ -275,6 +319,7 @@ export function RbacManager() {
             <DataGrid
               rows={roles}
               columns={roleColumns}
+              loading={rolesLoading}
               pageSizeOptions={[10, 25]}
               initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
               disableRowSelectionOnClick
@@ -337,6 +382,7 @@ export function RbacManager() {
             <DataGrid
               rows={users}
               columns={userColumns}
+              loading={usersLoading}
               pageSizeOptions={[10, 25]}
               initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
               disableRowSelectionOnClick
@@ -439,7 +485,7 @@ export function RbacManager() {
               fullWidth
               select
             >
-              {mockRoles.map((role) => (
+              {roles.map((role) => (
                 <option key={role.id} value={role.name}>{role.name}</option>
               ))}
             </TextField>
