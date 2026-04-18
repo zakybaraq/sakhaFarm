@@ -50,7 +50,12 @@
 **Goal**: Connect UI to real backend API.
 - Remove dummy data
 - Connect CRUD to API
-**Status**: Pending
+**Status**: ⚠️ Partial (2/3 complete — audit API blocker)
+
+**Plans**:
+- ✅ [05-01-PLAN.md](./phases/05-data-integration/05-01-PLAN.md) — RbacManager API (roles + users)
+- ✅ [05-02-PLAN.md](./phases/05-data-integration/05-02-PLAN.md) — DailyRecording API (active cycles)
+- ⚠️ [05-03-PLAN.md](./phases/05-data-integration/05-03-PLAN.md) — AuditLog API (blocked: `/api/audit` endpoint missing — requires backend audit module)
 
 ### Phase 6: Code Cleanup
 **Goal**: Professional code quality.
