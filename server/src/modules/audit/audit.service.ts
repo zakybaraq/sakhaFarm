@@ -1,6 +1,6 @@
 import { db } from '../../config/database'
 import { auditLogs } from '../../db/schema'
-import { desc, eq, and, gt, lt, gte, lte, isNull, like } from 'drizzle-orm'
+import { desc, eq, and, gt, lt, gte, lte, isNull, like, count } from 'drizzle-orm'
 import { AuditLogNotFoundError } from './audit.errors'
 
 /**

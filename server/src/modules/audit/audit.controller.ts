@@ -57,8 +57,23 @@ export const auditController = new Elysia({ prefix: '/api/audit' })
       if (action) filters.action = action
       if (resource) filters.resource = resource
       if (resourceId) filters.resourceId = resourceId
-      if (startDate) filters.startDate = new Date(startDate)
-      if (endDate) filters.endDate = new Date(endDate)
+      // Parse date filters with validation
+      if (startDate) {
+        const parsed = new Date(startDate)
+        if (isNaN(parsed.getTime())) {
+          set.status = 400
+          return { error: 'Invalid startDate format — use ISO date or date-time', code: 'INVALID_DATE' }
+        }
+        filters.startDate = parsed
+      }
+      if (endDate) {
+        const parsed = new Date(endDate)
+        if (isNaN(parsed.getTime())) {
+          set.status = 400
+          return { error: 'Invalid endDate format — use ISO date or date-time', code: 'INVALID_DATE' }
+        }
+        filters.endDate = parsed
+      }
       filters.limit = parseInt(limit, 10)
       filters.offset = parseInt(offset, 10)
 
