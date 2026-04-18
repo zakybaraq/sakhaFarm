@@ -78,14 +78,6 @@ const mockPermissions = [
   { id: 'users.delete', name: 'Delete User', category: 'users' },
 ]
 
-const mockUsers: User[] = [
-  { id: 1, name: 'Ahmad Wijaya', email: 'admin@sakha.com', role: 'Admin', tenant: 'Sakha Farm', status: 'active' },
-  { id: 2, name: 'Budi Santoso', email: 'manager@kuningan.com', role: 'Manager', tenant: 'Unit Kuningan', status: 'active' },
-  { id: 3, name: 'Dewi Lestari', email: 'manager@bojonegoro.com', role: 'Manager', tenant: 'Unit Bojonegoro', status: 'active' },
-  { id: 4, name: 'Eko Prasetyo', email: 'operator1@kuningan.com', role: 'Operator', tenant: 'Unit Kuningan', status: 'active' },
-  { id: 5, name: 'Fitri Handayani', email: 'operator2@kuningan.com', role: 'Operator', tenant: 'Unit Kuningan', status: 'inactive' },
-]
-
 const categories = ['units', 'plasmas', 'cycles', 'recordings', 'feed', 'reporting', 'audit', 'rbac', 'users']
 
 export function RbacManager() {
