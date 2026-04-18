@@ -170,12 +170,12 @@ export function RbacManager() {
             }}>
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" color="error" onClick={(e) => {
-            e.stopPropagation()
-            if (window.confirm(`Delete role "${params.row.name}"?`)) {
-              setRoles(roles.filter(r => r.id !== params.row.id))
-            }
-          }}>
+<IconButton size="small" color="error" onClick={(e) => {
+  e.stopPropagation()
+  if (window.confirm(`Delete role "${params.row.name}"?`)) {
+    deleteRoleMutation.mutate(params.row.id)
+  }
+}}>
             <DeleteIcon fontSize="small" />
           </IconButton>
         </Box>
