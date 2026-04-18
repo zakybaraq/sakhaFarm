@@ -19,7 +19,6 @@ import EditNoteIcon from '@mui/icons-material/EditNote'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
-import PeopleIcon from '@mui/icons-material/People'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { drawerClasses } from '@mui/material/Drawer'
@@ -42,16 +41,15 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/', permission: null },
-  { text: 'Units', icon: <BusinessIcon />, path: '/units', permission: 'unit.read' },
-  { text: 'Plasmas', icon: <AgricultureIcon />, path: '/plasmas', permission: 'plasma.read' },
-  { text: 'Cycles', icon: <AutorenewIcon />, path: '/cycles', permission: 'cycle.read' },
-  { text: 'Recordings', icon: <EditNoteIcon />, path: '/recordings', permission: 'recording.read' },
-  { text: 'Feed Stock', icon: <Inventory2Icon />, path: '/feed', permission: 'feed.read' },
+  { text: 'Unit', icon: <BusinessIcon />, path: '/units', permission: 'unit.read' },
+  { text: 'Plasma', icon: <AgricultureIcon />, path: '/plasmas', permission: 'plasma.read' },
+  { text: 'Cycle', icon: <AutorenewIcon />, path: '/cycles', permission: 'cycle.read' },
+  { text: 'Recording', icon: <EditNoteIcon />, path: '/recordings', permission: 'recording.read' },
+  { text: 'Feed', icon: <Inventory2Icon />, path: '/feed', permission: 'feed.read' },
   { text: 'Performance', icon: <AssessmentIcon />, path: '/reports/performance', permission: 'inventory.read' },
   { text: 'Stock Resume', icon: <AssessmentIcon />, path: '/reports/stock-resume', permission: 'inventory.read' },
   { text: 'Audit Log', icon: <AssessmentIcon />, path: '/reports/audit', permission: 'audit.read' },
   { text: 'RBAC', icon: <AdminPanelSettingsIcon />, path: '/rbac', permission: 'rbac.read' },
-  { text: 'Users', icon: <PeopleIcon />, path: '/users', permission: 'user.read' },
 ]
 
 function SidebarContent({
@@ -119,11 +117,6 @@ function SidebarContent({
           </Box>
         )}
       </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', px: 1, py: 0.5 }}>
-        <IconButton onClick={onToggleCollapse} size="small">
-          {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-        </IconButton>
-      </Box>
       <Divider />
       <List sx={{ flex: 1, pt: 1 }}>
         {visibleItems.map((item) => {
@@ -181,6 +174,12 @@ function SidebarContent({
           )
         })}
       </List>
+      <Divider />
+      <Box sx={{ py: 1, display: 'flex', justifyContent: 'center' }}>
+        <IconButton onClick={onToggleCollapse} size="small">
+          {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        </IconButton>
+      </Box>
     </Box>
   )
 }
