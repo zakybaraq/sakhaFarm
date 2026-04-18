@@ -60,7 +60,7 @@ export function UsersPage() {
     },
     {
       field: 'actions',
-      headerName: '',
+      headerName: 'Aksi',
       width: 60,
       sortable: false,
       renderCell: (params) => (

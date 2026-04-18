@@ -95,7 +95,7 @@ const handleEdit = (row: Plasma) => {
     },
     {
       field: 'actions',
-      headerName: '',
+      headerName: 'Aksi',
       width: 120,
       sortable: false,
       renderCell: (params) => (
