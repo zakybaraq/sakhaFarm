@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, Typography, Button, Paper, Chip, Switch, IconButton } from '@mui/material'
+import { Box, Typography, Button, Paper, Chip, Switch, IconButton, Box as MuiBox } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
@@ -97,35 +97,39 @@ export function CyclesPage() {
       field: 'isActive',
       headerName: 'Status',
       width: 100,
-      renderCell: (params) => {
-        const isActive = params.row.status === 'Active'
-        return (
-          <Switch
-            checked={isActive}
-            onChange={(e) => {
-              e.stopPropagation()
-              handleToggle(params.row.id)
-            }}
-            size="small"
-          />
-        )
-      },
+      renderCell: (params) => (
+        <Chip 
+          label={params.row.status === 'Active' ? 'Aktif' : 'Selesai'} 
+          color={getStatusColor(params.row.status)} 
+          size="small" 
+        />
+      ),
     },
     {
       field: 'actions',
       headerName: '',
-      width: 60,
+      width: 120,
       sortable: false,
       renderCell: (params) => (
-        <IconButton
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation()
-            handleEdit(params.row)
-          }}
-        >
-          <EditIcon fontSize="small" />
-        </IconButton>
+        <MuiBox sx={{ display: 'flex', gap: 0.5 }}>
+          <Switch
+            size="small"
+            checked={params.row.status === 'Active'}
+            onChange={(e) => {
+              e.stopPropagation()
+              handleToggle(params.row.id)
+            }}
+          />
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleEdit(params.row)
+            }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </MuiBox>
       ),
     },
   ]

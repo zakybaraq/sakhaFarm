@@ -38,8 +38,8 @@
 - Toggle for active/deactivate
 - Edit data functionality
 - Dropdown relations
-**Status**: Ready to execute
-**Plans**:
+**Status**: Done ✅
+**Plans**: (completed)
 - [04-01-PLAN.md](./phases/04-feature-additions/04-01-PLAN.md) — Units (toggle + edit)
 - [04-02-PLAN.md](./phases/04-feature-additions/04-02-PLAN.md) — Plasmas (toggle + edit + dropdown)
 - [04-03-PLAN.md](./phases/04-feature-additions/04-03-PLAN.md) — Cycles (toggle + edit)

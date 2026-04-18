@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, Typography, Button, Paper } from '@mui/material'
+import { Box, Typography, Button, Paper, Chip } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import AddIcon from '@mui/icons-material/Add'
 import Switch from '@mui/material/Switch'
@@ -70,31 +70,38 @@ export function UnitsPage() {
       headerName: 'Status',
       width: 100,
       renderCell: (params) => (
-        <Switch
-          checked={!params.row.isDeleted}
-          onChange={(e) => {
-            e.stopPropagation()
-            handleToggle(params.row.id)
-          }}
-          size="small"
+        <Chip 
+          label={params.row.isDeleted ? 'Nonaktif' : 'Aktif'} 
+          color={params.row.isDeleted ? 'default' : 'success'} 
+          size="small" 
         />
       ),
     },
     {
       field: 'actions',
       headerName: '',
-      width: 60,
+      width: 120,
       sortable: false,
       renderCell: (params) => (
-        <IconButton
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation()
-            handleEdit(params.row)
-          }}
-        >
-          <EditIcon fontSize="small" />
-        </IconButton>
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          <Switch
+            size="small"
+            checked={!params.row.isDeleted}
+            onChange={(e) => {
+              e.stopPropagation()
+              handleToggle(params.row.id)
+            }}
+          />
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleEdit(params.row)
+            }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </Box>
       ),
     },
   ]
