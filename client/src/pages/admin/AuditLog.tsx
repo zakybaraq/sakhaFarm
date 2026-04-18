@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -10,32 +10,14 @@ import {
   Select,
   MenuItem,
   Alert,
+  CircularProgress,
 } from '@mui/material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import SearchIcon from '@mui/icons-material/Search'
+import { useQuery } from '@tanstack/react-query'
+import { listAuditLogs, AuditLogEntry, AuditFilters } from '../../api/audit'
 
-interface AuditEntry {
-  id: number
-  timestamp: string
-  user: string
-  action: string
-  entity: string
-  details: string
-}
-
-const mockAuditLogs: AuditEntry[] = [
-  { id: 1, timestamp: '2026-04-17 14:32:15', user: 'admin@sakha.com', action: 'CREATE', entity: 'User', details: 'Created user: operator@kuningan.com' },
-  { id: 2, timestamp: '2026-04-17 13:45:00', user: 'admin@sakha.com', action: 'UPDATE', entity: 'Role', details: 'Updated role: Manager permissions' },
-  { id: 3, timestamp: '2026-04-17 12:30:22', user: 'manager@kuningan.com', action: 'CREATE', entity: 'Recording', details: 'Daily recording for C001 day 14' },
-  { id: 4, timestamp: '2026-04-17 11:15:08', user: 'admin@sakha.com', action: 'LOGIN', entity: 'Session', details: 'Successful login from 192.168.1.1' },
-  { id: 5, timestamp: '2026-04-17 10:00:00', user: 'operator@kuningan.com', action: 'CREATE', entity: 'SuratJalan', details: 'Created SJ-2026-0017 for BR 10' },
-  { id: 6, timestamp: '2026-04-16 16:45:33', user: 'admin@sakha.com', action: 'DELETE', entity: 'User', details: 'Deactivated user: former@operator.com' },
-  { id: 7, timestamp: '2026-04-16 15:20:11', user: 'manager@kuningan.com', action: 'UPDATE', entity: 'Recording', details: 'Corrected BW for C002 day 7' },
-  { id: 8, timestamp: '2026-04-16 14:00:00', user: 'admin@sakha.com', action: 'CREATE', entity: 'Plasma', details: 'Created plasma: PlasmaBaru for UnitXYZ' },
-  { id: 9, timestamp: '2026-04-16 09:30:45', user: 'operator@bojonegoro.com', action: 'LOGIN_FAILED', entity: 'Session', details: 'Failed login attempt (wrong password) from 192.168.2.5' },
-  { id: 10, timestamp: '2026-04-15 17:00:00', user: 'admin@sakha.com', action: 'UPDATE', entity: 'Role', details: 'Added permissions to Supervisor role' },
-]
-
+// Common action types for filtering (matching backend)
 const actionTypes = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGIN_FAILED', 'LOGOUT']
 
 interface AuditLogProps {
@@ -49,28 +31,72 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
 
+  // Build filters for API call - require at least one filter
+  const apiFilters: AuditFilters = useMemo(() => {
+    const filters: AuditFilters = {
+      limit: 100,
+      offset: 0,
+    }
+    if (actionFilter) filters.action = actionFilter
+    if (userFilter) filters.userId = userFilter
+    if (dateFrom) filters.startDate = dateFrom
+    if (dateTo) filters.endDate = dateTo
+    return filters
+  }, [actionFilter, userFilter, dateFrom, dateTo])
+
+  // Fetch audit logs from API
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['audit-logs', apiFilters],
+    queryFn: () => listAuditLogs(apiFilters),
+    // Require at least one filter to prevent full-table scan error
+    enabled: !!(apiFilters.action || apiFilters.userId || apiFilters.startDate || apiFilters.endDate),
+    staleTime: 30000, // 30 seconds
+  })
+
+  // Transform API data to display format
+  const auditLogs: AuditLogEntry[] = data?.logs ?? []
+
   const filteredLogs = useMemo(() => {
-    return mockAuditLogs.filter((log) => {
+    // If no API filters, apply client-side search
+    const noApiFilters = !apiFilters.action && !apiFilters.userId && !apiFilters.startDate && !apiFilters.endDate
+    
+    return auditLogs.filter((log) => {
+      // Always apply search filter client-side
       const matchesSearch = searchText === '' ||
-        log.user.toLowerCase().includes(searchText.toLowerCase()) ||
+        (log.userId?.toLowerCase().includes(searchText.toLowerCase()) ?? false) ||
         log.action.toLowerCase().includes(searchText.toLowerCase()) ||
-        log.entity.toLowerCase().includes(searchText.toLowerCase()) ||
-        log.details.toLowerCase().includes(searchText.toLowerCase())
+        log.resource.toLowerCase().includes(searchText.toLowerCase()) ||
+        (log.details?.toLowerCase().includes(searchText.toLowerCase()) ?? false)
 
+      // Apply action filter
       const matchesAction = !actionFilter || log.action === actionFilter
-      const matchesUser = !userFilter || log.user === userFilter
+      
+      // Apply user filter
+      const matchesUser = !userFilter || log.userId === userFilter
 
-      const logDate = log.timestamp.split(' ')[0]
+      // Apply date filter (client-side if API filter not used)
+      const logDate = log.createdAt?.split('T')[0] ?? ''
       const matchesDateFrom = !dateFrom || logDate >= dateFrom
       const matchesDateTo = !dateTo || logDate <= dateTo
 
       return matchesSearch && matchesAction && matchesUser && matchesDateFrom && matchesDateTo
     })
-  }, [searchText, actionFilter, userFilter, dateFrom, dateTo])
+  }, [auditLogs, searchText, actionFilter, userFilter, dateFrom, dateTo, apiFilters])
 
   const columns: GridColDef[] = [
-    { field: 'timestamp', headerName: 'Timestamp', width: 180 },
-    { field: 'user', headerName: 'User', width: 200 },
+    { field: 'createdAt', headerName: 'Timestamp', width: 180, valueFormatter: (value) => {
+      if (!value) return ''
+      const date = new Date(value)
+      return date.toLocaleString('id-ID', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })
+    }},
+    { field: 'userId', headerName: 'User', width: 200 },
     {
       field: 'action',
       headerName: 'Action',
@@ -101,11 +127,54 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
         )
       },
     },
-    { field: 'entity', headerName: 'Entity', width: 120 },
+    { field: 'resource', headerName: 'Entity', width: 120 },
     { field: 'details', headerName: 'Details', flex: 1, minWidth: 250 },
   ]
 
-  const uniqueUsers = [...new Set(mockAuditLogs.map((log) => log.user))]
+  // Get unique users from real data
+  const uniqueUsers = [...new Set(auditLogs.map((log) => log.userId).filter(Boolean))]
+
+  // Show error state
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">
+          <Typography variant="h6">Error Loading Audit Logs</Typography>
+          <Typography variant="body2">
+            Failed to load audit logs: {(error as Error).message}
+          </Typography>
+        </Alert>
+      </Box>
+    )
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  // Check if filters are applied (backend requires at least one filter)
+  const hasFilters = actionFilter || userFilter || dateFrom || dateTo
+  
+  if (!hasFilters) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 600, fontSize: '24px', mb: 3 }}>
+          Log Audit
+        </Typography>
+        <Alert severity="info">
+          <Typography variant="body1">Pilih filter untuk melihat log audit</Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Backend requires at least one filter (Action, User, atau Tanggal) untuk prevent full-table scan.
+          </Typography>
+        </Alert>
+      </Box>
+    )
+  }
 
   if (!isAdmin) {
     return (
