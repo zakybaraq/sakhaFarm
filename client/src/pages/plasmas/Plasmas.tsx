@@ -99,7 +99,7 @@ const handleEdit = (row: Plasma) => {
       width: 120,
       sortable: false,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center', height: '100%' }}>
           <Switch
             size="small"
             checked={!params.row.isDeleted}

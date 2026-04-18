@@ -111,7 +111,7 @@ export function CyclesPage() {
       width: 120,
       sortable: false,
       renderCell: (params) => (
-        <MuiBox sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
+        <MuiBox sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center', height: '100%' }}>
           <Switch
             size="small"
             checked={params.row.status === 'Active'}
