@@ -128,12 +128,12 @@ export function RbacManager() {
   useEffect(() => {
     if (usersData) {
       setUsers(usersData.users.map((u: UsersResponse['users'][number]) => ({
-        id: Number(u.id.slice(-8)),
+        id: parseInt(u.id, 10),
         name: u.name,
         email: u.email,
-        role: 'User',
-        tenant: 'Tenant',
-        status: 'active',
+        role: u.role?.name || 'User',
+        tenant: u.tenant?.name || 'Tenant',
+        status: u.isActive ? 'active' : 'inactive',
       })))
     }
   }, [usersData])
@@ -248,20 +248,16 @@ export function RbacManager() {
 
   const handleSaveRole = () => {
     if (editingRole) {
-      setRoles(roles.map(r =>
-        r.id === editingRole.id
-          ? { ...r, ...roleForm, permissionCount: selectedPermissions.length }
-          : r
-      ))
+      updateRoleMutation.mutate(
+        { id: editingRole.id, data: roleForm },
+        { onSuccess: () => setRoleDialogOpen(false) }
+      )
     } else {
-      setRoles([...roles, {
-        id: Math.max(...roles.map(r => r.id)) + 1,
-        ...roleForm,
-        userCount: 0,
-        permissionCount: selectedPermissions.length,
-      }])
+      createRoleMutation.mutate(
+        { name: roleForm.name, description: roleForm.description },
+        { onSuccess: () => setRoleDialogOpen(false) }
+      )
     }
-    setRoleDialogOpen(false)
   }
 
   const handleSaveUser = () => {
