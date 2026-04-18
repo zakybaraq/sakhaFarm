@@ -104,15 +104,8 @@ export function RbacManager() {
 
   const { data: rolesData, isLoading: rolesLoading } = useQuery({
     queryKey: ['roles', user?.tenantId],
-    queryFn: () => {
-      const tenantId = user?.tenantId;
-      if (!tenantId) {
-        console.warn('RBAC: No tenantId available, using default 1');
-        return listRoles(1);
-      }
-      return listRoles(tenantId);
-    },
-    enabled: !!user,
+    queryFn: () => listRoles(user!.tenantId),
+    enabled: !!user?.tenantId,
   });
 
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -136,20 +129,20 @@ export function RbacManager() {
     }
   }, [rolesData]);
 
-   useEffect(() => {
-     if (usersData) {
-       setUsers(
-         usersData.users.map((u: UsersResponse['users'][number]) => ({
-           id: parseInt(u.id, 10),
-           name: u.name,
-           email: u.email,
-           role: String(u.roleId ?? 0),
-           tenant: String(u.tenantId ?? 0),
-           status: u.status,
-         })),
-       );
-     }
-   }, [usersData]);
+  useEffect(() => {
+    if (usersData) {
+      setUsers(
+        usersData.users.map((u: UsersResponse['users'][number]) => ({
+          id: parseInt(u.id, 10),
+          name: u.name,
+          email: u.email,
+          role: u.role?.name || 'User',
+          tenant: u.tenant?.name || 'Tenant',
+          status: u.isActive ? 'active' : 'inactive',
+        })),
+      );
+    }
+  }, [usersData]);
 
   const createRoleMutation = useMutation({
     mutationFn: createRole,

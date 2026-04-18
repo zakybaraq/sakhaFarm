@@ -1,62 +1,62 @@
-import { useState, useEffect, type FormEvent } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import TextField from '@mui/material/TextField'
-import Button from '@mui/material/Button'
-import Alert from '@mui/material/Alert'
-import CircularProgress from '@mui/material/CircularProgress'
-import Typography from '@mui/material/Typography'
-import { useAuth } from '../contexts/AuthContext'
-import { ApiError } from '../api/client'
+import { useState, useEffect, type FormEvent } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
+import { useAuth } from '../contexts/AuthContext';
+import { ApiError } from '../api/client';
 
 /** Validate that a return URL is a safe relative path (no open redirect). */
 function sanitizeReturnUrl(url: string): string {
-  if (url.startsWith('/') && !url.startsWith('//') && !url.includes('://')) return url
-  return '/'
+  if (url.startsWith('/') && !url.startsWith('//') && !url.includes('://')) return url;
+  return '/';
 }
 
 export function LoginPage() {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { login, isAuthenticated } = useAuth()
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { login, isAuthenticated } = useAuth();
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
-      const returnUrl = sanitizeReturnUrl(searchParams.get('returnUrl') || '/')
-      navigate(returnUrl, { replace: true })
+      const returnUrl = sanitizeReturnUrl(searchParams.get('returnUrl') || '/');
+      navigate(returnUrl, { replace: true });
     }
-  }, [isAuthenticated, navigate, searchParams])
+  }, [isAuthenticated, navigate, searchParams]);
 
   if (isAuthenticated) {
-    return null
+    return null;
   }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
     try {
-      await login(email, password)
-      const returnUrl = sanitizeReturnUrl(searchParams.get('returnUrl') || '/')
-      navigate(returnUrl, { replace: true })
+      await login(email, password);
+      const returnUrl = sanitizeReturnUrl(searchParams.get('returnUrl') || '/');
+      navigate(returnUrl, { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message)
+        setError(err.message);
       } else {
-        setError('Login failed. Please try again.')
+        setError('Login failed. Please try again.');
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Box
@@ -119,5 +119,5 @@ export function LoginPage() {
         </CardContent>
       </Card>
     </Box>
-  )
+  );
 }

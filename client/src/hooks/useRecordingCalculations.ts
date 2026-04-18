@@ -7,10 +7,7 @@ import { useMemo } from 'react';
  * @param watchFields - Array of watched form values: [dead, culled, remaining, initial, bodyWeight, cycleId]
  * @param standardBW - Standard body weight based on cycle day
  */
-export function useRecordingCalculations(
-  watchFields: (number | undefined)[],
-  standardBW: number,
-) {
+export function useRecordingCalculations(watchFields: (number | undefined)[], standardBW: number) {
   return useMemo(() => {
     const dead = Number(watchFields[0]) || 0;
     const culled = Number(watchFields[1]) || 0;
@@ -22,8 +19,7 @@ export function useRecordingCalculations(
     const mortalityPct = initial > 0 ? (totalLoss / initial) * 100 : 0;
     const survivalRate = initial > 0 ? (remaining / initial) * 100 : 0;
     const bwDeviation = bw - standardBW;
-    const projectedIP =
-      survivalRate > 0 ? Math.round((bw * survivalRate) / 100) : 0;
+    const projectedIP = survivalRate > 0 ? Math.round((bw * survivalRate) / 100) : 0;
 
     return {
       mortalityPct: mortalityPct.toFixed(2),

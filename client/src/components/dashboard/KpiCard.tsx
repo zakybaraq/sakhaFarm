@@ -1,18 +1,18 @@
-import { Card, CardContent, Typography, Box } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import type { SvgIconComponent } from '@mui/icons-material'
+import { Card, CardContent, Typography, Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import type { SvgIconComponent } from '@mui/icons-material';
 
 interface KpiCardProps {
-  title: string
-  value: string | number
-  icon: SvgIconComponent
-  color: string
-  subtitle?: string
-  loading?: boolean
+  title: string;
+  value: string | number;
+  icon: SvgIconComponent;
+  color: string;
+  subtitle?: string;
+  loading?: boolean;
 }
 
 export function KpiCard({ title, value, icon: Icon, color, subtitle, loading }: KpiCardProps) {
-  const theme = useTheme()
+  const theme = useTheme();
 
   return (
     <Card
@@ -53,5 +53,5 @@ export function KpiCard({ title, value, icon: Icon, color, subtitle, loading }: 
         </Box>
       </CardContent>
     </Card>
-  )
+  );
 }

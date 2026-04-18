@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -8,86 +8,91 @@ import {
   Button,
   Box,
   Alert,
-} from '@mui/material'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { createUnit, updateUnit, listUnits, type Unit } from '../../api/units'
+} from '@mui/material';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { createUnit, updateUnit, listUnits, type Unit } from '../../api/units';
 
 const unitSchema = z.object({
   name: z.string().min(1, 'Nama unit wajib diisi'),
   code: z.string().min(1, 'Kode unit wajib diisi'),
   location: z.string().optional(),
-})
+});
 
-type UnitFormData = z.infer<typeof unitSchema>
+type UnitFormData = z.infer<typeof unitSchema>;
 
 interface UnitModalProps {
-  open: boolean
-  onClose: () => void
-  selectedId?: number | null
+  open: boolean;
+  onClose: () => void;
+  selectedId?: number | null;
 }
 
 export function UnitModal({ open, onClose, selectedId }: UnitModalProps) {
-  const queryClient = useQueryClient()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isEditMode = !!selectedId
+  const isEditMode = !!selectedId;
 
   const { data } = useQuery({
     queryKey: ['units'],
     queryFn: listUnits,
     enabled: open,
-  })
+  });
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<UnitFormData>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<UnitFormData>({
     resolver: zodResolver(unitSchema),
     defaultValues: {
       name: '',
       code: '',
       location: '',
     },
-  })
+  });
 
   useEffect(() => {
     if (selectedId && data?.units) {
-      const unit = data.units.find(u => u.id === selectedId)
+      const unit = data.units.find((u) => u.id === selectedId);
       if (unit) {
         reset({
           name: unit.name,
           code: unit.code,
           location: unit.location ?? '',
-        })
+        });
       }
     } else {
-      reset({ name: '', code: '', location: '' })
+      reset({ name: '', code: '', location: '' });
     }
-  }, [selectedId, data, reset])
+  }, [selectedId, data, reset]);
 
   const createMutation = useMutation({
     mutationFn: isEditMode
       ? (formData: UnitFormData) => updateUnit(selectedId!, formData)
       : createUnit,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['units'] })
-      reset()
-      onClose()
+      queryClient.invalidateQueries({ queryKey: ['units'] });
+      reset();
+      onClose();
     },
-  })
+  });
 
   const onSubmit = async (data: UnitFormData) => {
-    setIsSubmitting(true)
-    setError(null)
+    setIsSubmitting(true);
+    setError(null);
     try {
-      await createMutation.mutateAsync(data)
+      await createMutation.mutateAsync(data);
     } catch (err) {
-      setError('Gagal menyimpan unit')
+      setError('Gagal menyimpan unit');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -143,16 +148,22 @@ export function UnitModal({ open, onClose, selectedId }: UnitModalProps) {
           <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
             Batal
           </Button>
-          <Button 
-            variant="contained" 
-            type="submit" 
+          <Button
+            variant="contained"
+            type="submit"
             disabled={isSubmitting}
             sx={{ bgcolor: '#2E7D32' }}
           >
-            {isEditMode ? (isSubmitting ? 'Menyimpan...' : 'Perbarui') : (isSubmitting ? 'Menyimpan...' : 'Simpan')}
+            {isEditMode
+              ? isSubmitting
+                ? 'Menyimpan...'
+                : 'Perbarui'
+              : isSubmitting
+                ? 'Menyimpan...'
+                : 'Simpan'}
           </Button>
         </DialogActions>
       </form>
     </Dialog>
-  )
+  );
 }

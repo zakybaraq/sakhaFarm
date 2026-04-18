@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -12,14 +12,14 @@ import {
   Select,
   MenuItem,
   Alert,
-} from '@mui/material'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createCycle, updateCycle, listCycles } from '../../api/cycles'
-import { listPlasmas, type Plasma } from '../../api/plasmas'
-import { useQuery } from '@tanstack/react-query'
+} from '@mui/material';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createCycle, updateCycle, listCycles } from '../../api/cycles';
+import { listPlasmas, type Plasma } from '../../api/plasmas';
+import { useQuery } from '@tanstack/react-query';
 
 const cycleSchema = z.object({
   plasmaId: z.number().min(1, 'Plasma wajib dipilih'),
@@ -27,33 +27,38 @@ const cycleSchema = z.object({
   docType: z.string().min(1, 'Jenis DOC wajib diisi'),
   chickInDate: z.string().min(1, 'Tanggal Chick In wajib diisi'),
   initialPopulation: z.number().min(1, 'Populasi awal wajib diisi'),
-})
+});
 
-type CycleFormData = z.infer<typeof cycleSchema>
+type CycleFormData = z.infer<typeof cycleSchema>;
 
 interface CycleModalProps {
-  open: boolean
-  onClose: () => void
-  editId?: number | null
+  open: boolean;
+  onClose: () => void;
+  editId?: number | null;
 }
 
 export function CycleModal({ open, onClose, editId }: CycleModalProps) {
-  const isEditMode = !!editId
-  const queryClient = useQueryClient()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const isEditMode = !!editId;
+  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { data: plasmasData } = useQuery({
     queryKey: ['plasmas'],
     queryFn: () => listPlasmas(),
-  })
+  });
 
   const { data: cyclesData } = useQuery({
     queryKey: ['cycles'],
     queryFn: listCycles,
-  })
+  });
 
-  const { control, handleSubmit, reset: resetForm, formState: { errors } } = useForm<CycleFormData>({
+  const {
+    control,
+    handleSubmit,
+    reset: resetForm,
+    formState: { errors },
+  } = useForm<CycleFormData>({
     resolver: zodResolver(cycleSchema),
     defaultValues: {
       plasmaId: 0,
@@ -62,11 +67,11 @@ export function CycleModal({ open, onClose, editId }: CycleModalProps) {
       chickInDate: new Date().toISOString().split('T')[0],
       initialPopulation: 0,
     },
-  })
+  });
 
   useEffect(() => {
     if (editId && cyclesData?.cycles) {
-      const cycle = cyclesData.cycles.find((c: { id: number }) => c.id === editId)
+      const cycle = cyclesData.cycles.find((c: { id: number }) => c.id === editId);
       if (cycle) {
         resetForm({
           plasmaId: cycle.plasmaId,
@@ -74,7 +79,7 @@ export function CycleModal({ open, onClose, editId }: CycleModalProps) {
           docType: cycle.docType,
           chickInDate: cycle.chickInDate.split('T')[0],
           initialPopulation: cycle.initialPopulation,
-        })
+        });
       }
     } else {
       resetForm({
@@ -83,38 +88,38 @@ export function CycleModal({ open, onClose, editId }: CycleModalProps) {
         docType: '',
         chickInDate: new Date().toISOString().split('T')[0],
         initialPopulation: 0,
-      })
+      });
     }
-  }, [editId, cyclesData, resetForm])
+  }, [editId, cyclesData, resetForm]);
 
   const mutation = useMutation({
-    mutationFn: (formData: CycleFormData) => 
-      isEditMode 
-        ? updateCycle(editId!, { 
+    mutationFn: (formData: CycleFormData) =>
+      isEditMode
+        ? updateCycle(editId!, {
             cycleNumber: Number(formData.cycleNumber),
             docType: formData.docType,
             chickInDate: formData.chickInDate,
-            initialPopulation: formData.initialPopulation
+            initialPopulation: formData.initialPopulation,
           })
         : createCycle(formData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cycles'] })
-      resetForm()
-      onClose()
+      queryClient.invalidateQueries({ queryKey: ['cycles'] });
+      resetForm();
+      onClose();
     },
-  })
+  });
 
   const onSubmit = async (data: CycleFormData) => {
-    setIsSubmitting(true)
-    setError(null)
+    setIsSubmitting(true);
+    setError(null);
     try {
-      await mutation.mutateAsync(data)
+      await mutation.mutateAsync(data);
     } catch (err) {
-      setError('Gagal menyimpan siklus')
+      setError('Gagal menyimpan siklus');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -146,7 +151,9 @@ export function CycleModal({ open, onClose, editId }: CycleModalProps) {
                   <InputLabel>Plasma</InputLabel>
                   <Select {...field} label="Plasma" value={field.value || ''}>
                     {plasmasData?.plasmas.map((plasma: Plasma) => (
-                      <MenuItem key={plasma.id} value={plasma.id}>{plasma.name}</MenuItem>
+                      <MenuItem key={plasma.id} value={plasma.id}>
+                        {plasma.name}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -203,16 +210,16 @@ export function CycleModal({ open, onClose, editId }: CycleModalProps) {
           <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
             Batal
           </Button>
-          <Button 
-            variant="contained" 
-            type="submit" 
+          <Button
+            variant="contained"
+            type="submit"
             disabled={isSubmitting}
             sx={{ bgcolor: '#2E7D32' }}
           >
-            {isEditMode ? 'Perbarui' : (isSubmitting ? 'Menyimpan...' : 'Simpan')}
+            {isEditMode ? 'Perbarui' : isSubmitting ? 'Menyimpan...' : 'Simpan'}
           </Button>
         </DialogActions>
       </form>
     </Dialog>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -12,10 +12,10 @@ import {
   MenuItem,
   Box,
   Typography,
-} from '@mui/material'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+} from '@mui/material';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 const suratJalanSchema = z.object({
   tanggal: z.string().min(1, 'Tanggal wajib diisi'),
@@ -24,20 +24,25 @@ const suratJalanSchema = z.object({
   feedProductId: z.number().min(1, 'Jenis pakan wajib dipilih'),
   jumlahZak: z.number().min(1, 'Jumlah zak wajib diisi'),
   supplier: z.string().min(1, 'Supplier wajib diisi'),
-})
+});
 
-type SuratJalanFormData = z.infer<typeof suratJalanSchema>
+type SuratJalanFormData = z.infer<typeof suratJalanSchema>;
 
 interface SuratJalanModalProps {
-  open: boolean
-  onClose: () => void
-  onSuccess?: () => void
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
 }
 
 export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<SuratJalanFormData>({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<SuratJalanFormData>({
     resolver: zodResolver(suratJalanSchema),
     defaultValues: {
       tanggal: new Date().toISOString().split('T')[0],
@@ -47,10 +52,10 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
       jumlahZak: 0,
       supplier: '',
     },
-  })
+  });
 
   const onSubmit = async (data: SuratJalanFormData) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const response = await fetch('/api/feed/suratjalan', {
         method: 'POST',
@@ -58,28 +63,26 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      })
-      
+      });
+
       if (response.ok) {
-        reset()
-        onSuccess?.()
-        onClose()
+        reset();
+        onSuccess?.();
+        onClose();
       } else {
-        const error = await response.json()
-        alert(error.message || 'Gagal menyimpan Surat Jalan')
+        const error = await response.json();
+        alert(error.message || 'Gagal menyimpan Surat Jalan');
       }
     } catch (err) {
-      alert('Terjadi kesalahan saat menyimpan')
+      alert('Terjadi kesalahan saat menyimpan');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontSize: '20px', fontWeight: 600 }}>
-        Tambah Surat Jalan
-      </DialogTitle>
+      <DialogTitle sx={{ fontSize: '20px', fontWeight: 600 }}>Tambah Surat Jalan</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -98,7 +101,7 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
                 />
               )}
             />
-            
+
             <Controller
               name="nomorSJ"
               control={control}
@@ -112,7 +115,7 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
                 />
               )}
             />
-            
+
             <Controller
               name="plasmaId"
               control={control}
@@ -126,7 +129,7 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
                 </FormControl>
               )}
             />
-            
+
             <Controller
               name="feedProductId"
               control={control}
@@ -141,7 +144,7 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
                 </FormControl>
               )}
             />
-            
+
             <Controller
               name="jumlahZak"
               control={control}
@@ -157,7 +160,7 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
                 />
               )}
             />
-            
+
             <Controller
               name="supplier"
               control={control}
@@ -177,9 +180,9 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
           <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
             Batal
           </Button>
-          <Button 
-            variant="contained" 
-            type="submit" 
+          <Button
+            variant="contained"
+            type="submit"
             disabled={isSubmitting}
             sx={{ bgcolor: '#2E7D32' }}
           >
@@ -188,5 +191,5 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
         </DialogActions>
       </form>
     </Dialog>
-  )
+  );
 }

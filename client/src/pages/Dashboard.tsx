@@ -1,27 +1,47 @@
-import { Grid, Box, Typography, Alert, Button } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import AutorenewIcon from '@mui/icons-material/Autorenew'
-import TrendingDownIcon from '@mui/icons-material/TrendingDown'
-import SpeedIcon from '@mui/icons-material/Speed'
-import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import { KpiCard } from '../components/dashboard/KpiCard'
-import { useKpiData } from '../hooks/useKpiData'
+import { Grid, Box, Typography, Alert, Button } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import SpeedIcon from '@mui/icons-material/Speed';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { KpiCard } from '../components/dashboard/KpiCard';
+import { useKpiData } from '../hooks/useKpiData';
 
 export function DashboardPage() {
-  const theme = useTheme()
-  const { activeCycles, avgFcr, avgIp, lowStockAlerts, isLoading, error, refetch } = useKpiData()
+  const theme = useTheme();
+  const { activeCycles, avgFcr, avgIp, lowStockAlerts, isLoading, error, refetch } = useKpiData();
 
-return (
+  return (
     <Box>
-      <Box component="h1" sx={{ position: 'absolute', width: 1, height: 1, p: 0, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>
+      <Box
+        component="h1"
+        sx={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          p: 0,
+          overflow: 'hidden',
+          clip: 'rect(0,0,0,0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
         Dashboard
       </Box>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
         Dashboard
       </Typography>
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} action={<Button size="small" startIcon={<RefreshIcon />} onClick={() => refetch()}>Retry</Button>}>
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          action={
+            <Button size="small" startIcon={<RefreshIcon />} onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+        >
           Failed to load dashboard data. Please try again.
         </Alert>
       )}
@@ -67,5 +87,5 @@ return (
         </Grid>
       </Grid>
     </Box>
-  )
+  );
 }

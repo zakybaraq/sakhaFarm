@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -12,13 +12,13 @@ import {
   Select,
   MenuItem,
   Alert,
-} from '@mui/material'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { createPlasma, updatePlasma, listPlasmas, type Plasma } from '../../api/plasmas'
-import { listUnits, type Unit } from '../../api/units'
+} from '@mui/material';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { createPlasma, updatePlasma, listPlasmas, type Plasma } from '../../api/plasmas';
+import { listUnits, type Unit } from '../../api/units';
 
 const plasmaSchema = z.object({
   name: z.string().min(1, 'Nama plasma wajib diisi'),
@@ -27,36 +27,41 @@ const plasmaSchema = z.object({
   address: z.string().optional(),
   phone: z.string().optional(),
   capacity: z.number().optional(),
-})
+});
 
-type PlasmaFormData = z.infer<typeof plasmaSchema>
+type PlasmaFormData = z.infer<typeof plasmaSchema>;
 
 interface PlasmaModalProps {
-  open: boolean
-  onClose: () => void
-  selectedId?: number | undefined
+  open: boolean;
+  onClose: () => void;
+  selectedId?: number | undefined;
 }
 
 export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
-  const queryClient = useQueryClient()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isEditMode = !!selectedId
+  const isEditMode = !!selectedId;
 
   const { data: unitsData } = useQuery({
     queryKey: ['units'],
     queryFn: listUnits,
     enabled: open,
-  })
+  });
 
   const { data: plasmasResponse } = useQuery({
     queryKey: ['plasmas'],
     queryFn: () => listPlasmas(),
     enabled: open && isEditMode,
-  })
+  });
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<PlasmaFormData>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PlasmaFormData>({
     resolver: zodResolver(plasmaSchema),
     defaultValues: {
       name: '',
@@ -66,11 +71,11 @@ export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
       phone: '',
       capacity: undefined,
     },
-  })
+  });
 
   useEffect(() => {
     if (selectedId && plasmasResponse?.plasmas) {
-      const plasma = plasmasResponse.plasmas.find((p: Plasma) => p.id === selectedId)
+      const plasma = plasmasResponse.plasmas.find((p: Plasma) => p.id === selectedId);
       if (plasma) {
         reset({
           name: plasma.name,
@@ -79,35 +84,35 @@ export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
           address: plasma.address ?? '',
           phone: plasma.phone ?? '',
           capacity: plasma.capacity ?? undefined,
-        })
+        });
       }
     } else {
-      reset({ name: '', unitId: 0, farmerName: '', address: '', phone: '', capacity: undefined })
+      reset({ name: '', unitId: 0, farmerName: '', address: '', phone: '', capacity: undefined });
     }
-  }, [selectedId, plasmasResponse, reset])
+  }, [selectedId, plasmasResponse, reset]);
 
   const saveMutation = useMutation({
     mutationFn: isEditMode
       ? (formData: PlasmaFormData) => updatePlasma(selectedId!, formData)
       : createPlasma,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['plasmas'] })
-      reset()
-      onClose()
+      queryClient.invalidateQueries({ queryKey: ['plasmas'] });
+      reset();
+      onClose();
     },
-  })
+  });
 
   const onSubmit = async (data: PlasmaFormData) => {
-    setIsSubmitting(true)
-    setError(null)
+    setIsSubmitting(true);
+    setError(null);
     try {
-      await saveMutation.mutateAsync(data)
+      await saveMutation.mutateAsync(data);
     } catch (err) {
-      setError('Gagal menyimpan plasma')
+      setError('Gagal menyimpan plasma');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -150,9 +155,7 @@ export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
             <Controller
               name="farmerName"
               control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Nama Peternak" fullWidth />
-              )}
+              render={({ field }) => <TextField {...field} label="Nama Peternak" fullWidth />}
             />
             <Controller
               name="address"
@@ -164,9 +167,7 @@ export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
             <Controller
               name="phone"
               control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Telepon" fullWidth />
-              )}
+              render={({ field }) => <TextField {...field} label="Telepon" fullWidth />}
             />
             <Controller
               name="capacity"
@@ -188,11 +189,22 @@ export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
           <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
             Batal
           </Button>
-          <Button variant="contained" type="submit" disabled={isSubmitting} sx={{ bgcolor: '#2E7D32' }}>
-            {isEditMode ? (isSubmitting ? 'Menyimpan...' : 'Perbarui') : (isSubmitting ? 'Menyimpan...' : 'Simpan')}
+          <Button
+            variant="contained"
+            type="submit"
+            disabled={isSubmitting}
+            sx={{ bgcolor: '#2E7D32' }}
+          >
+            {isEditMode
+              ? isSubmitting
+                ? 'Menyimpan...'
+                : 'Perbarui'
+              : isSubmitting
+                ? 'Menyimpan...'
+                : 'Simpan'}
           </Button>
         </DialogActions>
       </form>
     </Dialog>
-  )
+  );
 }

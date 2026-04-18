@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -12,14 +12,14 @@ import {
   Select,
   MenuItem,
   Alert,
-} from '@mui/material'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createUser, updateUser } from '../../api/users'
-import { listUnits } from '../../api/units'
-import { useQuery } from '@tanstack/react-query'
+} from '@mui/material';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createUser, updateUser } from '../../api/users';
+import { listUnits } from '../../api/units';
+import { useQuery } from '@tanstack/react-query';
 
 const userSchema = z.object({
   email: z.string().email('Email tidak valid'),
@@ -27,28 +27,33 @@ const userSchema = z.object({
   name: z.string().min(2, 'Nama minimal 2 karakter'),
   roleId: z.number().min(1, 'Role wajib dipilih'),
   tenantId: z.number().min(1, 'Tenant wajib dipilih'),
-})
+});
 
-type UserFormData = z.infer<typeof userSchema>
+type UserFormData = z.infer<typeof userSchema>;
 
 interface UserModalProps {
-  open: boolean
-  onClose: () => void
-  editId?: string | null
+  open: boolean;
+  onClose: () => void;
+  editId?: string | null;
 }
 
 export function UserModal({ open, onClose, editId }: UserModalProps) {
-  const isEditMode = !!editId
-  const queryClient = useQueryClient()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const isEditMode = !!editId;
+  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { data: unitsData } = useQuery({
     queryKey: ['units'],
     queryFn: listUnits,
-  })
+  });
 
-  const { control, handleSubmit, reset: resetForm, formState: { errors } } = useForm<UserFormData>({
+  const {
+    control,
+    handleSubmit,
+    reset: resetForm,
+    formState: { errors },
+  } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       email: '',
@@ -57,42 +62,42 @@ export function UserModal({ open, onClose, editId }: UserModalProps) {
       roleId: 0,
       tenantId: 0,
     },
-  })
+  });
 
   const mutation = useMutation({
     mutationFn: (formData: UserFormData) => {
       if (isEditMode) {
-        const updateData: { name: string; email: string; roleId: number; password?: string } = { 
-          name: formData.name, 
-          email: formData.email, 
-          roleId: formData.roleId 
-        }
+        const updateData: { name: string; email: string; roleId: number; password?: string } = {
+          name: formData.name,
+          email: formData.email,
+          roleId: formData.roleId,
+        };
         if (formData.password) {
-          updateData.password = formData.password
+          updateData.password = formData.password;
         }
-        return updateUser(editId!, updateData)
+        return updateUser(editId!, updateData);
       }
-      const createData = { ...formData, password: formData.password || '' }
-      return createUser(createData)
+      const createData = { ...formData, password: formData.password || '' };
+      return createUser(createData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
-      resetForm()
-      onClose()
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      resetForm();
+      onClose();
     },
-  })
+  });
 
   const onSubmit = async (data: UserFormData) => {
-    setIsSubmitting(true)
-    setError(null)
+    setIsSubmitting(true);
+    setError(null);
     try {
-      await mutation.mutateAsync(data)
+      await mutation.mutateAsync(data);
     } catch (err) {
-      setError('Gagal menyimpan pengguna')
+      setError('Gagal menyimpan pengguna');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -167,7 +172,9 @@ export function UserModal({ open, onClose, editId }: UserModalProps) {
                   <InputLabel>Tenant</InputLabel>
                   <Select {...field} label="Tenant" value={field.value || ''}>
                     {unitsData?.units.map((unit) => (
-                      <MenuItem key={unit.id} value={unit.tenantId}>{unit.name}</MenuItem>
+                      <MenuItem key={unit.id} value={unit.tenantId}>
+                        {unit.name}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -179,16 +186,16 @@ export function UserModal({ open, onClose, editId }: UserModalProps) {
           <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
             Batal
           </Button>
-          <Button 
-            variant="contained" 
-            type="submit" 
+          <Button
+            variant="contained"
+            type="submit"
             disabled={isSubmitting}
             sx={{ bgcolor: '#2E7D32' }}
           >
-            {isEditMode ? 'Perbarui' : (isSubmitting ? 'Menyimpan...' : 'Simpan')}
+            {isEditMode ? 'Perbarui' : isSubmitting ? 'Menyimpan...' : 'Simpan'}
           </Button>
         </DialogActions>
       </form>
     </Dialog>
-  )
+  );
 }

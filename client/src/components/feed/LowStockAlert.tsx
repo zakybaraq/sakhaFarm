@@ -1,33 +1,36 @@
-import { Alert, Box, Typography, Chip } from '@mui/material'
-import WarningIcon from '@mui/icons-material/Warning'
-import ErrorIcon from '@mui/icons-material/Error'
+import { Alert, Box, Typography, Chip } from '@mui/material';
+import WarningIcon from '@mui/icons-material/Warning';
+import ErrorIcon from '@mui/icons-material/Error';
 
 interface LowStockItem {
-  id: number
-  plasmaName: string
-  feedProductName: string
-  totalZak: number
+  id: number;
+  plasmaName: string;
+  feedProductName: string;
+  totalZak: number;
 }
 
 interface LowStockAlertProps {
-  items?: LowStockItem[]
+  items?: LowStockItem[];
 }
 
 export function LowStockAlert({ items = [] }: LowStockAlertProps) {
-  const mockLowStock: LowStockItem[] = items.length > 0 ? items : [
-    { id: 2, plasmaName: 'PlasmaUD Jaya', feedProductName: 'BR 11', totalZak: 15 },
-    { id: 3, plasmaName: 'PlasmaMakmur', feedProductName: 'BSP', totalZak: 8 },
-  ]
+  const mockLowStock: LowStockItem[] =
+    items.length > 0
+      ? items
+      : [
+          { id: 2, plasmaName: 'PlasmaUD Jaya', feedProductName: 'BR 11', totalZak: 15 },
+          { id: 3, plasmaName: 'PlasmaMakmur', feedProductName: 'BSP', totalZak: 8 },
+        ];
 
   if (mockLowStock.length === 0) {
-    return null
+    return null;
   }
 
-  const sortedBySeverity = [...mockLowStock].sort((a, b) => a.totalZak - b.totalZak)
+  const sortedBySeverity = [...mockLowStock].sort((a, b) => a.totalZak - b.totalZak);
 
   return (
     <Box sx={{ mb: 2 }}>
-      <Alert 
+      <Alert
         severity="warning"
         icon={<WarningIcon />}
         sx={{ mb: 1, bgcolor: '#FFF3E0', border: '1px solid #FFB74D' }}
@@ -43,10 +46,10 @@ export function LowStockAlert({ items = [] }: LowStockAlertProps) {
               <WarningIcon sx={{ fontSize: 16, color: '#F57C00' }} />
             )}
             <Typography variant="body2">
-              <strong>{item.plasmaName}</strong> - {item.feedProductName}: 
-              <Chip 
-                label={`${item.totalZak} zak`} 
-                size="small" 
+              <strong>{item.plasmaName}</strong> - {item.feedProductName}:
+              <Chip
+                label={`${item.totalZak} zak`}
+                size="small"
                 color={item.totalZak < 20 ? 'error' : 'warning'}
                 sx={{ ml: 1, height: 20, fontSize: '12px' }}
               />
@@ -55,5 +58,5 @@ export function LowStockAlert({ items = [] }: LowStockAlertProps) {
         ))}
       </Alert>
     </Box>
-  )
+  );
 }

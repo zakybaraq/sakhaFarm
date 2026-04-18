@@ -5,8 +5,8 @@
  * for cookie-based session auth.
  */
 
-import { apiClient, ApiError } from './client'
-import type { LoginResponse, MeResponse } from '../types'
+import { apiClient, ApiError } from './client';
+import type { LoginResponse, MeResponse } from '../types';
 
 /**
  * Authenticates user with email and password.
@@ -20,7 +20,7 @@ export function login(email: string, password: string): Promise<LoginResponse> {
   return apiClient<LoginResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
-  })
+  });
 }
 
 /**
@@ -32,7 +32,7 @@ export function login(email: string, password: string): Promise<LoginResponse> {
 export function logout(): Promise<{ success: boolean }> {
   return apiClient<{ success: boolean }>('/auth/logout', {
     method: 'POST',
-  })
+  });
 }
 
 /**
@@ -43,11 +43,11 @@ export function logout(): Promise<{ success: boolean }> {
  */
 export async function getCurrentUser(): Promise<MeResponse> {
   try {
-    return await apiClient<MeResponse>('/auth/me')
+    return await apiClient<MeResponse>('/auth/me');
   } catch (err: unknown) {
     if (err instanceof ApiError && err.status === 401) {
-      return { user: null }
+      return { user: null };
     }
-    throw err
+    throw err;
   }
 }

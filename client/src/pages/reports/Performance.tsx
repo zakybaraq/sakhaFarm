@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { Box, Typography, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
-import { LineChart } from '@mui/x-charts/LineChart'
+import { useState } from 'react';
+import { Box, Typography, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { LineChart } from '@mui/x-charts/LineChart';
 
 const mockCycles = [
   { id: 1, cycleNumber: 'C001', docType: 'CP' },
   { id: 2, cycleNumber: 'C002', docType: 'CP' },
   { id: 3, cycleNumber: 'C003', docType: 'Patriot' },
-]
+];
 
 const mockBWData = [
   { day: 1, actual: 45, standard: 45 },
@@ -15,7 +15,7 @@ const mockBWData = [
   { day: 21, actual: 720, standard: 710 },
   { day: 28, actual: 1150, standard: 1140 },
   { day: 35, actual: 1650, standard: 1640 },
-]
+];
 
 const mockFCRData = [
   { day: 1, fcr: 1.8 },
@@ -24,10 +24,10 @@ const mockFCRData = [
   { day: 21, fcr: 1.48 },
   { day: 28, fcr: 1.42 },
   { day: 35, fcr: 1.38 },
-]
+];
 
 export function Performance() {
-  const [selectedCycle, setSelectedCycle] = useState<number>(1)
+  const [selectedCycle, setSelectedCycle] = useState<number>(1);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -78,14 +78,12 @@ export function Performance() {
             dataset={mockFCRData}
             xAxis={[{ dataKey: 'day', label: 'Hari' }]}
             yAxis={[{ label: 'FCR' }]}
-            series={[
-              { dataKey: 'fcr', label: 'FCR', color: '#2E7D32' },
-            ]}
+            series={[{ dataKey: 'fcr', label: 'FCR', color: '#2E7D32' }]}
             grid={{ vertical: true, horizontal: true }}
             height={280}
           />
         </Box>
       </Paper>
     </Box>
-  )
+  );
 }

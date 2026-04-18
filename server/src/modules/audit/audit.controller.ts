@@ -4,9 +4,11 @@ import {
   listAuditLogs,
   getAuditLog,
   countAuditLogs,
+} from './audit.service'
+import {
   AuditLogNotFoundError,
   AuditQueryTooBroadError,
-} from './audit.service'
+} from './audit.errors'
 
 export const auditController = new Elysia({ prefix: '/api/audit' })
   .onError(({ code, error, set }) => {

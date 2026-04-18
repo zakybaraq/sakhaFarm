@@ -1,9 +1,9 @@
-import { createTheme } from '@mui/material/styles'
-import { drawerClasses } from '@mui/material/Drawer'
+import { createTheme } from '@mui/material/styles';
+import { drawerClasses } from '@mui/material/Drawer';
 
 /**
  * Minimalist MUI theme for SakhaFarm.
- * 
+ *
  * Uses a green accent palette (#2E7D32) reflecting the farm/agriculture domain,
  * with neutral slate grays for the base UI. Clean, modern aesthetic with
  * subtle shadows and rounded corners.
@@ -112,10 +112,10 @@ export const theme = createTheme({
       },
     },
   },
-})
+});
 
 /** Layout constants used across Layout, Sidebar, Navbar, Footer */
-export const DRAWER_WIDTH = 240
-export const DRAWER_WIDTH_COLLAPSED = 72
-export const APPBAR_HEIGHT = 64
-export const FOOTER_HEIGHT = 40
+export const DRAWER_WIDTH = 240;
+export const DRAWER_WIDTH_COLLAPSED = 72;
+export const APPBAR_HEIGHT = 64;
+export const FOOTER_HEIGHT = 40;

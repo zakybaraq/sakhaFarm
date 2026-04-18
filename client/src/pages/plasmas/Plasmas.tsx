@@ -1,83 +1,94 @@
-import { useState } from 'react'
-import { Box, Typography, Button, Paper, Chip } from '@mui/material'
-import { DataGrid, type GridColDef } from '@mui/x-data-grid'
-import AddIcon from '@mui/icons-material/Add'
-import Switch from '@mui/material/Switch'
-import EditIcon from '@mui/icons-material/Edit'
-import IconButton from '@mui/material/IconButton'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { listPlasmas, deletePlasma, updatePlasma, type Plasma } from '../../api/plasmas'
-import { listUnits, type Unit } from '../../api/units'
-import { useAuth } from '../../contexts/AuthContext'
-import { PlasmaModal } from './PlasmaModal'
+import { useState } from 'react';
+import { Box, Typography, Button, Paper, Chip } from '@mui/material';
+import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import AddIcon from '@mui/icons-material/Add';
+import Switch from '@mui/material/Switch';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { listPlasmas, deletePlasma, updatePlasma, type Plasma } from '../../api/plasmas';
+import { listUnits, type Unit } from '../../api/units';
+import { useAuth } from '../../contexts/AuthContext';
+import { PlasmaModal } from './PlasmaModal';
+import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 
 export function PlasmasPage() {
-  const { user } = useAuth()
-  const queryClient = useQueryClient()
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
   const { data: unitsData } = useQuery({
     queryKey: ['units'],
     queryFn: listUnits,
     enabled: !!user,
-  })
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['plasmas'],
     queryFn: () => listPlasmas(),
     enabled: !!user,
-  })
+  });
 
-const deleteMutation = useMutation({
-  mutationFn: deletePlasma,
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['plasmas'] })
-    setSelectedId(null)
-  },
-})
+  const deleteMutation = useMutation({
+    mutationFn: deletePlasma,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plasmas'] });
+      setSelectedId(null);
+      setSnackbar({ open: true, message: 'Plasma berhasil dihapus', severity: 'success' });
+    },
+    onError: (error: Error) => {
+      setSnackbar({ open: true, message: `Gagal menghapus: ${error.message}`, severity: 'error' });
+    },
+  });
 
-const toggleMutation = useMutation({
-  mutationFn: async (id: number) => {
-    const plasma = data?.plasmas.find(p => p.id === id)
-    if (!plasma) return
-    return updatePlasma(id, { isDeleted: !plasma.isDeleted })
-  },
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['plasmas'] })
-  },
-})
+  const toggleMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const plasma = data?.plasmas.find((p) => p.id === id);
+      if (!plasma) return;
+      return updatePlasma(id, { isDeleted: !plasma.isDeleted });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plasmas'] });
+    },
+    onError: (error: Error) => {
+      setSnackbar({ open: true, message: `Gagal toggle: ${error.message}`, severity: 'error' });
+    },
+  });
 
-const handleToggle = (id: number) => {
-  toggleMutation.mutate(id)
-}
+  const handleToggle = (id: number) => {
+    toggleMutation.mutate(id);
+  };
 
-const handleEdit = (row: Plasma) => {
-  setSelectedId(row.id)
-  setModalOpen(true)
-}
+  const handleEdit = (row: Plasma) => {
+    setSelectedId(row.id);
+    setModalOpen(true);
+  };
 
   const handleDelete = () => {
     if (selectedId && confirm('Apakah Anda yakin ingin menghapus plasma ini?')) {
-      deleteMutation.mutate(selectedId)
+      deleteMutation.mutate(selectedId);
     }
-  }
+  };
 
   const handleSelectionChange = (newSelection: unknown) => {
-    const selected = newSelection as number[]
-    setSelectedId(selected[0] ?? null)
-  }
+    const selected = newSelection as number[];
+    setSelectedId(selected[0] ?? null);
+  };
 
   const columns: GridColDef[] = [
     { field: 'name', headerName: 'Nama Plasma', flex: 1, minWidth: 200 },
-    { 
-      field: 'unitId', 
-      headerName: 'Unit', 
+    {
+      field: 'unitId',
+      headerName: 'Unit',
       width: 150,
       valueGetter: (value, row) => {
-        const unit = unitsData?.units.find((u: Unit) => u.id === value)
-        return unit?.name ?? value
-      }
+        const unit = unitsData?.units.find((u: Unit) => u.id === value);
+        return unit?.name ?? value;
+      },
     },
     { field: 'farmerName', headerName: 'Nama Peternak', flex: 1, minWidth: 200 },
     { field: 'capacity', headerName: 'Kapasitas (Ekor)', width: 150 },
@@ -86,10 +97,10 @@ const handleEdit = (row: Plasma) => {
       headerName: 'Status',
       width: 100,
       renderCell: (params) => (
-        <Chip 
-          label={params.row.isDeleted ? 'Nonaktif' : 'Aktif'} 
-          color={params.row.isDeleted ? 'default' : 'success'} 
-          size="small" 
+        <Chip
+          label={params.row.isDeleted ? 'Nonaktif' : 'Aktif'}
+          color={params.row.isDeleted ? 'default' : 'success'}
+          size="small"
         />
       ),
     },
@@ -99,28 +110,48 @@ const handleEdit = (row: Plasma) => {
       width: 120,
       sortable: false,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center', height: '100%' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            justifyContent: 'center',
+            height: '100%',
+          }}
+        >
           <Switch
             size="small"
             checked={!params.row.isDeleted}
             onChange={(e) => {
-              e.stopPropagation()
-              handleToggle(params.row.id)
+              e.stopPropagation();
+              handleToggle(params.row.id);
             }}
           />
           <IconButton
             size="small"
             onClick={(e) => {
-              e.stopPropagation()
-              handleEdit(params.row)
+              e.stopPropagation();
+              handleEdit(params.row);
             }}
           >
             <EditIcon fontSize="small" />
           </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm('Apakah Anda yakin ingin menghapus plasma ini?')) {
+                deleteMutation.mutate(params.row.id);
+              }
+            }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
         </Box>
       ),
     },
-  ]
+  ];
 
   return (
     <Box sx={{ p: 3 }}>
@@ -156,11 +187,29 @@ const handleEdit = (row: Plasma) => {
         />
       </Paper>
 
-      <PlasmaModal 
-        open={modalOpen} 
-        onClose={() => { setModalOpen(false); setSelectedId(null); }} 
+      <PlasmaModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setSelectedId(null);
+        }}
         selectedId={selectedId ?? undefined}
       />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
-  )
+  );
 }

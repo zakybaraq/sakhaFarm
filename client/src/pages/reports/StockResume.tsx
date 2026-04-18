@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   Box,
   Typography,
@@ -10,34 +10,69 @@ import {
   Select,
   MenuItem,
   Autocomplete,
-} from '@mui/material'
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
-import DownloadIcon from '@mui/icons-material/Download'
-import { exportToXlsx } from '../../utils/exportXlsx'
+} from '@mui/material';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import DownloadIcon from '@mui/icons-material/Download';
+import { exportToXlsx } from '../../utils/exportXlsx';
 
 const mockStockResume = [
-  { id: 1, unitName: 'Unit Kuningan', plasmaName: 'PlasmaUD Jaya', feedProductName: 'BR 10', totalZak: 45, totalKg: 2250 },
-  { id: 2, unitName: 'Unit Kuningan', plasmaName: 'PlasmaUD Jaya', feedProductName: 'BR 11', totalZak: 15, totalKg: 750 },
-  { id: 3, unitName: 'Unit Bojonegoro', plasmaName: 'PlasmaMakmur', feedProductName: 'BSP', totalZak: 8, totalKg: 400 },
-  { id: 4, unitName: 'Unit Bojonegoro', plasmaName: 'PlasmaSentosa', feedProductName: 'BR 10', totalZak: 60, totalKg: 3000 },
-]
+  {
+    id: 1,
+    unitName: 'Unit Kuningan',
+    plasmaName: 'PlasmaUD Jaya',
+    feedProductName: 'BR 10',
+    totalZak: 45,
+    totalKg: 2250,
+  },
+  {
+    id: 2,
+    unitName: 'Unit Kuningan',
+    plasmaName: 'PlasmaUD Jaya',
+    feedProductName: 'BR 11',
+    totalZak: 15,
+    totalKg: 750,
+  },
+  {
+    id: 3,
+    unitName: 'Unit Bojonegoro',
+    plasmaName: 'PlasmaMakmur',
+    feedProductName: 'BSP',
+    totalZak: 8,
+    totalKg: 400,
+  },
+  {
+    id: 4,
+    unitName: 'Unit Bojonegoro',
+    plasmaName: 'PlasmaSentosa',
+    feedProductName: 'BR 10',
+    totalZak: 60,
+    totalKg: 3000,
+  },
+];
 
 const columns: GridColDef[] = [
   { field: 'unitName', headerName: 'Unit', flex: 1, minWidth: 120 },
   { field: 'plasmaName', headerName: 'Plasma', flex: 1, minWidth: 150 },
   { field: 'feedProductName', headerName: 'Jenis Pakan', flex: 1, minWidth: 120 },
   { field: 'totalZak', headerName: 'Total Zak', width: 120, align: 'right', headerAlign: 'right' },
-  { field: 'totalKg', headerName: 'Total Kg', width: 120, align: 'right', headerAlign: 'right', valueFormatter: (v: number) => `${v.toLocaleString('id-ID')} kg` },
-]
+  {
+    field: 'totalKg',
+    headerName: 'Total Kg',
+    width: 120,
+    align: 'right',
+    headerAlign: 'right',
+    valueFormatter: (v: number) => `${v.toLocaleString('id-ID')} kg`,
+  },
+];
 
 export function StockResume() {
-  const [unitFilter, setUnitFilter] = useState<string | null>(null)
-  const [plasmaFilter, setPlasmaFilter] = useState<string | null>(null)
-  const [feedFilter, setFeedFilter] = useState<string | null>(null)
+  const [unitFilter, setUnitFilter] = useState<string | null>(null);
+  const [plasmaFilter, setPlasmaFilter] = useState<string | null>(null);
+  const [feedFilter, setFeedFilter] = useState<string | null>(null);
 
   const handleExport = () => {
-    exportToXlsx(mockStockResume, 'Stock_Resume', 'Stock Resume Report')
-  }
+    exportToXlsx(mockStockResume, 'Stock_Resume', 'Stock Resume Report');
+  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -107,5 +142,5 @@ export function StockResume() {
         />
       </Paper>
     </Box>
-  )
+  );
 }

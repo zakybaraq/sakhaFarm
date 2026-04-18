@@ -1,10 +1,10 @@
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import { useTheme } from '@mui/material/styles'
-import { FOOTER_HEIGHT } from '../../theme'
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
+import { FOOTER_HEIGHT } from '../../theme';
 
 export function Footer() {
-  const theme = useTheme()
+  const theme = useTheme();
 
   return (
     <Box
@@ -27,5 +27,5 @@ export function Footer() {
         v1.0.0
       </Typography>
     </Box>
-  )
+  );
 }

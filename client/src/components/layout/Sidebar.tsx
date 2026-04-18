@@ -1,42 +1,43 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useTheme } from '@mui/material/styles'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import Tooltip from '@mui/material/Tooltip'
-import Drawer from '@mui/material/Drawer'
-import Box from '@mui/material/Box'
-import Divider from '@mui/material/Divider'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import BusinessIcon from '@mui/icons-material/Business'
-import AgricultureIcon from '@mui/icons-material/Agriculture'
-import AutorenewIcon from '@mui/icons-material/Autorenew'
-import EditNoteIcon from '@mui/icons-material/EditNote'
-import Inventory2Icon from '@mui/icons-material/Inventory2'
-import AssessmentIcon from '@mui/icons-material/Assessment'
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import { drawerClasses } from '@mui/material/Drawer'
-import { DRAWER_WIDTH, DRAWER_WIDTH_COLLAPSED } from '../../theme'
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Tooltip from '@mui/material/Tooltip';
+import Drawer from '@mui/material/Drawer';
+import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import BusinessIcon from '@mui/icons-material/Business';
+import AgricultureIcon from '@mui/icons-material/Agriculture';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { drawerClasses } from '@mui/material/Drawer';
+import { DRAWER_WIDTH, DRAWER_WIDTH_COLLAPSED, APPBAR_HEIGHT } from '../../theme';
 
 interface SidebarProps {
-  open: boolean
-  onClose: () => void
-  collapsed: boolean
-  onToggleCollapse: () => void
-  userPermissions: string[]
+  open: boolean;
+  onClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  userPermissions: string[];
 }
 
 interface MenuItem {
-  text: string
-  icon: React.ReactElement
-  path: string
-  permission: string | null
+  text: string;
+  icon: React.ReactElement;
+  path: string;
+  permission: string | null;
+  isSectionHeader?: boolean;
 }
 
 const menuItems: MenuItem[] = [
@@ -46,37 +47,38 @@ const menuItems: MenuItem[] = [
   { text: 'Cycle', icon: <AutorenewIcon />, path: '/cycles', permission: 'cycle.read' },
   { text: 'Recording', icon: <EditNoteIcon />, path: '/recordings', permission: 'recording.read' },
   { text: 'Feed', icon: <Inventory2Icon />, path: '/feed', permission: 'feed.read' },
+  { text: 'Reports', icon: <AssessmentIcon />, path: '/reports', permission: 'inventory.read', isSectionHeader: true },
   { text: 'Performance', icon: <AssessmentIcon />, path: '/reports/performance', permission: 'inventory.read' },
   { text: 'Stock Resume', icon: <AssessmentIcon />, path: '/reports/stock-resume', permission: 'inventory.read' },
   { text: 'Audit Log', icon: <AssessmentIcon />, path: '/reports/audit', permission: 'audit.read' },
   { text: 'RBAC', icon: <AdminPanelSettingsIcon />, path: '/rbac', permission: 'rbac.read' },
-]
+];
 
 function SidebarContent({
   collapsed,
   onToggleCollapse,
   userPermissions,
 }: Pick<SidebarProps, 'collapsed' | 'onToggleCollapse' | 'userPermissions'>) {
-  const location = useLocation()
-  const navigate = useNavigate()
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const visibleItems = menuItems.filter(
     (item) => item.permission === null || userPermissions.includes(item.permission),
-  )
+  );
 
-  const drawerWidth = collapsed ? DRAWER_WIDTH_COLLAPSED : DRAWER_WIDTH
+  const drawerWidth = collapsed ? DRAWER_WIDTH_COLLAPSED : DRAWER_WIDTH;
 
   return (
     <Box sx={{ width: drawerWidth, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'flex-start',
-          px: collapsed ? 0 : 2,
-          py: 2,
-        }}
-      >
+   <Box
+     sx={{
+       display: 'flex',
+       alignItems: 'center',
+       justifyContent: collapsed ? 'center' : 'flex-start',
+       px: collapsed ? 0 : 2,
+       height: APPBAR_HEIGHT,
+     }}
+   >
         <Box
           sx={{
             width: 36,
@@ -120,8 +122,26 @@ function SidebarContent({
       <Divider />
       <List sx={{ flex: 1, pt: 1 }}>
         {visibleItems.map((item) => {
-          const isActive = location.pathname === item.path ||
-            (item.path !== '/' && location.pathname.startsWith(item.path))
+          if (item.isSectionHeader) {
+            return (
+              <ListItem key={item.text} disablePadding>
+                <ListItemText
+                  primary={item.text}
+                  primaryTypographyProps={{
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    color: 'text.secondary',
+                    textTransform: 'uppercase',
+                    sx: { px: 2, py: 1 }
+                  }}
+                />
+              </ListItem>
+            );
+          }
+
+          const isActive =
+            location.pathname === item.path ||
+            (item.path !== '/' && location.pathname.startsWith(item.path));
 
           const listItemButton = (
             <ListItemButton
@@ -159,7 +179,7 @@ function SidebarContent({
                 />
               )}
             </ListItemButton>
-          )
+          );
 
           return (
             <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
@@ -171,7 +191,7 @@ function SidebarContent({
                 listItemButton
               )}
             </ListItem>
-          )
+          );
         })}
       </List>
       <Divider />
@@ -181,11 +201,17 @@ function SidebarContent({
         </IconButton>
       </Box>
     </Box>
-  )
+  );
 }
 
-export function Sidebar({ open, onClose, collapsed, onToggleCollapse, userPermissions }: SidebarProps) {
-  const theme = useTheme()
+export function Sidebar({
+  open,
+  onClose,
+  collapsed,
+  onToggleCollapse,
+  userPermissions,
+}: SidebarProps) {
+  const theme = useTheme();
 
   return (
     <>
@@ -234,5 +260,5 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse, userPermis
         />
       </Drawer>
     </>
-  )
+  );
 }

@@ -31,25 +31,22 @@ export function DailyRecording() {
   const { data: cyclesData, isLoading: cyclesLoading } = useQuery({
     queryKey: ['cycles', 'active', user?.tenantId],
     queryFn: () =>
-      user?.tenantId
-        ? listActiveCycles(user.tenantId)
-        : Promise.resolve({ cycles: [] }),
+      user?.tenantId ? listActiveCycles(user.tenantId) : Promise.resolve({ cycles: [] }),
     enabled: !!user?.tenantId,
   });
 
-  const { control, handleSubmit, watch, formState } =
-    useForm<RecordingFormData>({
-      resolver: zodResolver(recordingSchema),
-      defaultValues: {
-        date: new Date().toISOString().split('T')[0],
-        cycleId: 0,
-        initialPopulation: 0,
-        dead: 0,
-        culled: 0,
-        remainingPopulation: 0,
-        bodyWeight: 0,
-      },
-    });
+  const { control, handleSubmit, watch, formState } = useForm<RecordingFormData>({
+    resolver: zodResolver(recordingSchema),
+    defaultValues: {
+      date: new Date().toISOString().split('T')[0],
+      cycleId: 0,
+      initialPopulation: 0,
+      dead: 0,
+      culled: 0,
+      remainingPopulation: 0,
+      bodyWeight: 0,
+    },
+  });
 
   // Watch relevant fields for calculations
   const watchFields = watch([
@@ -69,25 +66,15 @@ export function DailyRecording() {
   // Calculate current day and standard body weight
   const currentDay = cycle
     ? Math.floor(
-        (new Date().getTime() - new Date(cycle.chickInDate).getTime()) /
-          (1000 * 60 * 60 * 24),
+        (new Date().getTime() - new Date(cycle.chickInDate).getTime()) / (1000 * 60 * 60 * 24),
       ) + 1
     : 1;
-  const standardDayIndex = Math.min(
-    Math.floor((currentDay - 1) / 7),
-    standards.length - 1,
-  );
+  const standardDayIndex = Math.min(Math.floor((currentDay - 1) / 7), standards.length - 1);
   const standardBW = standards[standardDayIndex] || 0;
 
   // Use custom hook for calculations
   const calculations = useRecordingCalculations(
-    [
-      watchFields[0],
-      watchFields[1],
-      watchFields[2],
-      watchFields[3],
-      watchFields[4],
-    ],
+    [watchFields[0], watchFields[1], watchFields[2], watchFields[3], watchFields[4]],
     standardBW,
   );
 
@@ -109,10 +96,7 @@ export function DailyRecording() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography
-        variant="h5"
-        sx={{ fontWeight: 600, fontSize: '24px', mb: 3 }}
-      >
+      <Typography variant="h5" sx={{ fontWeight: 600, fontSize: '24px', mb: 3 }}>
         Recording Harian
       </Typography>
 

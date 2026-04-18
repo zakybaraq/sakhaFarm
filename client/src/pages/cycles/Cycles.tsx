@@ -1,94 +1,114 @@
-import { useState } from 'react'
-import { Box, Typography, Button, Paper, Chip, Switch, IconButton, Box as MuiBox } from '@mui/material'
-import { DataGrid, type GridColDef } from '@mui/x-data-grid'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { listCycles, deleteCycle, updateCycle, type Cycle } from '../../api/cycles'
-import { listPlasmas, type Plasma } from '../../api/plasmas'
-import { useAuth } from '../../contexts/AuthContext'
-import { CycleModal } from './CycleModal'
+import { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Chip,
+  Switch,
+  IconButton,
+  Box as MuiBox,
+  Alert,
+  Snackbar,
+} from '@mui/material';
+import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { listCycles, deleteCycle, updateCycle, type Cycle } from '../../api/cycles';
+import { listPlasmas, type Plasma } from '../../api/plasmas';
+import { useAuth } from '../../contexts/AuthContext';
+import { CycleModal } from './CycleModal';
 
 export function CyclesPage() {
-  const { user } = useAuth()
-  const queryClient = useQueryClient()
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editId, setEditId] = useState<number | null>(null)
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
   const { data: plasmasData } = useQuery({
     queryKey: ['plasmas'],
     queryFn: () => listPlasmas(),
     enabled: !!user,
-  })
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['cycles'],
     queryFn: listCycles,
     enabled: !!user,
-  })
+  });
 
   const deleteMutation = useMutation({
     mutationFn: deleteCycle,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cycles'] })
-      setSelectedId(null)
+      queryClient.invalidateQueries({ queryKey: ['cycles'] });
+      setSelectedId(null);
+      setSnackbar({ open: true, message: 'Siklus berhasil dihapus', severity: 'success' });
     },
-  })
+    onError: (error: Error) => {
+      setSnackbar({ open: true, message: `Gagal menghapus: ${error.message}`, severity: 'error' });
+    },
+  });
 
   const toggleMutation = useMutation({
     mutationFn: async (id: number) => {
-      const cycle = data?.cycles.find((c: Cycle) => c.id === id)
-      if (!cycle) return
-      const newStatus = cycle.status === 'Active' ? 'Completed' : 'Active'
-      return updateCycle(id, { status: newStatus })
+      const cycle = data?.cycles.find((c: Cycle) => c.id === id);
+      if (!cycle) return;
+      const newStatus = cycle.status === 'Active' ? 'Completed' : 'Active';
+      return updateCycle(id, { status: newStatus });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cycles'] }),
-  })
+    onError: (error: Error) => {
+      setSnackbar({ open: true, message: `Gagal toggle: ${error.message}`, severity: 'error' });
+    },
+  });
 
   const handleToggle = (id: number) => {
-    toggleMutation.mutate(id)
-  }
+    toggleMutation.mutate(id);
+  };
 
   const handleDelete = () => {
     if (selectedId && confirm('Apakah Anda yakin ingin menghapus siklus ini?')) {
-      deleteMutation.mutate(selectedId)
+      deleteMutation.mutate(selectedId);
     }
-  }
+  };
 
   const handleSelectionChange = (newSelection: unknown) => {
-    const selected = newSelection as number[]
-    setSelectedId(selected[0] ?? null)
-  }
+    const selected = newSelection as number[];
+    setSelectedId(selected[0] ?? null);
+  };
 
   const handleEdit = (row: Cycle) => {
-    setEditId(row.id)
-    setModalOpen(true)
-  }
+    setEditId(row.id);
+    setModalOpen(true);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
-        return 'success'
+        return 'success';
       case 'Completed':
-        return 'info'
+        return 'info';
       case 'Failed':
-        return 'error'
+        return 'error';
       default:
-        return 'default'
+        return 'default';
     }
-  }
+  };
 
   const columns: GridColDef[] = [
     { field: 'cycleNumber', headerName: 'No. Siklus', width: 120 },
-    { 
-      field: 'plasmaId', 
-      headerName: 'Plasma', 
+    {
+      field: 'plasmaId',
+      headerName: 'Plasma',
       width: 180,
       valueGetter: (value, row) => {
-        const plasma = plasmasData?.plasmas.find((p: Plasma) => p.id === value)
-        return plasma?.name ?? value
-      }
+        const plasma = plasmasData?.plasmas.find((p: Plasma) => p.id === value);
+        return plasma?.name ?? value;
+      },
     },
     { field: 'docType', headerName: 'Jenis DOC', width: 120 },
     { field: 'chickInDate', headerName: 'Tgl. Chick In', width: 140 },
@@ -98,10 +118,10 @@ export function CyclesPage() {
       headerName: 'Status',
       width: 100,
       renderCell: (params) => (
-        <Chip 
-          label={params.row.status === 'Active' ? 'Aktif' : 'Selesai'} 
-          color={getStatusColor(params.row.status)} 
-          size="small" 
+        <Chip
+          label={params.row.status === 'Active' ? 'Aktif' : 'Selesai'}
+          color={getStatusColor(params.row.status)}
+          size="small"
         />
       ),
     },
@@ -111,28 +131,48 @@ export function CyclesPage() {
       width: 120,
       sortable: false,
       renderCell: (params) => (
-        <MuiBox sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center', height: '100%' }}>
+        <MuiBox
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            justifyContent: 'center',
+            height: '100%',
+          }}
+        >
           <Switch
             size="small"
             checked={params.row.status === 'Active'}
             onChange={(e) => {
-              e.stopPropagation()
-              handleToggle(params.row.id)
+              e.stopPropagation();
+              handleToggle(params.row.id);
             }}
           />
           <IconButton
             size="small"
             onClick={(e) => {
-              e.stopPropagation()
-              handleEdit(params.row)
+              e.stopPropagation();
+              handleEdit(params.row);
             }}
           >
             <EditIcon fontSize="small" />
           </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm('Apakah Anda yakin ingin menghapus siklus ini?')) {
+                deleteMutation.mutate(params.row.id);
+              }
+            }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
         </MuiBox>
       ),
     },
-  ]
+  ];
 
   return (
     <Box sx={{ p: 3 }}>
@@ -168,11 +208,29 @@ export function CyclesPage() {
         />
       </Paper>
 
-      <CycleModal 
-        open={modalOpen} 
-        onClose={() => { setModalOpen(false); setEditId(null); }} 
+      <CycleModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEditId(null);
+        }}
         editId={editId}
       />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
-  )
+  );
 }
