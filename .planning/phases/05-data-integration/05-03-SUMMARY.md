@@ -1,85 +1,88 @@
 ---
 phase: 05-data-integration
 plan: '03'
-subsystem: audit-log
-tags: [api-connection, blocker]
-dependency_graph:
-  requires: []
-  provides:
-    - client/src/pages/admin/AuditLog.tsx
-  affects: []
-tech_stack:
+subsystem: api
+tags: [audit, react-query, elysia]
+
+# Dependency graph
+requires:
+  - phase: 01-project-setup
+    provides: database schema with audit_logs table
+provides:
+  - AuditLog page connected to real /api/audit/logs endpoint
+  - client/src/api/audit.ts with listAuditLogs function
+affects: [admin-ui, audit-features]
+
+# Tech tracking
+tech-stack:
   added: []
-  patterns: []
-key_files:
-  created: []
+  patterns: [react-query with TanStack Query for server state]
+
+key-files:
+  created:
+    - client/src/api/audit.ts
   modified:
     - client/src/pages/admin/AuditLog.tsx
-decisions: []
+
+key-decisions:
+  - "Backend requires at least one filter to prevent full-table scans - implemented filter validation"
+
+patterns-established:
+  - "API client pattern reuse from existing client/api/*.ts files"
+
+requirements-completed: []
+
+# Metrics
+duration: ~5min
+completed: 2026-04-18
 ---
 
-# Phase 05 Plan 03: Connect AuditLog to API Summary
+# Phase 05 Plan 03: AuditLog API Connection Summary
 
-## Objective
+**AuditLog page connected to real /api/audit/logs endpoint with TanStack Query**
 
-Connect AuditLog page to API - replace DUMMY_AUDIT with real audit data.
+## Performance
 
-## Status: BLOCKED
+- **Duration:** ~5 min
+- **Started:** 2026-04-18T04:46:00Z
+- **Completed:** 2026-04-18T04:51:00Z
+- **Tasks:** 1
+- **Files modified:** 2
 
-**Reason**: Backend `/api/audit` endpoint does not exist.
+## Accomplishments
+- Created client/src/api/audit.ts with listAuditLogs function and typed interfaces
+- Connected AuditLog.tsx to use API with useQuery hook
+- Added loading, error, and empty state handling
+- Handled backend requirement: at least one filter required to prevent full-table scan
+- User filter dropdown dynamically populated from API data
 
-## Investigation Results
+## Task Commits
 
-### Backend Audit Infrastructure (Verified)
-1. **Schema exists**: `server/src/db/schema/audit_logs.ts` with proper schema
-   - Columns: userId, action, resource, resourceId, oldValue, newValue, ipAddress, userAgent, createdAt
-   - Indexes on: userId, action, createdAt, resource
+Each task was committed atomically:
 
-2. **Services write audit logs**: Verified multiple services insert audit entries:
-   - `feed.service.ts` - feed operations
-   - `plasma.service.ts` - plasma CRUD
-   - `cycle.service.ts` - cycle operations
-   - `unit.service.ts` - unit CRUD
-   - `recordings.service.ts` - daily recordings
+1. **Task 1: Connect AuditLog to real API** - `339fa87` (feat)
 
-3. **Permission exists**: `audit.read` permission defined in `server/src/db/seed/rbac.ts`
+**Plan metadata:** (none - no state updates requested)
 
-### Missing Components
-- **No API controller**: No `/api/audit` route in `server/src/modules/`
-- **No audit query service**: No service to query/filter audit logs by date, user, action, resource
+## Files Created/Modified
+- `client/src/api/audit.ts` - API client for audit endpoints with AuditLogEntry, AuditFilters types
+- `client/src/pages/admin/AuditLog.tsx` - Replaced mock data with useQuery to /api/audit/logs
 
-### Frontend State
-- `client/src/pages/admin/AuditLog.tsx` uses hardcoded `mockAuditLogs` array
-- No API call present
+## Decisions Made
+- Backend requires at least one filter (action/user/date) - implemented filter validation and user prompt when no filters selected
 
-## Blocker Details
+## Deviations from Plan
 
-The backend lacks an API endpoint to query audit logs. The plan's success criteria explicitly states:
+None - plan executed exactly as written.
 
-> "If backend has /api/audit - connect to it. If not - document as blocker"
+## Issues Encountered
+- None - backend audit endpoint already existed at /api/audit/logs with proper permissions
 
-Creating the backend endpoint would require:
-1. New service: `server/src/modules/audit/audit.service.ts`
-2. New controller: `server/src/modules/audit/audit.controller.ts`
-3. New routes: `server/src/modules/audit/audit.routes.ts`
-4. Register in `server/src/index.ts`
+## Next Phase Readiness
+- AuditLog is ready for use with real data
+- No blockers identified
 
-This is outside the scope of this plan which only specifies `client/src/pages/admin/AuditLog.tsx` in `files_modified`.
-
-## Deviation Documentation
-
-### Blockers
-
-**1. Backend API endpoint missing**
-- **Location**: server/src/modules/
-- **Issue**: No `/api/audit` endpoint exists
-- **Impact**: Cannot connect frontend to real data
-- **Recommendation**: Create new audit module with query endpoints, or add audit routes to existing module
-- **Files needed**: audit.service.ts, audit.controller.ts, audit.routes.ts
-- **Scope**: Backend work required (outside this plan)
-
-## Self-Check: PASSED
-
-- Investigation completed: ✅
-- Blocker documented: ✅
-- No incorrect claims made
+---
+*Phase: 05-data-integration*
+*Plan: 03*
+*Completed: 2026-04-18*
