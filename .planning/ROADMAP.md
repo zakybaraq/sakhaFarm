@@ -63,9 +63,13 @@
 - Add documentation where needed
 - Use MUI only for statistics
 - Modern frontend approach
-**Status**: Pending
+**Status**: Ready
+
+**Plans**:
+- [06-01-PLAN.md](./phases/06-code-cleanup/06-01-PLAN.md) — ESLint infrastructure
+- [06-02-PLAN.md](./phases/06-code-cleanup/06-02-PLAN.md) — API JSDoc documentation
+- [06-03-PLAN.md](./phases/06-code-cleanup/06-03-PLAN.md) — Component refactoring
 
 ---
-
 _Started: 2026-04-18_
-_Next: `/gsd-execute-phase 2` to execute Phase 2_
+_Next: `/gsd-execute-phase 6` to execute Phase 6_
