@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -11,104 +11,116 @@ import {
   MenuItem,
   Alert,
   CircularProgress,
-} from '@mui/material'
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
-import SearchIcon from '@mui/icons-material/Search'
-import { useQuery } from '@tanstack/react-query'
-import { listAuditLogs, AuditLogEntry, AuditFilters } from '../../api/audit'
+} from '@mui/material';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import SearchIcon from '@mui/icons-material/Search';
+import { useQuery } from '@tanstack/react-query';
+import { listAuditLogs, AuditLogEntry, AuditFilters } from '../../api/audit';
 
 // Common action types for filtering (matching backend)
-const actionTypes = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGIN_FAILED', 'LOGOUT']
+const actionTypes = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGIN_FAILED', 'LOGOUT'];
 
 interface AuditLogProps {
-  isAdmin?: boolean
+  isAdmin?: boolean;
 }
 
 export function AuditLog({ isAdmin = true }: AuditLogProps) {
-  const [searchText, setSearchText] = useState('')
-  const [actionFilter, setActionFilter] = useState<string | null>(null)
-  const [userFilter, setUserFilter] = useState<string | null>(null)
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const [searchText, setSearchText] = useState('');
+  const [actionFilter, setActionFilter] = useState<string | null>(null);
+  const [userFilter, setUserFilter] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Build filters for API call - require at least one filter
   const apiFilters: AuditFilters = useMemo(() => {
     const filters: AuditFilters = {
       limit: 100,
       offset: 0,
-    }
-    if (actionFilter) filters.action = actionFilter
-    if (userFilter) filters.userId = userFilter
-    if (dateFrom) filters.startDate = dateFrom
-    if (dateTo) filters.endDate = dateTo
-    return filters
-  }, [actionFilter, userFilter, dateFrom, dateTo])
+    };
+    if (actionFilter) filters.action = actionFilter;
+    if (userFilter) filters.userId = userFilter;
+    if (dateFrom) filters.startDate = dateFrom;
+    if (dateTo) filters.endDate = dateTo;
+    return filters;
+  }, [actionFilter, userFilter, dateFrom, dateTo]);
 
   // Fetch audit logs from API
   const { data, isLoading, error } = useQuery({
     queryKey: ['audit-logs', apiFilters],
     queryFn: () => listAuditLogs(apiFilters),
     // Require at least one filter to prevent full-table scan error
-    enabled: !!(apiFilters.action || apiFilters.userId || apiFilters.startDate || apiFilters.endDate),
+    enabled: !!(
+      apiFilters.action ||
+      apiFilters.userId ||
+      apiFilters.startDate ||
+      apiFilters.endDate
+    ),
     staleTime: 30000, // 30 seconds
-  })
+  });
 
   // Transform API data to display format
-  const auditLogs: AuditLogEntry[] = data?.logs ?? []
+  const auditLogs: AuditLogEntry[] = data?.logs ?? [];
 
   const filteredLogs = useMemo(() => {
     // If no API filters, apply client-side search
-    const noApiFilters = !apiFilters.action && !apiFilters.userId && !apiFilters.startDate && !apiFilters.endDate
-    
+    const noApiFilters =
+      !apiFilters.action && !apiFilters.userId && !apiFilters.startDate && !apiFilters.endDate;
+
     return auditLogs.filter((log) => {
       // Always apply search filter client-side
-      const matchesSearch = searchText === '' ||
+      const matchesSearch =
+        searchText === '' ||
         (log.userId?.toLowerCase().includes(searchText.toLowerCase()) ?? false) ||
         log.action.toLowerCase().includes(searchText.toLowerCase()) ||
         log.resource.toLowerCase().includes(searchText.toLowerCase()) ||
-        (log.details?.toLowerCase().includes(searchText.toLowerCase()) ?? false)
+        (log.details?.toLowerCase().includes(searchText.toLowerCase()) ?? false);
 
       // Apply action filter
-      const matchesAction = !actionFilter || log.action === actionFilter
-      
+      const matchesAction = !actionFilter || log.action === actionFilter;
+
       // Apply user filter
-      const matchesUser = !userFilter || log.userId === userFilter
+      const matchesUser = !userFilter || log.userId === userFilter;
 
       // Apply date filter (client-side if API filter not used)
-      const logDate = log.createdAt?.split('T')[0] ?? ''
-      const matchesDateFrom = !dateFrom || logDate >= dateFrom
-      const matchesDateTo = !dateTo || logDate <= dateTo
+      const logDate = log.createdAt?.split('T')[0] ?? '';
+      const matchesDateFrom = !dateFrom || logDate >= dateFrom;
+      const matchesDateTo = !dateTo || logDate <= dateTo;
 
-      return matchesSearch && matchesAction && matchesUser && matchesDateFrom && matchesDateTo
-    })
-  }, [auditLogs, searchText, actionFilter, userFilter, dateFrom, dateTo, apiFilters])
+      return matchesSearch && matchesAction && matchesUser && matchesDateFrom && matchesDateTo;
+    });
+  }, [auditLogs, searchText, actionFilter, userFilter, dateFrom, dateTo, apiFilters]);
 
   const columns: GridColDef[] = [
-    { field: 'createdAt', headerName: 'Timestamp', width: 180, valueFormatter: (value) => {
-      if (!value) return ''
-      const date = new Date(value)
-      return date.toLocaleString('id-ID', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      })
-    }},
+    {
+      field: 'createdAt',
+      headerName: 'Timestamp',
+      width: 180,
+      valueFormatter: (value) => {
+        if (!value) return '';
+        const date = new Date(value);
+        return date.toLocaleString('id-ID', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        });
+      },
+    },
     { field: 'userId', headerName: 'User', width: 200 },
     {
       field: 'action',
       headerName: 'Action',
       width: 130,
       renderCell: (params) => {
-        const action = params.value as string
-        let bgColor = '#9E9E9E'
-        if (action === 'CREATE') bgColor = '#2E7D32'
-        else if (action === 'UPDATE') bgColor = '#0288D1'
-        else if (action === 'DELETE') bgColor = '#D32F2F'
-        else if (action === 'LOGIN') bgColor = '#1976D2'
-        else if (action === 'LOGIN_FAILED') bgColor = '#F57C00'
+        const action = params.value as string;
+        let bgColor = '#9E9E9E';
+        if (action === 'CREATE') bgColor = '#2E7D32';
+        else if (action === 'UPDATE') bgColor = '#0288D1';
+        else if (action === 'DELETE') bgColor = '#D32F2F';
+        else if (action === 'LOGIN') bgColor = '#1976D2';
+        else if (action === 'LOGIN_FAILED') bgColor = '#F57C00';
 
         return (
           <Typography
@@ -124,15 +136,15 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
           >
             {action}
           </Typography>
-        )
+        );
       },
     },
     { field: 'resource', headerName: 'Entity', width: 120 },
     { field: 'details', headerName: 'Details', flex: 1, minWidth: 250 },
-  ]
+  ];
 
   // Get unique users from real data
-  const uniqueUsers = [...new Set(auditLogs.map((log) => log.userId).filter(Boolean))]
+  const uniqueUsers = [...new Set(auditLogs.map((log) => log.userId).filter(Boolean))];
 
   // Show error state
   if (error) {
@@ -145,36 +157,28 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
           </Typography>
         </Alert>
       </Box>
-    )
+    );
   }
 
   // Show loading state
   if (isLoading) {
     return (
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+      <Box
+        sx={{
+          p: 3,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: 400,
+        }}
+      >
         <CircularProgress />
       </Box>
-    )
+    );
   }
 
   // Check if filters are applied (backend requires at least one filter)
-  const hasFilters = actionFilter || userFilter || dateFrom || dateTo
-  
-  if (!hasFilters) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, fontSize: '24px', mb: 3 }}>
-          Log Audit
-        </Typography>
-        <Alert severity="info">
-          <Typography variant="body1">Pilih filter untuk melihat log audit</Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            Backend requires at least one filter (Action, User, atau Tanggal) untuk prevent full-table scan.
-          </Typography>
-        </Alert>
-      </Box>
-    )
-  }
+  const hasFilters = actionFilter || userFilter || dateFrom || dateTo;
 
   if (!isAdmin) {
     return (
@@ -182,11 +186,12 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
         <Alert severity="error">
           <Typography variant="h6">Access Denied</Typography>
           <Typography variant="body2">
-            Anda tidak memiliki izin untuk mengakses log audit. Hubungi administrator untuk permintaan akses.
+            Anda tidak memiliki izin untuk mengakses log audit. Hubungi administrator untuk
+            permintaan akses.
           </Typography>
         </Alert>
       </Box>
-    )
+    );
   }
 
   return (
@@ -215,7 +220,9 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
             >
               <MenuItem value="">Semua</MenuItem>
               {actionTypes.map((action) => (
-                <MenuItem key={action} value={action}>{action}</MenuItem>
+                <MenuItem key={action} value={action}>
+                  {action}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -229,7 +236,9 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
             >
               <MenuItem value="">Semua</MenuItem>
               {uniqueUsers.map((user) => (
-                <MenuItem key={user} value={user}>{user}</MenuItem>
+                <MenuItem key={user} value={user}>
+                  {user}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -258,11 +267,11 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
             variant="outlined"
             size="small"
             onClick={() => {
-              setSearchText('')
-              setActionFilter(null)
-              setUserFilter(null)
-              setDateFrom('')
-              setDateTo('')
+              setSearchText('');
+              setActionFilter(null);
+              setUserFilter(null);
+              setDateFrom('');
+              setDateTo('');
             }}
           >
             Reset Filter
@@ -287,5 +296,5 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
         />
       </Paper>
     </Box>
-  )
+  );
 }
