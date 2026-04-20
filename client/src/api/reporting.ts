@@ -85,7 +85,7 @@ export function getPerformance(
  * Used in stock alerts and purchase planning.
  *
  * @param tenantId - Tenant to scope data to
- * @param params - Optional filters (unit, plasma, feed product, pagination)
+ * @param params - Optional filters (unit, plasma, feed product, date range, pagination)
  * @returns Stock summary with aggregated quantities
  * @throws ApiError if request fails
  */
@@ -95,6 +95,8 @@ export function getStockResume(
     unitId?: number;
     plasmaId?: number;
     feedProductId?: number;
+    dateFrom?: string;
+    dateTo?: string;
     page?: number;
     limit?: number;
   },
@@ -103,6 +105,8 @@ export function getStockResume(
   if (params?.unitId) queryParams.set('unitId', String(params.unitId));
   if (params?.plasmaId) queryParams.set('plasmaId', String(params.plasmaId));
   if (params?.feedProductId) queryParams.set('feedProductId', String(params.feedProductId));
+  if (params?.dateFrom) queryParams.set('dateFrom', params.dateFrom);
+  if (params?.dateTo) queryParams.set('dateTo', params.dateTo);
   if (params?.page) queryParams.set('page', String(params.page));
   if (params?.limit) queryParams.set('limit', String(params.limit));
   return apiClient<StockResumeResponse>(`/reporting/stock-resume?${queryParams.toString()}`);

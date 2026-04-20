@@ -1,77 +1,95 @@
-import { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  TextField,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Autocomplete,
-} from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Box, Typography, Paper, TextField, Button, Autocomplete, CircularProgress } from '@mui/material';
+import { ResponsiveTable } from '../../components/ui/ResponsiveTable';
 import DownloadIcon from '@mui/icons-material/Download';
 import { exportToXlsx } from '../../utils/exportXlsx';
+import { ColumnDef } from '../../types/table';
+import { getStockResume, StockResumeItem } from '../../api/reporting';
+import { listUnits, type Unit } from '../../api/units';
+import { listPlasmas, type PlasmasResponse, type Plasma } from '../../api/plasmas';
+import { listFeedProducts, type FeedProduct } from '../../api/feed';
+import { useAuth } from '../../contexts/AuthContext';
 
-const mockStockResume = [
+const columns: ColumnDef<StockResumeItem>[] = [
   {
-    id: 1,
-    unitName: 'Unit Kuningan',
-    plasmaName: 'PlasmaUD Jaya',
-    feedProductName: 'BR 10',
-    totalZak: 45,
-    totalKg: 2250,
+    accessorKey: 'unitName',
+    header: 'Unit',
+    size: 120,
   },
   {
-    id: 2,
-    unitName: 'Unit Kuningan',
-    plasmaName: 'PlasmaUD Jaya',
-    feedProductName: 'BR 11',
-    totalZak: 15,
-    totalKg: 750,
+    accessorKey: 'plasmaName',
+    header: 'Plasma',
+    size: 150,
   },
   {
-    id: 3,
-    unitName: 'Unit Bojonegoro',
-    plasmaName: 'PlasmaMakmur',
-    feedProductName: 'BSP',
-    totalZak: 8,
-    totalKg: 400,
+    accessorKey: 'feedProductName',
+    header: 'Jenis Pakan',
+    size: 120,
   },
   {
-    id: 4,
-    unitName: 'Unit Bojonegoro',
-    plasmaName: 'PlasmaSentosa',
-    feedProductName: 'BR 10',
-    totalZak: 60,
-    totalKg: 3000,
-  },
-];
-
-const columns: GridColDef[] = [
-  { field: 'unitName', headerName: 'Unit', flex: 1, minWidth: 120 },
-  { field: 'plasmaName', headerName: 'Plasma', flex: 1, minWidth: 150 },
-  { field: 'feedProductName', headerName: 'Jenis Pakan', flex: 1, minWidth: 120 },
-  { field: 'totalZak', headerName: 'Total Zak', width: 120, align: 'right', headerAlign: 'right' },
-  {
-    field: 'totalKg',
-    headerName: 'Total Kg',
-    width: 120,
+    accessorKey: 'totalZak',
+    header: 'Total Zak',
+    size: 120,
     align: 'right',
     headerAlign: 'right',
-    valueFormatter: (v: number) => `${v.toLocaleString('id-ID')} kg`,
+  },
+  {
+    accessorKey: 'totalKg',
+    header: 'Total Kg',
+    size: 120,
+    align: 'right',
+    headerAlign: 'right',
+    cell: ({ row }) => {
+      const value = row.original.totalKg;
+      return `${value.toLocaleString('id-ID')} kg`;
+    },
   },
 ];
 
 export function StockResume() {
-  const [unitFilter, setUnitFilter] = useState<string | null>(null);
-  const [plasmaFilter, setPlasmaFilter] = useState<string | null>(null);
-  const [feedFilter, setFeedFilter] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [unitId, setUnitId] = useState<number | null>(null);
+  const [plasmaId, setPlasmaId] = useState<number | null>(null);
+  const [feedProductId, setFeedProductId] = useState<number | null>(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const { data: unitsData } = useQuery({
+    queryKey: ['units'],
+    queryFn: listUnits,
+  });
+
+  const { data: plasmasData } = useQuery<PlasmasResponse>({
+    queryKey: ['plasmas'],
+    queryFn: () => listPlasmas(),
+  });
+
+  const { data: feedProductsData } = useQuery({
+    queryKey: ['feed-products'],
+    queryFn: listFeedProducts,
+  });
+
+  const { data: stockResumeData, isLoading } = useQuery({
+    queryKey: ['stock-resume', unitId, plasmaId, feedProductId, dateFrom, dateTo],
+    queryFn: () =>
+      getStockResume(user?.tenantId ?? 1, {
+        unitId: unitId ?? undefined,
+        plasmaId: plasmaId ?? undefined,
+        feedProductId: feedProductId ?? undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+      }),
+    enabled: !!user,
+  });
+
+  const units = useMemo<Unit[]>(() => unitsData?.units ?? [], [unitsData]);
+  const plasmas = useMemo<Plasma[]>(() => plasmasData?.plasmas ?? [], [plasmasData]);
+  const feedProducts = useMemo<FeedProduct[]>(() => feedProductsData?.products ?? [], [feedProductsData]);
+  const rows = useMemo(() => stockResumeData?.data ?? [], [stockResumeData]);
 
   const handleExport = () => {
-    exportToXlsx(mockStockResume, 'Stock_Resume', 'Stock Resume Report');
+    exportToXlsx(rows as any[], 'Stock_Resume', 'Stock Resume Report');
   };
 
   return (
@@ -83,30 +101,38 @@ export function StockResume() {
       <Paper sx={{ p: 2, mb: 2 }}>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <Autocomplete
-            options={['Unit Kuningan', 'Unit Bojonegoro']}
-            value={unitFilter}
-            onChange={(_, v) => setUnitFilter(v)}
+            options={units}
+            getOptionLabel={(option) => option.name}
+            value={units.find((u) => u.id === unitId) ?? null}
+            onChange={(_, v) => setUnitId(v?.id ?? null)}
             sx={{ minWidth: 200 }}
             renderInput={(params) => <TextField {...params} label="Pilih Unit" size="small" />}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
           />
           <Autocomplete
-            options={['PlasmaUD Jaya', 'PlasmaMakmur', 'PlasmaSentosa']}
-            value={plasmaFilter}
-            onChange={(_, v) => setPlasmaFilter(v)}
+            options={plasmas}
+            getOptionLabel={(option) => option.name}
+            value={plasmas.find((p) => p.id === plasmaId) ?? null}
+            onChange={(_, v) => setPlasmaId(v?.id ?? null)}
             sx={{ minWidth: 200 }}
             renderInput={(params) => <TextField {...params} label="Pilih Plasma" size="small" />}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
           />
           <Autocomplete
-            options={['BR 10', 'BR 11', 'BSP']}
-            value={feedFilter}
-            onChange={(_, v) => setFeedFilter(v)}
+            options={feedProducts}
+            getOptionLabel={(option) => option.name}
+            value={feedProducts.find((fp) => fp.id === feedProductId) ?? null}
+            onChange={(_, v) => setFeedProductId(v?.id ?? null)}
             sx={{ minWidth: 200 }}
             renderInput={(params) => <TextField {...params} label="Jenis Pakan" size="small" />}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
           />
           <TextField
             label="Tanggal Mulai"
             type="date"
             size="small"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
             InputLabelProps={{ shrink: true }}
             sx={{ minWidth: 150 }}
           />
@@ -114,6 +140,8 @@ export function StockResume() {
             label="Tanggal Akhir"
             type="date"
             size="small"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
             InputLabelProps={{ shrink: true }}
             sx={{ minWidth: 150 }}
           />
@@ -128,18 +156,22 @@ export function StockResume() {
         </Box>
       </Paper>
 
-      <Paper sx={{ height: 500 }}>
-        <DataGrid
-          rows={mockStockResume}
-          columns={columns}
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-          disableRowSelectionOnClick
-          sx={{
-            border: 'none',
-            '& .MuiDataGrid-columnHeaders': { bgcolor: '#f8fafc', fontWeight: 600 },
-          }}
-        />
+      <Paper>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <ResponsiveTable
+            columns={columns}
+            data={rows}
+            enableSorting
+            enableFiltering
+            enablePagination
+            initialPageSize={10}
+            className="w-full"
+          />
+        )}
       </Paper>
     </Box>
   );
