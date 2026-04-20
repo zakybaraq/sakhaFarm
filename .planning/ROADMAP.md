@@ -129,8 +129,12 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 1. A "Suppliers" page exists to CRUD supplier records
 2. Supplier data includes: name, contact person, phone, address, category (feed/vitamin/medicine/other)
 3. Suppliers can be linked to purchase transactions (Surat Jalan)
-   **Plans**: TBD
-   **UI hint**: yes
+   **Plans**: 2 plans
+   Plans:
+
+- [ ] 18-01-PLAN.md — Backend CRUD for suppliers
+- [ ] 18-02-PLAN.md — Frontend supplier page + Surat Jalan integration
+      **UI hint**: yes
 
 ### Phase 19: Vitamins/Medicines Management
 
@@ -168,8 +172,8 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 | 14. Cycle & Plasma UI Fixes                  | 1/1            | Not started | -          |
 | 15. Recordings, Feed & RBAC Data Integration | 2/2            | Completed   | 2026-04-21 |
 | 16. Reports Data Integration                 | 3/3            | Planned     | -          |
-| 17. Feed Types & Brands Management           | 1/1            | Completed   | 2026-04-21 |
-| 18. Supplier Management                      | 0/1            | Not started | -          |
+| 17. Feed Types & Brands Management           | 3/3            | Complete    | 2026-04-20 |
+| 18. Supplier Management                      | 2/2            | Planned     | -          |
 | 19. Vitamins/Medicines Management            | 0/1            | Not started | -          |
 | 20. Sidebar Reorganization                   | 0/1            | Not started | -          |
 
