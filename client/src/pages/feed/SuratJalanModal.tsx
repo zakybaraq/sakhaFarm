@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,19 +11,22 @@ import {
   Select,
   MenuItem,
   Box,
-  Typography,
-} from '@mui/material';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+} from "@mui/material";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { listPlasmas, type Plasma } from "../../api/plasmas";
+import { listFeedProducts, type FeedProduct } from "../../api/feed";
+import { apiClient } from "../../api/client";
+import { useAuth } from "../../contexts/AuthContext";
 
 const suratJalanSchema = z.object({
-  tanggal: z.string().min(1, 'Tanggal wajib diisi'),
-  nomorSJ: z.string().min(1, 'Nomor SJ wajib diisi'),
-  plasmaId: z.number().min(1, 'Plasma wajib dipilih'),
-  feedProductId: z.number().min(1, 'Jenis pakan wajib dipilih'),
-  jumlahZak: z.number().min(1, 'Jumlah zak wajib diisi'),
-  supplier: z.string().min(1, 'Supplier wajib diisi'),
+  tanggal: z.string().min(1, "Tanggal wajib diisi"),
+  nomorSJ: z.string().min(1, "Nomor SJ wajib diisi"),
+  plasmaId: z.number().min(1, "Plasma wajib dipilih"),
+  feedProductId: z.number().min(1, "Jenis pakan wajib dipilih"),
+  jumlahZak: z.number().min(1, "Jumlah zak wajib diisi"),
+  supplier: z.string().min(1, "Supplier wajib diisi"),
 });
 
 type SuratJalanFormData = z.infer<typeof suratJalanSchema>;
@@ -34,8 +37,40 @@ interface SuratJalanModalProps {
   onSuccess?: () => void;
 }
 
-export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalProps) {
+export function SuratJalanModal({
+  open,
+  onClose,
+  onSuccess,
+}: SuratJalanModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [plasmas, setPlasmas] = useState<Plasma[]>([]);
+  const [feedProducts, setFeedProducts] = useState<FeedProduct[]>([]);
+  const { user } = useAuth();
+
+  // Fetch plasmas and feed products when component mounts or user changes
+  useEffect(() => {
+    const fetchData = async () => {
+      if (user?.tenantId) {
+        // Fetch plasmas
+        try {
+          const plasmasData = await listPlasmas();
+          setPlasmas(plasmasData.plasmas);
+        } catch (error) {
+          console.error("Failed to fetch plasmas:", error);
+        }
+
+        // Fetch feed products
+        try {
+          const feedProductsData = await listFeedProducts();
+          setFeedProducts(feedProductsData.products);
+        } catch (error) {
+          console.error("Failed to fetch feed products:", error);
+        }
+      }
+    };
+
+    fetchData();
+  }, [user?.tenantId]);
 
   const {
     control,
@@ -45,36 +80,39 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
   } = useForm<SuratJalanFormData>({
     resolver: zodResolver(suratJalanSchema),
     defaultValues: {
-      tanggal: new Date().toISOString().split('T')[0],
-      nomorSJ: '',
+      tanggal: new Date().toISOString().split("T")[0],
+      nomorSJ: "",
       plasmaId: 0,
       feedProductId: 0,
       jumlahZak: 0,
-      supplier: '',
+      supplier: "",
     },
   });
 
   const onSubmit = async (data: SuratJalanFormData) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/feed/suratjalan', {
+      const selectedProduct = feedProducts.find((p) => p.id === data.feedProductId);
+      const conversion = parseFloat(selectedProduct?.zakKgConversion || '50');
+      
+      await apiClient('/feed/surat-jalan', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          plasmaId: data.plasmaId,
+          feedProductId: data.feedProductId,
+          suratJalanNumber: data.nomorSJ,
+          vendor: data.supplier,
+          deliveryDate: data.tanggal,
+          totalZak: data.jumlahZak,
+          totalKg: data.jumlahZak * conversion,
+        }),
       });
-
-      if (response.ok) {
-        reset();
-        onSuccess?.();
-        onClose();
-      } else {
-        const error = await response.json();
-        alert(error.message || 'Gagal menyimpan Surat Jalan');
-      }
-    } catch (err) {
-      alert('Terjadi kesalahan saat menyimpan');
+      
+      reset();
+      onSuccess?.();
+      onClose();
+    } catch (err: any) {
+      alert(err.message || 'Terjadi kesalahan saat menyimpan');
     } finally {
       setIsSubmitting(false);
     }
@@ -82,10 +120,12 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontSize: '20px', fontWeight: 600 }}>Tambah Surat Jalan</DialogTitle>
+      <DialogTitle sx={{ fontSize: "20px", fontWeight: 600 }}>
+        Tambah Surat Jalan
+      </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <Controller
               name="tanggal"
               control={control}
@@ -122,9 +162,12 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
               render={({ field }) => (
                 <FormControl fullWidth error={!!errors.plasmaId}>
                   <InputLabel>Plasma</InputLabel>
-                  <Select {...field} label="Plasma" value={field.value || ''}>
-                    <MenuItem value={1}>Plasma 1</MenuItem>
-                    <MenuItem value={2}>Plasma 2</MenuItem>
+                  <Select {...field} label="Plasma" value={field.value || ""}>
+                    {plasmas.map((plasma) => (
+                      <MenuItem key={plasma.id} value={plasma.id}>
+                        {plasma.name}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               )}
@@ -136,10 +179,18 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
               render={({ field }) => (
                 <FormControl fullWidth error={!!errors.feedProductId}>
                   <InputLabel>Jenis Pakan</InputLabel>
-                  <Select {...field} label="Jenis Pakan" value={field.value || ''}>
-                    <MenuItem value={1}>BR 10</MenuItem>
-                    <MenuItem value={2}>BR 11</MenuItem>
-                    <MenuItem value={3}>BSP</MenuItem>
+                  <Select
+                    {...field}
+                    label="Jenis Pakan"
+                    value={field.value || ""}
+                  >
+                    {feedProducts.map((product) => (
+                      <MenuItem key={product.id} value={product.id}>
+                        {product.name}
+                        {product.typeName ? ` (${product.typeName})` : ''}
+                        {product.brandName ? ` — ${product.brandName}` : ''}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               )}
@@ -184,9 +235,9 @@ export function SuratJalanModal({ open, onClose, onSuccess }: SuratJalanModalPro
             variant="contained"
             type="submit"
             disabled={isSubmitting}
-            sx={{ bgcolor: '#2E7D32' }}
+            sx={{ bgcolor: "#2E7D32" }}
           >
-            {isSubmitting ? 'Menyimpan...' : 'Simpan Surat Jalan'}
+            {isSubmitting ? "Menyimpan..." : "Simpan Surat Jalan"}
           </Button>
         </DialogActions>
       </form>
