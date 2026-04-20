@@ -54,7 +54,7 @@ Source: `client/src/pages/units/Units.tsx`, `client/src/pages/units/UnitModal.ts
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 15px (0.9375rem) | 400 | 1.6 |
+| Body | 14px (0.875rem) | 400 | 1.6 |
 | Label | 14px (0.875rem) | 400 | 1.5 |
 | Heading | 24px | 600 | 1.2 |
 | Table header | 12px (0.75rem) | 600 | 1.0 — uppercase, color #64748b |
@@ -64,6 +64,7 @@ Notes:
 - Dialog title: `fontSize: '20px'`, `fontWeight: 600`
 - Sidebar menu text: 14px (0.875rem), weight 400
 - Body2 (secondary labels, helper text): 14px, weight 400, line-height 1.5
+- Final declared scale: 12px (table header), 14px (body + label), 20px (dialog title), 24px (heading) — 4 sizes total
 
 Source: `client/src/theme/index.ts`, `client/src/pages/units/Units.tsx` line 143, `client/src/pages/units/UnitModal.tsx` line 99
 
@@ -114,14 +115,18 @@ Box sx={{ p: 3 }}
 1. `code` — "Kode Tipe", size: 120
 2. `name` — "Nama Tipe", size: 200
 3. `isActive` — "Status", size: 100 — rendered as `Switch size="small"`
-4. `actions` — "Aksi", size: 100 — `EditIcon` (default color) + `DeleteIcon` (color="error") as `IconButton size="small"`
+4. `actions` — "Aksi", size: 100 — `EditIcon` + `DeleteIcon` as `IconButton size="small"`:
+   - EditIcon: `aria-label="Edit jenis pakan"`
+   - DeleteIcon: `aria-label="Hapus jenis pakan"`, `color="error"`
 
 **Feed Brands table columns** (in order):
 1. `code` — "Kode Merek", size: 120
 2. `name` — "Nama Merek", size: 200
 3. `phone` — "Telepon", size: 150 — plain text, empty renders as dash "—"
 4. `isActive` — "Status", size: 100 — rendered as `Switch size="small"`
-5. `actions` — "Aksi", size: 100 — `EditIcon` + `DeleteIcon color="error"`
+5. `actions` — "Aksi", size: 100 — `EditIcon` + `DeleteIcon` as `IconButton size="small"`:
+   - EditIcon: `aria-label="Edit merek pakan"`
+   - DeleteIcon: `aria-label="Hapus merek pakan"`, `color="error"`
 
 **Feed Products table columns** (in order):
 1. `code` — "Kode Produk", size: 120
@@ -130,7 +135,9 @@ Box sx={{ p: 3 }}
 4. `brandName` — "Merek", size: 150 — plain text
 5. `zakKgConversion` — "Konversi (Kg/Zak)", size: 150, align: right, headerAlign: right
 6. `isActive` — "Status", size: 100 — `Switch size="small"`
-7. `actions` — "Aksi", size: 100 — `EditIcon` + `DeleteIcon color="error"`
+7. `actions` — "Aksi", size: 100 — `EditIcon` + `DeleteIcon` as `IconButton size="small"`:
+   - EditIcon: `aria-label="Edit produk pakan"`
+   - DeleteIcon: `aria-label="Hapus produk pakan"`, `color="error"`
 
 ### Modal Dialogs
 
@@ -218,6 +225,7 @@ Note: Full sidebar reorganization into groups is Phase 20. For now, these items 
 | Create success toast | Merek pakan berhasil ditambahkan |
 | Update success toast | Merek pakan berhasil diperbarui |
 | Delete success toast | Merek pakan berhasil dihapus |
+| Toggle error toast | Gagal mengubah status: {error.message} |
 | Submit loading | Menyimpan... |
 | Modal title (create) | Tambah Merek Pakan |
 | Modal title (edit) | Edit Merek Pakan |
@@ -239,6 +247,7 @@ Note: Full sidebar reorganization into groups is Phase 20. For now, these items 
 | Create success toast | Produk pakan berhasil ditambahkan |
 | Update success toast | Produk pakan berhasil diperbarui |
 | Delete success toast | Produk pakan berhasil dihapus |
+| Toggle error toast | Gagal mengubah status: {error.message} |
 | Submit loading | Menyimpan... |
 | Modal title (create) | Tambah Produk Pakan |
 | Modal title (edit) | Edit Produk Pakan |
@@ -264,7 +273,7 @@ Note: Full sidebar reorganization into groups is Phase 20. For now, these items 
 - Checked (active): green `#2E7D32` — MUI primary color default on Switch
 - Unchecked (inactive): grey — MUI default
 - Optimistic update: switch flips immediately, reverts with error toast if API fails
-- Error toast copy: `Gagal toggle: {error.message}`
+- Error toast copy: `Gagal mengubah status: {error.message}`
 
 ### Row Actions
 
