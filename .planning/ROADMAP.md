@@ -39,7 +39,7 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 - [ ] **Phase 13: Backend Toggle Fix** — Repair 500 errors on Units and Plasmas toggle endpoints
 - [ ] **Phase 14: Cycle & Plasma UI Fixes** — Replace cycle status toggle with read-only badge, enforce edit/delete rules, add phone column and numeric validation
 - [x] **Phase 15: Recordings, Feed & RBAC Data Integration** — Wire Recordings dropdowns, Feed dropdowns, and all RBAC tabs to real DB data — completed 2026-04-21
-- [ ] **Phase 16: Reports Data Integration** — Connect Performance, Stock Resume, and Audit reports to real DB data
+- [x] **Phase 16: Reports Data Integration** — Connect Performance, Stock Resume, and Audit reports to real DB data (completed 2026-04-20)
 
 ## Phase Details
 
@@ -166,7 +166,11 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 3. Operations: Cycles, Recordings, Feed Stock
 4. Reports: Performance, Stock Resume
 5. Settings: RBAC (Users, Roles, Permissions)
-   **Plans**: TBD
+   **Plans**: 1 plan
+   **Plans:**
+
+3/3 plans complete
+
    **UI hint**: yes
 
 ## Progress
@@ -176,11 +180,11 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 | 13. Backend Toggle Fix                       | 0/1            | Not started | -          |
 | 14. Cycle & Plasma UI Fixes                  | 1/1            | Not started | -          |
 | 15. Recordings, Feed & RBAC Data Integration | 2/2            | Completed   | 2026-04-21 |
-| 16. Reports Data Integration                 | 3/3            | Planned     | -          |
+| 16. Reports Data Integration                 | 3/3 | Complete   | 2026-04-20 |
 | 17. Feed Types & Brands Management           | 3/3            | Complete    | 2026-04-20 |
 | 18. Supplier Management                      | 2/2            | Planned     | -          |
 | 19. Vitamins/Medicines Management            | 2/2            | Ready to execute | -          |
-| 20. Sidebar Reorganization                   | 0/1            | Not started | -          |
+| 20. Sidebar Reorganization                   | 1/1            | Planned     | -          |
 
 ---
 

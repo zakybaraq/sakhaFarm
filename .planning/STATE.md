@@ -2,23 +2,23 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: - Bug Fixes & Data Integration
-status: unknown
-last_updated: "2026-04-20T20:28:45.586Z"
+status: Executing Phase 16
+last_updated: "2026-04-20T23:06:22.036Z"
 progress:
   total_phases: 8
-  completed_phases: 2
-  total_plans: 9
-  completed_plans: 8
-  percent: 78
+  completed_phases: 5
+  total_plans: 14
+  completed_plans: 11
+  percent: 79
 ---
 
 # STATE.md — Sakha Farm Management System
 
 ## Current State
 
-**Status**: v1.2 Milestone — In Progress (3/8 phases)
+**Status**: v1.2 Milestone — In Progress (4/8 phases)
 **Active Milestone**: v1.2 — Bug Fixes & Data Integration
-**Active Phase**: Phase 14 — Cycle & Plasma UI Fixes
+**Active Phase**: Phase 16 — Reports Data Integration (Plan 01/03 complete)
 
 ### v1.0 Phases (Archived — Complete)
 
@@ -54,16 +54,16 @@ progress:
 
 ### v1.2 Phases (Active)
 
-| Phase                                        | Status         | Notes                                                               |
-| -------------------------------------------- | -------------- | ------------------------------------------------------------------- |
-| 13. Backend Toggle Fix                       | ✅ Complete    | Plan 01 done — isActive added to unit/plasma PUT schemas + services |
-| 14. Cycle & Plasma UI Fixes                  | ⏳ Not started | Fixes TOGGLE-03, TOGGLE-04, PLASMA-01, PLASMA-02                    |
-| 15. Recordings, Feed & RBAC Data Integration | ✅ Complete    | Fixes REC-01, REC-02, FEED-01, FEED-02, RBAC-01, RBAC-02, RBAC-03   |
-| 16. Reports Data Integration                 | ⏳ Not started | Fixes REPORT-01, REPORT-02, REPORT-03                               |
-| 17. Feed Types & Brands Management   | 🔄 In progress | Plan 02 done — backend CRUD for feed-types and feed-brands |
-| 18. Supplier Management                      | ⏳ Not started | Manage suppliers/vendors                                            |
-| 19. Vitamins/Medicines Management            | ⏳ Not started | Manage vitamins and medicines inventory                             |
-| 20. Sidebar Reorganization                   | ⏳ Not started | Group menus by function                                             |
+| Phase                                        | Status         | Notes                                                                 |
+| -------------------------------------------- | -------------- | --------------------------------------------------------------------- |
+| 13. Backend Toggle Fix                       | ✅ Complete    | Plan 01 done — isActive added to unit/plasma PUT schemas + services   |
+| 14. Cycle & Plasma UI Fixes                  | ✅ Complete    | Verified — status badge, superadmin check, phone column + validation  |
+| 15. Recordings, Feed & RBAC Data Integration | ✅ Complete    | Fixes REC-01, REC-02, FEED-01, FEED-02, RBAC-01, RBAC-02, RBAC-03     |
+| 16. Reports Data Integration                 | 🔄 In progress | Plan 01/03 done — Performance API wired, Stock Resume & Audit pending |
+| 17. Feed Types & Brands Management           | ✅ Complete    | 3/3 plans done — backend CRUD + frontend CRUD pages                   |
+| 18. Supplier Management                      | ✅ Complete    | UAT passed (7/7 tests) — backend CRUD + frontend page                  |
+| 19. Vitamins/Medicines Management            | ✅ Complete    | UAT passed (9/9 tests) — backend CRUD + frontend page                 |
+| 20. Sidebar Reorganization                   | ✅ Complete    | UAT passed (10/10 tests) — 4 collapsible grouped sections             |
 
 ## Tech Stack
 
@@ -139,7 +139,7 @@ Known deferred items at v1.1 close: 12 (3 stale debug sessions + 9 UAT status-fi
 
 ## Next Action
 
-Run `/gsd-plan-phase 13` to plan Phase 13: Backend Toggle Fix.
+Run `/gsd-execute-phase 16` to continue with Plan 16-02 (Stock Resume API Wiring).
 
 ## Completed Plans
 
@@ -176,16 +176,19 @@ Run `/gsd-plan-phase 13` to plan Phase 13: Backend Toggle Fix.
 - **Plan 15-01** (Recordings standards integration): ✅ Complete
 - **Plan 15-02** (Feed & RBAC data integration): ✅ Complete
 - **Plan 17-02** (Backend CRUD for feed-types & feed-brands): ✅ Complete
+- **Plan 16-01** (Performance report API wiring): ✅ Complete
 
 ## Performance Metrics
 
-| Plan                                | Duration | Tasks   | Files   | Date       |
-| ----------------------------------- | -------- | ------- | ------- | ---------- |
-| 03-01                               | ~15min   | 5       | 5       | 2026-04-17 |
-| 04-02                               | ~8min    | 2       | 5       | 2026-04-17 |
-| 04-03                               | ~15min   | 3       | 7       | 2026-04-17 |
-| Phase 04-unit-plasma-cycle-crud P03 | ~15min   | 3 tasks | 7 files |
-| Plan 05-01 (Recording CRUD)         | ~5min    | 4 tasks | 4 files |
-| Phase 13-backend-toggle-fix P01     | 5min     | 2 tasks | 4 files |
-| Phase 13-backend-toggle-fix P02     | ~10min   | 2 tasks | 4 files |
+| Plan                                | Duration | Tasks   | Files    | Date       |
+| ----------------------------------- | -------- | ------- | -------- | ---------- |
+| 03-01                               | ~15min   | 5       | 5        | 2026-04-17 |
+| 04-02                               | ~8min    | 2       | 5        | 2026-04-17 |
+| 04-03                               | ~15min   | 3       | 7        | 2026-04-17 |
+| Phase 04-unit-plasma-cycle-crud P03 | ~15min   | 3 tasks | 7 files  |
+| Plan 05-01 (Recording CRUD)         | ~5min    | 4 tasks | 4 files  |
+| Phase 13-backend-toggle-fix P01     | 5min     | 2 tasks | 4 files  |
+| Phase 13-backend-toggle-fix P02     | ~10min   | 2 tasks | 4 files  |
 | Phase 17-feed-types-brands P02      | ~15min   | 4 tasks | 12 files |
+| Plan 16-01 (Performance API wiring) | ~8min    | 1 task  | 1 file   | 2026-04-21 |
+| Phase 17 P03                        | 20min    | 6 tasks | 10 files |
