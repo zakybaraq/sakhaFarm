@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.2
-milestone_name: Bug Fixes & Data Integration
+milestone_name: - Bug Fixes & Data Integration
 status: Roadmap defined
-last_updated: "2026-04-20T20:00:00.000Z"
+last_updated: "2026-04-20T14:12:32.491Z"
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 100
 ---
 
 # STATE.md — Sakha Farm Management System
@@ -56,7 +56,7 @@ progress:
 
   | Phase | Status | Notes |
   |-------|--------|-------|
-  | 13. Backend Toggle Fix | ⏳ Not started | Fixes TOGGLE-01, TOGGLE-02 — unblocks all UI work |
+  | 13. Backend Toggle Fix | ✅ Complete | Plan 01 done — isActive added to unit/plasma PUT schemas + services |
   | 14. Cycle & Plasma UI Fixes | ⏳ Not started | Fixes TOGGLE-03, TOGGLE-04, PLASMA-01, PLASMA-02 |
   | 15. Recordings, Feed & RBAC Data Integration | ⏳ Not started | Fixes REC-01, REC-02, FEED-01, FEED-02, RBAC-01, RBAC-02, RBAC-03 |
   | 16. Reports Data Integration | ⏳ Not started | Fixes REPORT-01, REPORT-02, REPORT-03 |
@@ -168,6 +168,7 @@ Run `/gsd-plan-phase 13` to plan Phase 13: Backend Toggle Fix.
 - **Plan 09-01** (Feed Management UI): ✅ Complete
 - **Plan 09-02** (Reports UI): ✅ Complete
 - **Plan 09-03** (Admin & RBAC UI): ✅ Complete
+- **Plan 13-01** (Backend isActive toggle): ✅ Complete
 
 ## Performance Metrics
 
@@ -178,3 +179,5 @@ Run `/gsd-plan-phase 13` to plan Phase 13: Backend Toggle Fix.
 | 04-03 | ~15min | 3 | 7 | 2026-04-17 |
 | Phase 04-unit-plasma-cycle-crud P03 | ~15min | 3 tasks | 7 files |
 | Plan 05-01 (Recording CRUD) | ~5min | 4 tasks | 4 files |
+| Phase 13-backend-toggle-fix P01 | 5min | 2 tasks | 4 files |
+| Phase 13-backend-toggle-fix P02 | ~10min | 2 tasks | 4 files |
