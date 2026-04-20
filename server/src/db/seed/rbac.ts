@@ -42,6 +42,12 @@ const DEFAULT_PERMISSIONS = [
   { name: 'feed.delete', description: 'Delete feed products', category: 'feed' },
   { name: 'feed.move', description: 'Record feed stock movements', category: 'feed' },
 
+  // Supplier Module
+  { name: 'supplier.create', description: 'Create new suppliers', category: 'supplier' },
+  { name: 'supplier.read', description: 'View supplier details', category: 'supplier' },
+  { name: 'supplier.update', description: 'Update supplier information', category: 'supplier' },
+  { name: 'supplier.delete', description: 'Delete suppliers', category: 'supplier' },
+
   // Inventory Module
   { name: 'inventory.read', description: 'View inventory reports', category: 'inventory' },
   { name: 'inventory.export', description: 'Export inventory data', category: 'inventory' },
