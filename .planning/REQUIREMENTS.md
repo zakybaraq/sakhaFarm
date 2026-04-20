@@ -13,35 +13,35 @@ Zero dummy data, zero 500 errors, correct business logic throughout.
 
 - [x] **TOGGLE-01**: Toggle on/off (active/deactivate) works without 500 error on Units page
 - [x] **TOGGLE-02**: Toggle on/off (active/deactivate) works without 500 error on Plasmas page
-- [ ] **TOGGLE-03**: Cycle status displayed as read-only badge (Active / Completed / Failed) — no toggle
-- [ ] **TOGGLE-04**: Cycle edit and delete access rules defined and enforced (business logic documented)
+- [x] **TOGGLE-03**: Cycle status displayed as read-only badge (Active / Completed / Failed) — no toggle
+- [x] **TOGGLE-04**: Cycle edit and delete access rules defined and enforced (business logic documented)
 
 ### Category: Plasmas Page (PLASMA)
 
-- [ ] **PLASMA-01**: Phone number column visible in Plasmas table (DataGrid/ResponsiveTable)
-- [ ] **PLASMA-02**: Phone input field accepts numeric characters only (validation enforced)
+- [x] **PLASMA-01**: Phone number column visible in Plasmas table (DataGrid/ResponsiveTable)
+- [x] **PLASMA-02**: Phone input field accepts numeric characters only (validation enforced)
 
 ### Category: Recordings Page (REC)
 
-- [ ] **REC-01**: Cycle dropdown on Recordings page populated from active cycles in DB
-- [ ] **REC-02**: Deviasi BW only calculated and displayed when recording data exists (no negative value on empty state)
+- [x] **REC-01**: Cycle dropdown on Recordings page populated from active cycles in DB
+- [x] **REC-02**: Deviasi BW only calculated and displayed when recording data exists (no negative value on empty state)
 
 ### Category: Feed Page (FEED)
 
-- [ ] **FEED-01**: Feed type (jenis pakan) dropdown connected to DB feed products table
-- [ ] **FEED-02**: Supplier dropdown connected to DB (or removed if not in schema)
+- [x] **FEED-01**: Feed type (jenis pakan) dropdown connected to DB feed products table
+- [x] **FEED-02**: Supplier dropdown connected to DB (or removed if not in schema)
 
 ### Category: Reports (REPORT)
 
-- [ ] **REPORT-01**: Performance report shows real FCR/IP data calculated from recordings (no dummy data)
-- [ ] **REPORT-02**: Stock Resume unit/plasma filter dropdowns populated from DB
-- [ ] **REPORT-03**: Audit report displays real audit log entries from DB
+- [x] **REPORT-01**: Performance report shows real FCR/IP data calculated from recordings (no dummy data)
+- [x] **REPORT-02**: Stock Resume unit/plasma filter dropdowns populated from DB
+- [x] **REPORT-03**: Audit report displays real audit log entries from DB
 
 ### Category: RBAC (RBAC)
 
-- [ ] **RBAC-01**: RBAC Roles tab displays correct roles data from API
-- [ ] **RBAC-02**: RBAC Permissions tab verified and displays correct data
-- [ ] **RBAC-03**: RBAC Role-Permission assignment tab verified and functional
+- [x] **RBAC-01**: RBAC Roles tab displays correct roles data from API
+- [x] **RBAC-02**: RBAC Permissions tab verified and displays correct data
+- [x] **RBAC-03**: RBAC Role-Permission assignment tab verified and functional
 
 ---
 
@@ -66,19 +66,19 @@ Zero dummy data, zero 500 errors, correct business logic throughout.
 
 | REQ-ID | Phase | Plan | Status |
 |--------|-------|------|--------|
-| TOGGLE-01 | Phase 13 | TBD | Pending |
-| TOGGLE-02 | Phase 13 | TBD | Pending |
-| TOGGLE-03 | Phase 14 | TBD | Pending |
-| TOGGLE-04 | Phase 14 | TBD | Pending |
-| PLASMA-01 | Phase 14 | TBD | Pending |
-| PLASMA-02 | Phase 14 | TBD | Pending |
-| REC-01 | Phase 15 | TBD | Pending |
-| REC-02 | Phase 15 | TBD | Pending |
-| FEED-01 | Phase 15 | TBD | Pending |
-| FEED-02 | Phase 15 | TBD | Pending |
-| RBAC-01 | Phase 15 | TBD | Pending |
-| RBAC-02 | Phase 15 | TBD | Pending |
-| RBAC-03 | Phase 15 | TBD | Pending |
-| REPORT-01 | Phase 16 | TBD | Pending |
-| REPORT-02 | Phase 16 | TBD | Pending |
-| REPORT-03 | Phase 16 | TBD | Pending |
+| TOGGLE-01 | Phase 13 | 13-01 | ✅ Complete |
+| TOGGLE-02 | Phase 13 | 13-02 | ✅ Complete |
+| TOGGLE-03 | Phase 14 | 14-01 | ✅ Complete |
+| TOGGLE-04 | Phase 14 | 14-01 | ✅ Complete |
+| PLASMA-01 | Phase 14 | 14-01 | ✅ Complete |
+| PLASMA-02 | Phase 14 | 14-01 | ✅ Complete |
+| REC-01 | Phase 15 | 15-01 | ✅ Complete |
+| REC-02 | Phase 15 | 15-01 | ✅ Complete |
+| FEED-01 | Phase 15 | 15-02 | ✅ Complete |
+| FEED-02 | Phase 15 | 15-02 | ✅ Complete |
+| RBAC-01 | Phase 15 | 15-02 | ✅ Complete |
+| RBAC-02 | Phase 15 | 15-02 | ✅ Complete |
+| RBAC-03 | Phase 15 | 15-02 | ✅ Complete |
+| REPORT-01 | Phase 16 | 16-01 | ✅ Complete |
+| REPORT-02 | Phase 16 | 16-02 | ✅ Complete |
+| REPORT-03 | Phase 16 | N/A | ✅ Already done |

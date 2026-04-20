@@ -38,7 +38,7 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 
 - [ ] **Phase 13: Backend Toggle Fix** — Repair 500 errors on Units and Plasmas toggle endpoints
 - [ ] **Phase 14: Cycle & Plasma UI Fixes** — Replace cycle status toggle with read-only badge, enforce edit/delete rules, add phone column and numeric validation
-- [ ] **Phase 15: Recordings, Feed & RBAC Data Integration** — Wire Recordings dropdowns, Feed dropdowns, and all RBAC tabs to real DB data
+- [x] **Phase 15: Recordings, Feed & RBAC Data Integration** — Wire Recordings dropdowns, Feed dropdowns, and all RBAC tabs to real DB data — completed 2026-04-21
 - [ ] **Phase 16: Reports Data Integration** — Connect Performance, Stock Resume, and Audit reports to real DB data
 
 ## Phase Details
@@ -102,7 +102,7 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 
 - [x] 16-01-PLAN.md — Wire Performance report to real FCR/IP data from API
 - [x] 16-02-PLAN.md — Wire Stock Resume to real data with populated filter dropdowns
-- [ ] 16-03-PLAN.md — Close gaps: tenantId from auth, date filter wiring, IP chart
+- [x] 16-03-PLAN.md — Close gaps: tenantId from auth, date filter wiring, IP chart
       **UI hint**: yes
 
 ### Phase 17: Feed Types & Brands Management
@@ -162,16 +162,16 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 
 ## Progress
 
-| Phase                                        | Plans Complete | Status      | Completed |
-| -------------------------------------------- | -------------- | ----------- | --------- |
-| 13. Backend Toggle Fix                       | 0/1            | Not started | -         |
-| 14. Cycle & Plasma UI Fixes                  | 1/1            | Not started | -         |
-| 15. Recordings, Feed & RBAC Data Integration | 2/2            | Planned     | -         |
-| 16. Reports Data Integration                 | 2/3            | Planned     | -         |
-| 17. Feed Types & Brands Management           | 0/1            | Not started | -         |
-| 18. Supplier Management                      | 0/1            | Not started | -         |
-| 19. Vitamins/Medicines Management            | 0/1            | Not started | -         |
-| 20. Sidebar Reorganization                   | 0/1            | Not started | -         |
+| Phase                                        | Plans Complete | Status      | Completed  |
+| -------------------------------------------- | -------------- | ----------- | ---------- |
+| 13. Backend Toggle Fix                       | 0/1            | Not started | -          |
+| 14. Cycle & Plasma UI Fixes                  | 1/1            | Not started | -          |
+| 15. Recordings, Feed & RBAC Data Integration | 2/2            | Completed   | 2026-04-21 |
+| 16. Reports Data Integration                 | 3/3            | Planned     | -          |
+| 17. Feed Types & Brands Management           | 1/1            | Completed   | 2026-04-21 |
+| 18. Supplier Management                      | 0/1            | Not started | -          |
+| 19. Vitamins/Medicines Management            | 0/1            | Not started | -          |
+| 20. Sidebar Reorganization                   | 0/1            | Not started | -          |
 
 ---
 

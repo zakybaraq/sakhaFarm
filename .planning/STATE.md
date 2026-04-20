@@ -3,22 +3,22 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: - Bug Fixes & Data Integration
 status: unknown
-last_updated: "2026-04-20T18:21:41.623Z"
+last_updated: "2026-04-20T20:28:45.586Z"
 progress:
   total_phases: 8
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 5
-  percent: 63
+  total_plans: 9
+  completed_plans: 8
+  percent: 78
 ---
 
 # STATE.md — Sakha Farm Management System
 
 ## Current State
 
-**Status**: v1.2 Milestone — In Progress (2/8 phases)
+**Status**: v1.2 Milestone — In Progress (3/8 phases)
 **Active Milestone**: v1.2 — Bug Fixes & Data Integration
-**Active Phase**: Phase 13 — Backend Toggle Fix
+**Active Phase**: Phase 14 — Cycle & Plasma UI Fixes
 
 ### v1.0 Phases (Archived — Complete)
 
@@ -58,9 +58,9 @@ progress:
 | -------------------------------------------- | -------------- | ------------------------------------------------------------------- |
 | 13. Backend Toggle Fix                       | ✅ Complete    | Plan 01 done — isActive added to unit/plasma PUT schemas + services |
 | 14. Cycle & Plasma UI Fixes                  | ⏳ Not started | Fixes TOGGLE-03, TOGGLE-04, PLASMA-01, PLASMA-02                    |
-| 15. Recordings, Feed & RBAC Data Integration | ⏳ Not started | Fixes REC-01, REC-02, FEED-01, FEED-02, RBAC-01, RBAC-02, RBAC-03   |
+| 15. Recordings, Feed & RBAC Data Integration | ✅ Complete    | Fixes REC-01, REC-02, FEED-01, FEED-02, RBAC-01, RBAC-02, RBAC-03   |
 | 16. Reports Data Integration                 | ⏳ Not started | Fixes REPORT-01, REPORT-02, REPORT-03                               |
-| 17. Feed Types & Brands Management           | ⏳ Not started | Manage feed categories and brands                                   |
+| 17. Feed Types & Brands Management   | 🔄 In progress | Plan 02 done — backend CRUD for feed-types and feed-brands |
 | 18. Supplier Management                      | ⏳ Not started | Manage suppliers/vendors                                            |
 | 19. Vitamins/Medicines Management            | ⏳ Not started | Manage vitamins and medicines inventory                             |
 | 20. Sidebar Reorganization                   | ⏳ Not started | Group menus by function                                             |
@@ -173,6 +173,9 @@ Run `/gsd-plan-phase 13` to plan Phase 13: Backend Toggle Fix.
 - **Plan 09-02** (Reports UI): ✅ Complete
 - **Plan 09-03** (Admin & RBAC UI): ✅ Complete
 - **Plan 13-01** (Backend isActive toggle): ✅ Complete
+- **Plan 15-01** (Recordings standards integration): ✅ Complete
+- **Plan 15-02** (Feed & RBAC data integration): ✅ Complete
+- **Plan 17-02** (Backend CRUD for feed-types & feed-brands): ✅ Complete
 
 ## Performance Metrics
 
@@ -185,3 +188,4 @@ Run `/gsd-plan-phase 13` to plan Phase 13: Backend Toggle Fix.
 | Plan 05-01 (Recording CRUD)         | ~5min    | 4 tasks | 4 files |
 | Phase 13-backend-toggle-fix P01     | 5min     | 2 tasks | 4 files |
 | Phase 13-backend-toggle-fix P02     | ~10min   | 2 tasks | 4 files |
+| Phase 17-feed-types-brands P02      | ~15min   | 4 tasks | 12 files |
