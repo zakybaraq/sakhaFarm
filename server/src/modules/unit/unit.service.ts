@@ -112,7 +112,7 @@ export async function getUnit(id: number, tenantId: number) {
  */
 export async function updateUnit(
   id: number,
-  input: { name?: string; code?: string; location?: string; isDeleted?: boolean; isActive?: boolean },
+  input: { name?: string; code?: string; location?: string; isDeleted?: boolean; isActive?: number },
   tenantId: number,
   userId: string,
 ) {

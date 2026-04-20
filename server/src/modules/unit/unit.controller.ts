@@ -104,7 +104,7 @@ export const unitController = new Elysia({ prefix: '/api/units' })
         name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
         code: t.Optional(t.String({ minLength: 1, maxLength: 20 })),
         location: t.Optional(t.String({ maxLength: 255 })),
-        isActive: t.Optional(t.Boolean()),
+        isActive: t.Optional(t.Number()),
       }),
     },
   )
