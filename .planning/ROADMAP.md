@@ -95,7 +95,7 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 |-------|----------------|--------|-----------|
 | 13. Backend Toggle Fix | 0/1 | Not started | - |
 | 14. Cycle & Plasma UI Fixes | 1/1 | Not started | - |
-| 15. Recordings, Feed & RBAC Data Integration | 0/2 | Not started | - |
+| 15. Recordings, Feed & RBAC Data Integration | 2/2 | Planned | - |
 | 16. Reports Data Integration | 0/1 | Not started | - |
 
 ---
