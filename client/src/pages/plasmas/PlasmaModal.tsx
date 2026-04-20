@@ -107,7 +107,7 @@ export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
     setError(null);
     try {
       await saveMutation.mutateAsync(data);
-    } catch (err) {
+    } catch (_err) {
       setError('Gagal menyimpan plasma');
     } finally {
       setIsSubmitting(false);
@@ -143,11 +143,13 @@ export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
                 <FormControl fullWidth error={!!errors.unitId}>
                   <InputLabel>Unit</InputLabel>
                   <Select {...field} label="Unit" value={field.value || ''}>
-                    {unitsData?.units.map((unit: Unit) => (
-                      <MenuItem key={unit.id} value={unit.id}>
-                        {unit.name}
-                      </MenuItem>
-                    ))}
+                    {unitsData?.units
+                      .filter((unit: Unit) => unit.isActive === 1)
+                      .map((unit: Unit) => (
+                        <MenuItem key={unit.id} value={unit.id}>
+                          {unit.name}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
               )}
@@ -167,7 +169,26 @@ export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
             <Controller
               name="phone"
               control={control}
-              render={({ field }) => <TextField {...field} label="Telepon" fullWidth />}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Telepon"
+                  fullWidth
+                  onKeyDown={(e) => {
+                    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter'];
+                    if (allowedKeys.includes(e.key)) return;
+                    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return;
+                    if (!/^\d$/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/\D/g, '');
+                    field.onChange(cleaned);
+                  }}
+                  inputProps={{ maxLength: 15 }}
+                />
+              )}
             />
             <Controller
               name="capacity"
@@ -179,7 +200,10 @@ export function PlasmaModal({ open, onClose, selectedId }: PlasmaModalProps) {
                   type="number"
                   fullWidth
                   value={field.value ?? ''}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    field.onChange(val === '' ? undefined : Number(val));
+                  }}
                 />
               )}
             />
