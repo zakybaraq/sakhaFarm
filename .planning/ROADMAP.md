@@ -146,7 +146,12 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 1. A "Vitamins/Medicines" page exists to manage pharmaceutical supplies
 2. Can track inventory levels, unit of measure, and expiration dates
 3. Can record usage/consumption per cycle
-   **Plans**: TBD
+**Plans**: 2 plans
+   Plans:
+
+- [ ] 19-01-PLAN.md — Backend: schemas, service layer, REST API
+- [ ] 19-02-PLAN.md — Frontend: CRUD page, modal, daily recording integration
+
    **UI hint**: yes
 
 ### Phase 20: Sidebar Reorganization
@@ -174,7 +179,7 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 | 16. Reports Data Integration                 | 3/3            | Planned     | -          |
 | 17. Feed Types & Brands Management           | 3/3            | Complete    | 2026-04-20 |
 | 18. Supplier Management                      | 2/2            | Planned     | -          |
-| 19. Vitamins/Medicines Management            | 0/1            | Not started | -          |
+| 19. Vitamins/Medicines Management            | 2/2            | Ready to execute | -          |
 | 20. Sidebar Reorganization                   | 0/1            | Not started | -          |
 
 ---
