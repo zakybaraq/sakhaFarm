@@ -47,9 +47,28 @@ const menuItems: MenuItem[] = [
   { text: 'Cycle', icon: <AutorenewIcon />, path: '/cycles', permission: 'cycle.read' },
   { text: 'Recording', icon: <EditNoteIcon />, path: '/recordings', permission: 'recording.read' },
   { text: 'Feed', icon: <Inventory2Icon />, path: '/feed', permission: 'feed.read' },
-  { text: 'Reports', icon: <AssessmentIcon />, path: '/reports', permission: 'inventory.read', isSectionHeader: true },
-  { text: 'Performance', icon: <AssessmentIcon />, path: '/reports/performance', permission: 'inventory.read' },
-  { text: 'Stock Resume', icon: <AssessmentIcon />, path: '/reports/stock-resume', permission: 'inventory.read' },
+  { text: 'Jenis Pakan', icon: <Inventory2Icon />, path: '/feed/types', permission: 'feed.read' },
+  { text: 'Merek Pakan', icon: <Inventory2Icon />, path: '/feed/brands', permission: 'feed.read' },
+  { text: 'Produk Pakan', icon: <Inventory2Icon />, path: '/feed/products', permission: 'feed.read' },
+  {
+    text: 'Reports',
+    icon: <AssessmentIcon />,
+    path: '/reports',
+    permission: 'inventory.read',
+    isSectionHeader: true,
+  },
+  {
+    text: 'Performance',
+    icon: <AssessmentIcon />,
+    path: '/reports/performance',
+    permission: 'inventory.read',
+  },
+  {
+    text: 'Stock Resume',
+    icon: <AssessmentIcon />,
+    path: '/reports/stock-resume',
+    permission: 'inventory.read',
+  },
   { text: 'Audit Log', icon: <AssessmentIcon />, path: '/reports/audit', permission: 'audit.read' },
   { text: 'RBAC', icon: <AdminPanelSettingsIcon />, path: '/rbac', permission: 'rbac.read' },
 ];
@@ -70,15 +89,15 @@ function SidebarContent({
 
   return (
     <Box sx={{ width: drawerWidth, height: '100%', display: 'flex', flexDirection: 'column' }}>
-   <Box
-     sx={{
-       display: 'flex',
-       alignItems: 'center',
-       justifyContent: collapsed ? 'center' : 'flex-start',
-       px: collapsed ? 0 : 2,
-       height: APPBAR_HEIGHT,
-     }}
-   >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          px: collapsed ? 0 : 2,
+          height: APPBAR_HEIGHT,
+        }}
+      >
         <Box
           sx={{
             width: 36,
@@ -132,7 +151,7 @@ function SidebarContent({
                     fontWeight: 700,
                     color: 'text.secondary',
                     textTransform: 'uppercase',
-                    sx: { px: 2, py: 1 }
+                    sx: { px: 2, py: 1 },
                   }}
                 />
               </ListItem>
