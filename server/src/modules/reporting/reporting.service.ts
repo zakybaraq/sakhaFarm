@@ -1,8 +1,10 @@
 import { db } from '../../config/database'
 import { redis } from '../../config/redis'
-import { feedStock, feedProducts, dailyRecordings, cycles } from '../../db/schema'
+import { feedStock, feedProducts, dailyRecordings, cycles, feedTypes, feedBrands } from '../../db/schema'
 import { feedStock as feedStockTable } from '../../db/schema/feed_stock'
 import { feedProducts as feedProductsTable } from '../../db/schema/feed_products'
+import { feedTypes as feedTypesTable } from '../../db/schema/feed_types'
+import { feedBrands as feedBrandsTable } from '../../db/schema/feed_brands'
 import { dailyRecordings as dailyRecordingsTable } from '../../db/schema/daily_recordings'
 import { cycles as cyclesTable } from '../../db/schema/cycles'
 import { plasmas as plasmasTable } from '../../db/schema/plasmas'
@@ -196,10 +198,15 @@ export async function getStockResume(
       id: feedProductsTable.id,
       name: feedProductsTable.name,
       code: feedProductsTable.code,
-      phase: feedProductsTable.phase,
+      typeId: feedProductsTable.typeId,
+      brandId: feedProductsTable.brandId,
       zakKgConversion: feedProductsTable.zakKgConversion,
+      typeName: feedTypesTable.name,
+      brandName: feedBrandsTable.name,
     })
     .from(feedProductsTable)
+    .leftJoin(feedTypesTable, eq(feedProductsTable.typeId, feedTypesTable.id))
+    .leftJoin(feedBrandsTable, eq(feedProductsTable.brandId, feedBrandsTable.id))
     .where(and(...productConditions))
 
   const productMap = new Map(products.map((p) => [p.id, p]))

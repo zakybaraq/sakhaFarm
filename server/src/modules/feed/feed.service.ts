@@ -1,10 +1,12 @@
 import { db } from '../../config/database'
-import { feedProducts, feedStock, feedMovements, feedSuratJalan, auditLogs } from '../../db/schema'
+import { feedProducts, feedStock, feedMovements, feedSuratJalan, auditLogs, feedTypes, feedBrands } from '../../db/schema'
 import { eq, and, isNull, sql } from 'drizzle-orm'
 import { feedProducts as feedProductsTable } from '../../db/schema/feed_products'
 import { feedStock as feedStockTable } from '../../db/schema/feed_stock'
 import { feedMovements as feedMovementsTable } from '../../db/schema/feed_movements'
 import { feedSuratJalan as feedSuratJalanTable } from '../../db/schema/feed_surat_jalan'
+import { feedTypes as feedTypesTable } from '../../db/schema/feed_types'
+import { feedBrands as feedBrandsTable } from '../../db/schema/feed_brands'
 import { plasmas as plasmasTable } from '../../db/schema/plasmas'
 import { units as unitsTable } from '../../db/schema/units'
 import {
@@ -19,7 +21,8 @@ import {
 interface CreateFeedProductInput {
   code: string
   name: string
-  phase: string
+  typeId?: number
+  brandId?: number
   proteinPercent?: number
   defaultUnit?: string
   zakKgConversion?: number
@@ -27,7 +30,8 @@ interface CreateFeedProductInput {
 
 interface UpdateFeedProductInput {
   name?: string
-  phase?: string
+  typeId?: number
+  brandId?: number
   proteinPercent?: number
   defaultUnit?: string
   zakKgConversion?: number
@@ -80,7 +84,8 @@ export async function createFeedProduct(
         tenantId,
         code: input.code,
         name: input.name,
-        phase: input.phase,
+        typeId: input.typeId ?? null,
+        brandId: input.brandId ?? null,
         proteinPercent: input.proteinPercent?.toString() ?? null,
         defaultUnit: input.defaultUnit ?? 'zak',
         zakKgConversion: input.zakKgConversion?.toString() ?? '50',
@@ -111,12 +116,28 @@ export async function createFeedProduct(
 }
 
 export async function listFeedProducts(tenantId: number) {
-  const products = await db
-    .select()
+  return db
+    .select({
+      id: feedProductsTable.id,
+      tenantId: feedProductsTable.tenantId,
+      code: feedProductsTable.code,
+      name: feedProductsTable.name,
+      typeId: feedProductsTable.typeId,
+      brandId: feedProductsTable.brandId,
+      proteinPercent: feedProductsTable.proteinPercent,
+      defaultUnit: feedProductsTable.defaultUnit,
+      zakKgConversion: feedProductsTable.zakKgConversion,
+      isActive: feedProductsTable.isActive,
+      deletedAt: feedProductsTable.deletedAt,
+      createdAt: feedProductsTable.createdAt,
+      updatedAt: feedProductsTable.updatedAt,
+      typeName: feedTypesTable.name,
+      brandName: feedBrandsTable.name,
+    })
     .from(feedProductsTable)
+    .leftJoin(feedTypesTable, eq(feedProductsTable.typeId, feedTypesTable.id))
+    .leftJoin(feedBrandsTable, eq(feedProductsTable.brandId, feedBrandsTable.id))
     .where(and(eq(feedProductsTable.tenantId, tenantId), isNull(feedProductsTable.deletedAt)))
-
-  return products
 }
 
 export async function getFeedProduct(id: number, tenantId: number) {
@@ -151,7 +172,8 @@ export async function updateFeedProduct(
 
   const updateData: Record<string, unknown> = {}
   if (input.name !== undefined) updateData.name = input.name
-  if (input.phase !== undefined) updateData.phase = input.phase
+  if (input.typeId !== undefined) updateData.typeId = input.typeId
+  if (input.brandId !== undefined) updateData.brandId = input.brandId
   if (input.proteinPercent !== undefined) updateData.proteinPercent = input.proteinPercent.toString()
   if (input.defaultUnit !== undefined) updateData.defaultUnit = input.defaultUnit
   if (input.zakKgConversion !== undefined) updateData.zakKgConversion = input.zakKgConversion.toString()
@@ -402,6 +424,8 @@ export async function getAllStock(
       totalInKg: feedStockTable.totalInKg,
       totalOutKg: feedStockTable.totalOutKg,
       closingStockKg: feedStockTable.closingStockKg,
+      plasmaName: plasmasTable.name,
+      unitName: unitsTable.name,
     })
     .from(feedStockTable)
     .innerJoin(plasmasTable, eq(feedStockTable.plasmaId, plasmasTable.id))
@@ -418,21 +442,20 @@ export async function getAllStock(
   return stockRows.map((stock) => {
     const product = productMap.get(stock.feedProductId)
     const zakKgConversion = product?.zakKgConversion ?? '50'
-    const productName = product?.name
     const closingKg = parseFloat(stock.closingStockKg || '0')
     const conversion = parseFloat(zakKgConversion || '50')
     const closingZak = conversion > 0 ? closingKg / conversion : 0
+    const isLow = closingZak < 50
 
     return {
+      id: stock.id,
       plasmaId: stock.plasmaId,
       feedProductId: stock.feedProductId,
-      openingStockKg: stock.openingStockKg || '0',
-      totalInKg: stock.totalInKg || '0',
-      totalOutKg: stock.totalOutKg || '0',
-      closingStockKg: stock.closingStockKg || '0',
-      closingStockZak: closingZak.toFixed(3),
-      productName,
-      zakKgConversion,
+      plasmaName: stock.plasmaName,
+      feedProductName: product?.name ?? '',
+      totalZak: Math.round(closingZak * 100) / 100,
+      totalKg: Math.round(closingKg * 100) / 100,
+      isLow,
     }
   })
 }

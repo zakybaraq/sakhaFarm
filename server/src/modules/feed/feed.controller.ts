@@ -73,7 +73,8 @@ export const feedController = new Elysia({ prefix: '/api/feed' })
       body: t.Object({
         code: t.String({ minLength: 1, maxLength: 20 }),
         name: t.String({ minLength: 1, maxLength: 100 }),
-        phase: t.String({ minLength: 1, maxLength: 20 }),
+        typeId: t.Optional(t.Number({ minimum: 1 })),
+        brandId: t.Optional(t.Number({ minimum: 1 })),
         proteinPercent: t.Optional(t.Number({ minimum: 0 })),
         defaultUnit: t.Optional(t.String({ maxLength: 10 })),
         zakKgConversion: t.Optional(t.Number({ minimum: 0 })),
@@ -124,7 +125,8 @@ export const feedController = new Elysia({ prefix: '/api/feed' })
       }),
       body: t.Object({
         name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
-        phase: t.Optional(t.String({ minLength: 1, maxLength: 20 })),
+        typeId: t.Optional(t.Number({ minimum: 1 })),
+        brandId: t.Optional(t.Number({ minimum: 1 })),
         proteinPercent: t.Optional(t.Number({ minimum: 0 })),
         defaultUnit: t.Optional(t.String({ maxLength: 10 })),
         zakKgConversion: t.Optional(t.Number({ minimum: 0 })),
