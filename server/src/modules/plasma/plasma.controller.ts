@@ -113,6 +113,7 @@ export const plasmaController = new Elysia({ prefix: '/api/plasmas' })
         address: t.Optional(t.String()),
         phone: t.Optional(t.String({ maxLength: 20 })),
         capacity: t.Optional(t.Number()),
+        isActive: t.Optional(t.Boolean()),
       }),
     },
   )

@@ -162,7 +162,7 @@ export async function getPlasma(id: number, tenantId: number) {
 /**
  * Updates mutable fields of an existing plasma.
  *
- * Only allows updating name, farmerName, address, phone, and capacity.
+ * Only allows updating name, farmerName, address, phone, capacity, and isActive (mapped from boolean to int 0/1).
  * Verifies the plasma exists and belongs to the current tenant before
  * applying changes. Writes an audit log with old and new values.
  *
@@ -181,6 +181,7 @@ export async function updatePlasma(
     address?: string
     phone?: string
     capacity?: number
+    isActive?: boolean
   },
   tenantId: number,
   userId: string,
@@ -193,6 +194,7 @@ export async function updatePlasma(
   if (input.address !== undefined) updateData.address = input.address
   if (input.phone !== undefined) updateData.phone = input.phone
   if (input.capacity !== undefined) updateData.capacity = input.capacity
+  if (input.isActive !== undefined) updateData.isActive = input.isActive ? 1 : 0
 
   await db
     .update(plasmas)
