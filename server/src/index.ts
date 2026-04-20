@@ -10,7 +10,10 @@ import { cycleController } from './modules/cycle/cycle.routes'
 import { recordingsController } from './modules/recordings/recordings.routes'
 import { reportingController } from './modules/reporting/reporting.routes'
 import { feedController } from './modules/feed/feed.routes'
+import { feedTypesController } from './modules/feed-types/feed-types.routes'
+import { feedBrandsController } from './modules/feed-brands/feed-brands.routes'
 import { auditController } from './modules/audit/audit.routes'
+import { standardsController } from './modules/standards/standards.controller'
 import { sessionPlugin } from './plugins/session'
 import { tenantPlugin } from './plugins/tenant'
 import { rbacPlugin } from './plugins/rbac'
@@ -62,7 +65,10 @@ const app = new Elysia()
   .use(recordingsController)
   .use(reportingController)
   .use(feedController)
+  .use(feedTypesController)
+  .use(feedBrandsController)
   .use(auditController)
+  .use(standardsController)
   .use(usersController)
   .use(authController)
   .get('/api/health', () => ({
