@@ -99,7 +99,7 @@ const menuItems: MenuItem[] = [
     text: "Supplier",
     icon: <LocalShippingIcon />,
     path: "/suppliers",
-    permission: "supplier.read",
+    permission: "feed.read",
   },
   {
     text: "Reports",
