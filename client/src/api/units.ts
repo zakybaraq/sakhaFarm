@@ -6,7 +6,7 @@ export interface Unit {
   name: string;
   code: string;
   location: string | null;
-  isDeleted: boolean;
+  isActive: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,7 +36,7 @@ export function createUnit(data: {
 
 export function updateUnit(
   id: number,
-  data: { name?: string; code?: string; location?: string; isDeleted?: boolean },
+  data: { name?: string; code?: string; location?: string; isActive?: number },
 ): Promise<{ success: boolean }> {
   return apiClient<{ success: boolean }>(`/units/${id}`, {
     method: 'PUT',

@@ -9,9 +9,10 @@ export interface Plasma {
   address: string | null;
   phone: string | null;
   capacity: number | null;
-  isDeleted: boolean;
+  isActive: number;
   createdAt: string;
   updatedAt: string;
+  unitName?: string | null;
 }
 
 export interface PlasmasResponse {
@@ -50,7 +51,7 @@ export function updatePlasma(
     phone?: string;
     capacity?: number;
     unitId?: number;
-    isDeleted?: boolean;
+    isActive?: number;
   },
 ): Promise<{ success: boolean }> {
   return apiClient<{ success: boolean }>(`/plasmas/${id}`, {
