@@ -100,10 +100,10 @@ export async function getUnit(id: number, tenantId: number) {
 }
 
 /**
- * Updates a unit's name, code, or location with tenant scoping.
+ * Updates a unit's name, code, location, or deletion status with tenant scoping.
  *
  * @param id - Unit ID to update
- * @param input - Fields to update (name, code, location)
+ * @param input - Fields to update (name, code, location, isDeleted, isActive (boolean mapped to int 1/0))
  * @param tenantId - Current tenant ID from middleware
  * @param userId - User ID from session for audit trail
  * @returns Success indicator
@@ -112,7 +112,7 @@ export async function getUnit(id: number, tenantId: number) {
  */
 export async function updateUnit(
   id: number,
-  input: { name?: string; code?: string; location?: string },
+  input: { name?: string; code?: string; location?: string; isDeleted?: boolean; isActive?: boolean },
   tenantId: number,
   userId: string,
 ) {
@@ -121,10 +121,10 @@ export async function updateUnit(
       .select()
       .from(units)
       .where(and(eq(units.id, id), eq(units.tenantId, tenantId), isNull(units.deletedAt)))
-      .limit(1)
+      .limit(1);
 
     if (existing.length === 0) {
-      throw new UnitNotFoundError(id)
+      throw new UnitNotFoundError(id);
     }
 
     if (input.code) {
@@ -138,14 +138,26 @@ export async function updateUnit(
             eq(units.tenantId, tenantId),
             isNull(units.deletedAt),
           ),
-        )
+        );
 
       if (duplicate.length > 0) {
-        throw new DuplicateUnitCodeError(input.code)
+        throw new DuplicateUnitCodeError(input.code);
       }
     }
 
-    await tx.update(units).set(input).where(and(eq(units.id, id), eq(units.tenantId, tenantId)))
+    // Prepare update data
+    const updateData: any = {};
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.code !== undefined) updateData.code = input.code;
+    if (input.location !== undefined) updateData.location = input.location;
+    if (input.isDeleted !== undefined) {
+      updateData.deletedAt = input.isDeleted ? new Date() : null;
+    }
+    if (input.isActive !== undefined) {
+      updateData.isActive = input.isActive ? 1 : 0;
+    }
+
+    await tx.update(units).set(updateData).where(and(eq(units.id, id), eq(units.tenantId, tenantId)));
 
     try {
       await tx.insert(auditLogs).values({
@@ -154,14 +166,14 @@ export async function updateUnit(
         resource: 'unit',
         resourceId: String(id),
         oldValue: JSON.stringify(existing[0]),
-        newValue: JSON.stringify(input),
-      })
+        newValue: JSON.stringify(updateData),
+      });
     } catch {
       // Fire-and-forget audit logging
     }
 
-    return { success: true }
-  })
+    return { success: true };
+  });
 }
 
 /**
