@@ -88,7 +88,10 @@ Plans:
   1. The Performance report calculates and displays FCR and IP values derived from actual recording entries — no hardcoded or placeholder numbers appear
   2. The Stock Resume page's unit and plasma filter dropdowns are populated from DB; selecting a filter updates the displayed stock data
   3. The Audit report page displays real audit log entries (user, action, timestamp, entity) retrieved from the backend — the table is not empty on a system with activity
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 16-01-PLAN.md — Wire Performance report to real FCR/IP data from API
+- [ ] 16-02-PLAN.md — Wire Stock Resume to real data with populated filter dropdowns
 **UI hint**: yes
 
 ## Progress
