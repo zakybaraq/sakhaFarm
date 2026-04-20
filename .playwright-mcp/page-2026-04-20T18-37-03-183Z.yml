@@ -1,0 +1,138 @@
+- generic [ref=e20]:
+  - banner [ref=e21]:
+    - generic [ref=e22]:
+      - navigation [ref=e23]:
+        - list [ref=e24]:
+          - listitem [ref=e25]:
+            - paragraph [ref=e171]: Recordings
+      - button [ref=e27] [cursor=pointer]:
+        - img [ref=e29]
+      - button "A" [ref=e257] [cursor=pointer]:
+        - generic [ref=e32]: A
+  - generic [ref=e33]:
+    - generic [ref=e35]:
+      - generic [ref=e36]:
+        - img [ref=e38]
+        - generic [ref=e41]:
+          - heading "Sakha Farm" [level=6] [ref=e258]
+          - text: LIVESTOCK
+      - separator [ref=e43]
+      - list [ref=e44]:
+        - listitem [ref=e45]:
+          - button "Dashboard" [ref=e259] [cursor=pointer]:
+            - img [ref=e48]
+            - generic [ref=e51]: Dashboard
+        - listitem [ref=e52]:
+          - button "Unit" [ref=e260] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e58]: Unit
+        - listitem [ref=e59]:
+          - button "Plasma" [ref=e261] [cursor=pointer]:
+            - img [ref=e62]
+            - generic [ref=e66]: Plasma
+        - listitem [ref=e67]:
+          - button "Cycle" [ref=e262] [cursor=pointer]:
+            - img [ref=e70]
+            - generic [ref=e73]: Cycle
+        - listitem [ref=e74]:
+          - button "Recording" [ref=e263] [cursor=pointer]:
+            - img [ref=e77]
+            - generic [ref=e80]: Recording
+        - listitem [ref=e81]:
+          - button "Feed" [ref=e264] [cursor=pointer]:
+            - img [ref=e84]
+            - generic [ref=e87]: Feed
+        - listitem [ref=e88]:
+          - generic [ref=e90]: Reports
+        - listitem [ref=e91]:
+          - button "Performance" [ref=e265] [cursor=pointer]:
+            - img [ref=e94]
+            - generic [ref=e97]: Performance
+        - listitem [ref=e98]:
+          - button "Stock Resume" [ref=e266] [cursor=pointer]:
+            - img [ref=e101]
+            - generic [ref=e104]: Stock Resume
+        - listitem [ref=e105]:
+          - button "Audit Log" [ref=e267] [cursor=pointer]:
+            - img [ref=e108]
+            - generic [ref=e111]: Audit Log
+        - listitem [ref=e112]:
+          - button "RBAC" [ref=e268] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e119]: RBAC
+      - separator [ref=e120]
+      - button [ref=e122] [cursor=pointer]:
+        - img [ref=e123]
+    - main [ref=e125]:
+      - generic [ref=e172]:
+        - heading "Recording Harian" [level=5] [ref=e269]
+        - generic [ref=e175]:
+          - generic [ref=e176]:
+            - generic [ref=e177]:
+              - generic [ref=e178]:
+                - generic [ref=e179]: Tanggal Recording
+                - generic [ref=e180]:
+                  - textbox "Tanggal Recording" [ref=e270]: 2026-04-20
+                  - group:
+                    - generic: Tanggal Recording
+              - generic [ref=e182]:
+                - generic [ref=e240]: Siklus
+                - generic [ref=e183]:
+                  - combobox "Cycle 2 (Patriot)" [ref=e271] [cursor=pointer]
+                  - textbox: "23"
+                  - img
+                  - group:
+                    - generic: Siklus
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - generic [ref=e187]: Populasi Awal (Ekor)
+                - generic [ref=e188]:
+                  - spinbutton "Populasi Awal (Ekor)" [ref=e272]: "1000"
+                  - group:
+                    - generic: Populasi Awal (Ekor)
+              - generic [ref=e190]:
+                - generic [ref=e191]: Sisa Populasi (Ekor)
+                - generic [ref=e192]:
+                  - spinbutton "Sisa Populasi (Ekor)" [ref=e273]: "980"
+                  - group:
+                    - generic: Sisa Populasi (Ekor)
+              - generic [ref=e194]:
+                - generic [ref=e195]: Mati (Ekor)
+                - generic [ref=e196]:
+                  - spinbutton "Mati (Ekor)" [ref=e274]: "15"
+                  - group:
+                    - generic: Mati (Ekor)
+              - generic [ref=e198]:
+                - generic [ref=e199]: Culling (Ekor)
+                - generic [ref=e200]:
+                  - spinbutton "Culling (Ekor)" [ref=e275]: "5"
+                  - group:
+                    - generic: Culling (Ekor)
+              - generic [ref=e202]:
+                - generic [ref=e203]: Berat Badan (gram)
+                - generic [ref=e204]:
+                  - spinbutton "Berat Badan (gram)" [ref=e276]: "500"
+                  - group:
+                    - generic: Berat Badan (gram)
+          - generic [ref=e206]:
+            - button "Batal" [ref=e277] [cursor=pointer]
+            - button "Simpan Recording" [ref=e278] [cursor=pointer]:
+              - img [ref=e210]
+              - text: Simpan Recording
+        - heading "Kalkulasi Langsung" [level=6] [ref=e279]
+        - generic [ref=e213]:
+          - generic [ref=e215]:
+            - text: Mortalitas Kumulatif
+            - heading "2.00%" [level=5] [ref=e284]
+          - generic [ref=e218]:
+            - text: Survival Rate (SR)
+            - heading "98.00%" [level=5] [ref=e285]
+          - generic [ref=e221]:
+            - text: "Deviasi BW (Standar: 42g)"
+            - heading "+458g" [level=5] [ref=e286]
+          - generic [ref=e224]:
+            - text: Projected IP
+            - heading "490" [level=5] [ref=e287]
+  - contentinfo [ref=e168]:
+    - generic [ref=e169]: © 2026 SakhaFarm
+    - generic [ref=e170]: v1.0.0

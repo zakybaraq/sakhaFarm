@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient } from "./client";
 
 export interface User {
   id: string;
@@ -6,7 +6,7 @@ export interface User {
   name: string;
   roleId: number;
   tenantId: number;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   createdAt: string;
 }
 
@@ -19,16 +19,16 @@ export function listUsers(filters?: {
   email?: string;
   roleId?: number;
   tenantId?: number;
-  status?: 'active' | 'inactive';
+  status?: "active" | "inactive";
 }): Promise<UsersResponse> {
   const params = new URLSearchParams();
-  if (filters?.name) params.set('name', filters.name);
-  if (filters?.email) params.set('email', filters.email);
-  if (filters?.roleId) params.set('roleId', String(filters.roleId));
-  if (filters?.tenantId) params.set('tenantId', String(filters.tenantId));
-  if (filters?.status) params.set('status', filters.status);
+  if (filters?.name) params.set("name", filters.name);
+  if (filters?.email) params.set("email", filters.email);
+  if (filters?.roleId) params.set("roleId", String(filters.roleId));
+  if (filters?.tenantId) params.set("tenantId", String(filters.tenantId));
+  if (filters?.status) params.set("status", filters.status);
   const query = params.toString();
-  return apiClient<UsersResponse>(`/users${query ? `?${query}` : ''}`);
+  return apiClient<UsersResponse>(`/users${query ? `?${query}` : ""}`);
 }
 
 export function getUser(id: string): Promise<{ user: User }> {
@@ -42,8 +42,8 @@ export function createUser(data: {
   roleId: number;
   tenantId: number;
 }): Promise<{ success: boolean; user: User }> {
-  return apiClient<{ success: boolean; user: User }>('/users', {
-    method: 'POST',
+  return apiClient<{ success: boolean; user: User }>("/users", {
+    method: "POST",
     body: JSON.stringify(data),
   });
 }
@@ -57,25 +57,36 @@ export function updateUser(
   },
 ): Promise<{ success: boolean }> {
   return apiClient<{ success: boolean }>(`/users/${id}`, {
-    method: 'PUT',
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
 
 export function deactivateUser(id: string): Promise<{ success: boolean }> {
   return apiClient<{ success: boolean }>(`/users/${id}/deactivate`, {
-    method: 'PATCH',
+    method: "PATCH",
   });
 }
 
 export function activateUser(id: string): Promise<{ success: boolean }> {
   return apiClient<{ success: boolean }>(`/users/${id}/activate`, {
-    method: 'PATCH',
+    method: "PATCH",
   });
 }
 
-export function resetPassword(id: string): Promise<{ success: boolean; tempPassword: string }> {
-  return apiClient<{ success: boolean; tempPassword: string }>(`/users/${id}/reset-password`, {
-    method: 'POST',
+export function resetPassword(
+  id: string,
+): Promise<{ success: boolean; tempPassword: string }> {
+  return apiClient<{ success: boolean; tempPassword: string }>(
+    `/users/${id}/reset-password`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+export function deleteUser(id: string): Promise<{ success: boolean }> {
+  return apiClient<{ success: boolean }>(`/users/${id}`, {
+    method: "DELETE",
   });
 }

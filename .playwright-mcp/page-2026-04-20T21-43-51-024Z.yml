@@ -1,0 +1,122 @@
+- generic [ref=e16]:
+  - banner [ref=e17]:
+    - generic [ref=e18]:
+      - navigation [ref=e19]:
+        - list [ref=e20]:
+          - listitem [ref=e21]:
+            - paragraph [ref=e165]: Suppliers
+      - button [ref=e23] [cursor=pointer]:
+        - img [ref=e25]
+      - button "A" [ref=e27] [cursor=pointer]:
+        - generic [ref=e28]: A
+  - generic [ref=e29]:
+    - generic [ref=e31]:
+      - img [ref=e34]
+      - separator [ref=e37]
+      - list [ref=e38]:
+        - listitem [ref=e39]:
+          - button "Dashboard" [ref=e40] [cursor=pointer]:
+            - img [ref=e42]
+        - listitem [ref=e44]:
+          - button "Unit" [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+        - listitem [ref=e49]:
+          - button "Plasma" [ref=e50] [cursor=pointer]:
+            - img [ref=e52]
+        - listitem [ref=e55]:
+          - button "Cycle" [ref=e56] [cursor=pointer]:
+            - img [ref=e58]
+        - listitem [ref=e60]:
+          - button "Recording" [ref=e61] [cursor=pointer]:
+            - img [ref=e63]
+        - listitem [ref=e65]:
+          - button "Feed" [ref=e66] [cursor=pointer]:
+            - img [ref=e68]
+        - listitem [ref=e70]:
+          - button "Jenis Pakan" [ref=e71] [cursor=pointer]:
+            - img [ref=e73]
+        - listitem [ref=e75]:
+          - button "Merek Pakan" [ref=e76] [cursor=pointer]:
+            - img [ref=e78]
+        - listitem [ref=e80]:
+          - button "Produk Pakan" [ref=e81] [cursor=pointer]:
+            - img [ref=e83]
+        - listitem [ref=e85]:
+          - button "Supplier" [active] [ref=e86] [cursor=pointer]:
+            - img [ref=e88]
+        - listitem [ref=e90]:
+          - generic [ref=e92]: Reports
+        - listitem [ref=e93]:
+          - button "Performance" [ref=e94] [cursor=pointer]:
+            - img [ref=e96]
+        - listitem [ref=e98]:
+          - button "Stock Resume" [ref=e99] [cursor=pointer]:
+            - img [ref=e101]
+        - listitem [ref=e103]:
+          - button "Audit Log" [ref=e104] [cursor=pointer]:
+            - img [ref=e106]
+        - listitem [ref=e108]:
+          - button "RBAC" [ref=e109] [cursor=pointer]:
+            - img [ref=e111]
+      - separator [ref=e114]
+      - button [ref=e116] [cursor=pointer]:
+        - img [ref=e117]
+    - main [ref=e119]:
+      - generic [ref=e166]:
+        - generic [ref=e167]:
+          - heading "Manajemen Supplier" [level=5] [ref=e168]
+          - button "Tambah Supplier" [ref=e169] [cursor=pointer]:
+            - img [ref=e171]
+            - text: Tambah Supplier
+        - generic [ref=e174]:
+          - table [ref=e176]:
+            - rowgroup [ref=e177]:
+              - row "Kode Nama Contact Telepon Kategori Status Aksi" [ref=e178]:
+                - columnheader "Kode" [ref=e179]:
+                  - button "Kode" [ref=e180] [cursor=pointer]:
+                    - text: Kode
+                    - img [ref=e181]
+                - columnheader "Nama" [ref=e183]:
+                  - button "Nama" [ref=e184] [cursor=pointer]:
+                    - text: Nama
+                    - img [ref=e185]
+                - columnheader "Contact" [ref=e187]:
+                  - button "Contact" [ref=e188] [cursor=pointer]:
+                    - text: Contact
+                    - img [ref=e189]
+                - columnheader "Telepon" [ref=e191]:
+                  - button "Telepon" [ref=e192] [cursor=pointer]:
+                    - text: Telepon
+                    - img [ref=e193]
+                - columnheader "Kategori" [ref=e195]:
+                  - button "Kategori" [ref=e196] [cursor=pointer]:
+                    - text: Kategori
+                    - img [ref=e197]
+                - columnheader "Status" [ref=e199]:
+                  - button "Status" [ref=e200] [cursor=pointer]:
+                    - text: Status
+                    - img [ref=e201]
+                - columnheader "Aksi" [ref=e203]
+            - rowgroup [ref=e204]:
+              - row "Tidak ada data" [ref=e205]:
+                - cell "Tidak ada data" [ref=e206]:
+                  - paragraph [ref=e207]: Tidak ada data
+          - generic [ref=e209]:
+            - paragraph [ref=e210]: "Baris per halaman:"
+            - generic [ref=e211]:
+              - 'combobox "Baris per halaman: 10" [ref=e212] [cursor=pointer]': "10"
+              - textbox: "10"
+              - img
+            - paragraph [ref=e213]: 0-0 dari 0
+            - generic [ref=e214]:
+              - button "first page" [disabled]:
+                - img
+              - button "previous page" [disabled]:
+                - img
+              - button "next page" [disabled]:
+                - img
+              - button "last page" [disabled]:
+                - img
+  - contentinfo [ref=e162]:
+    - generic [ref=e163]: © 2026 SakhaFarm
+    - generic [ref=e164]: v1.0.0

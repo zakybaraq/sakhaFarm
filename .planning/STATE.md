@@ -1,7 +1,7 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: - Bug Fixes & Data Integration
+milestone: v1.3
+milestone_name: - In Progress
 status: Summary Generated
 last_updated: "2026-04-20T23:09:40.912Z"
 progress:

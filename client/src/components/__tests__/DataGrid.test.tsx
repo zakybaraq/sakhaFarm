@@ -24,14 +24,14 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   </QueryClientProvider>
 );
 
-describe('DataGrid', () => {
+describe('ResponsiveTable', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders DataGrid component', () => {
+  it('renders ResponsiveTable component', () => {
     render(<UnitsPage />, { wrapper });
-    expect(document.body.innerHTML).toContain('MuiDataGrid');
+    expect(document.body.innerHTML).toContain('Manajemen Unit');
   });
 
   it('renders page container', () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -92,7 +92,7 @@ export function UserModal({ open, onClose, editId }: UserModalProps) {
     setError(null);
     try {
       await mutation.mutateAsync(data);
-    } catch (err) {
+    } catch (_err) {
       setError('Gagal menyimpan pengguna');
     } finally {
       setIsSubmitting(false);

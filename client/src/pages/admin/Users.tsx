@@ -1,21 +1,21 @@
 import { useState } from 'react';
-import { Box, Typography, Button, Paper, Chip, IconButton } from '@mui/material';
-import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import { Box, Typography, Button, Paper, IconButton, Switch } from '@mui/material';
+import { ResponsiveTable } from '../../components/ui/ResponsiveTable';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listUsers, deactivateUser, activateUser, type User } from '../../api/users';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserModal } from './UserModal';
+import { ColumnDef } from '../../types/table';
 
 export function UsersPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['users'],
     queryFn: () => listUsers(),
     enabled: !!user,
@@ -25,7 +25,6 @@ export function UsersPage() {
     mutationFn: deactivateUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      setSelectedId(null);
     },
   });
 
@@ -33,7 +32,6 @@ export function UsersPage() {
     mutationFn: activateUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      setSelectedId(null);
     },
   });
 
@@ -42,33 +40,67 @@ export function UsersPage() {
     setModalOpen(true);
   };
 
-  const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Nama', flex: 1, minWidth: 200 },
-    { field: 'email', headerName: 'Email', flex: 1, minWidth: 200 },
-    { field: 'roleId', headerName: 'Role ID', width: 100 },
-    { field: 'tenantId', headerName: 'Tenant ID', width: 100 },
+  const handleDeactivate = (id: string) => {
+    deactivateMutation.mutate(id);
+  };
+
+  const handleActivate = (id: string) => {
+    activateMutation.mutate(id);
+  };
+
+  const columns: ColumnDef<User>[] = [
     {
-      field: 'status',
-      headerName: 'Status',
-      width: 120,
-      renderCell: (params) => {
-        if (params.value === 'active') {
-          return <Chip label="Aktif" color="success" size="small" />;
-        }
-        return <Chip label="Nonaktif" color="default" size="small" />;
+      accessorKey: 'name',
+      header: 'Nama',
+      size: 200,
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email',
+      size: 200,
+    },
+    {
+      accessorKey: 'roleId',
+      header: 'Role ID',
+      size: 100,
+    },
+    {
+      accessorKey: 'tenantId',
+      header: 'Tenant ID',
+      size: 100,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      size: 100,
+      cell: ({ row }) => {
+        const isActive = row.original.status === 'active';
+        return (
+          <Switch
+            size="small"
+            checked={isActive}
+            onChange={(e) => {
+              e.stopPropagation();
+              if (isActive) {
+                handleDeactivate(row.original.id);
+              } else {
+                handleActivate(row.original.id);
+              }
+            }}
+          />
+        );
       },
     },
     {
-      field: 'actions',
-      headerName: 'Aksi',
-      width: 60,
-      sortable: false,
-      renderCell: (params) => (
+      accessorKey: 'actions',
+      header: 'Aksi',
+      size: 60,
+      cell: ({ row }) => (
         <IconButton
           size="small"
           onClick={(e) => {
             e.stopPropagation();
-            handleEdit(params.row);
+            handleEdit(row.original);
           }}
         >
           <EditIcon fontSize="small" />
@@ -93,25 +125,15 @@ export function UsersPage() {
         </Button>
       </Box>
 
-      <Paper sx={{ height: 500 }}>
-        <DataGrid
-          rows={data?.users ?? []}
+      <Paper>
+        <ResponsiveTable
           columns={columns}
-          loading={isLoading}
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-          disableRowSelectionOnClick
-          disableColumnResize
-          autosizeOnMount={false}
-          getRowId={(row) => row.id}
-          onRowSelectionModelChange={(newSelection: unknown) => {
-            const selected = newSelection as string[];
-            setSelectedId(selected[0] ?? null);
-          }}
-          sx={{
-            border: 'none',
-            '& .MuiDataGrid-columnHeaders': { bgcolor: '#f8fafc', fontWeight: 600 },
-          }}
+          data={data?.users ?? []}
+          enableSorting
+          enableFiltering
+          enablePagination
+          initialPageSize={10}
+          className="w-full"
         />
       </Paper>
 

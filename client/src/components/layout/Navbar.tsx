@@ -16,57 +16,10 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
-import AgricultureIcon from '@mui/icons-material/Agriculture';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../../contexts/AuthContext';
 import { APPBAR_HEIGHT } from '../../theme';
-
-function SakhaFarmLogo({ collapsed }: { collapsed?: boolean }) {
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Box
-        sx={{
-          width: 36,
-          height: 36,
-          borderRadius: 1,
-          bgcolor: 'primary.main',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <AgricultureIcon sx={{ color: 'white', fontSize: 22 }} />
-      </Box>
-      {!collapsed && (
-        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 700,
-              color: 'primary.main',
-              lineHeight: 1.2,
-              fontSize: '1.1rem',
-            }}
-          >
-            Sakha Farm
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{
-              color: 'text.secondary',
-              lineHeight: 1,
-              fontSize: '0.65rem',
-              letterSpacing: '0.5px',
-            }}
-          >
-            LIVESTOCK MANAGEMENT
-          </Typography>
-        </Box>
-      )}
-    </Box>
-  );
-}
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -78,6 +31,7 @@ function formatSegment(segment: string): string {
   return segment.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function Navbar({ onMenuClick, sidebarWidth, sidebarCollapsed }: NavbarProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -120,33 +74,33 @@ export function Navbar({ onMenuClick, sidebarWidth, sidebarCollapsed }: NavbarPr
           </IconButton>
         )}
 
-         <Breadcrumbs sx={{ display: { xs: 'none', sm: 'flex' } }}>
-           {pathSegments.length === 0 ? (
-             <Typography variant="body2" color="text.primary" fontWeight={500}>
-               Dashboard
-             </Typography>
-           ) : (
-             pathSegments.map((segment, index) => {
-               const path = '/' + pathSegments.slice(0, index + 1).join('/');
-               const isLast = index === pathSegments.length - 1;
-               return isLast ? (
-                 <Typography key={path} variant="body2" color="text.primary">
-                   {formatSegment(segment)}
-                 </Typography>
-               ) : (
-                 <Link
-                   key={path}
-                   variant="body2"
-                   color="text.secondary"
-                   sx={{ cursor: 'pointer', textDecoration: 'none' }}
-                   onClick={() => navigate(path)}
-                 >
-                   {formatSegment(segment)}
-                 </Link>
-               );
-             })
-           )}
-         </Breadcrumbs>
+        <Breadcrumbs sx={{ display: { xs: 'none', sm: 'flex' } }}>
+          {pathSegments.length === 0 ? (
+            <Typography variant="body2" color="text.primary" fontWeight={500}>
+              Dashboard
+            </Typography>
+          ) : (
+            pathSegments.map((segment, index) => {
+              const path = '/' + pathSegments.slice(0, index + 1).join('/');
+              const isLast = index === pathSegments.length - 1;
+              return isLast ? (
+                <Typography key={path} variant="body2" color="text.primary">
+                  {formatSegment(segment)}
+                </Typography>
+              ) : (
+                <Link
+                  key={path}
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ cursor: 'pointer', textDecoration: 'none' }}
+                  onClick={() => navigate(path)}
+                >
+                  {formatSegment(segment)}
+                </Link>
+              );
+            })
+          )}
+        </Breadcrumbs>
 
         <Box sx={{ flexGrow: 1 }} />
 

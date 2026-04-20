@@ -18,7 +18,8 @@
   "workflow": {
     "autoMode": false,
     "skipResearch": false,
-    "requireVerification": true
+    "requireVerification": true,
+    "_auto_chain_active": false
   },
   "pendingUserInputs": [
     "CSV/Excel files for feed product types"

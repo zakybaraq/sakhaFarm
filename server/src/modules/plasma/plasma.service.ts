@@ -181,7 +181,7 @@ export async function updatePlasma(
     address?: string
     phone?: string
     capacity?: number
-    isActive?: boolean
+    isActive?: number
   },
   tenantId: number,
   userId: string,

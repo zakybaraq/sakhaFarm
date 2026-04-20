@@ -1,5 +1,5 @@
 ---
-status: testing
+status: passed
 phase: 16-reports-data-integration
 source: 16-SUMMARY.md, 16-03-SUMMARY.md
 started: 2026-04-21T00:00:00Z
@@ -40,7 +40,7 @@ note: Code verified - empty state at line 111-113
 ### 6. Stock Resume Shows Real Data
 expected: Navigate to Reports → Stock Resume page. Table shows real stock data from API (not mock data).
 result: pass
-note: Verified via Playwright - API returns 200 OK, table shows "Tidak ada data" (correct - feed_stock table is empty)
+note: Verified via Playwright - displays "Plasma Alpha | BSP Starter | 100 | 5.000 kg"
 
 ### 7. Stock Resume Filter Dropdowns
 expected: Unit, Plasma, and Feed filter dropdowns on Stock Resume are populated with real data from APIs.
@@ -71,14 +71,26 @@ note: Verified via Playwright - "Trend IP (Index Performa)" chart displays with 
 
 total: 11
 passed: 11
-issues: 0
+issues: 5
 pending: 0
 skipped: 0
 blocked: 0
 
+## Issues Found & Fixed
+
+| # | Issue | Severity | Status |
+|---|-------|----------|--------|
+| 1 | Recording form onSubmit was mock-only (setTimeout + console.log) | Critical | Fixed |
+| 2 | No recordings API client existed | Critical | Fixed |
+| 3 | SuratJalanModal URL mismatch (/api/feed/suratjalan vs /api/feed/surat-jalan) | Critical | Fixed |
+| 4 | SuratJalanModal field names mismatch with backend API | Critical | Fixed |
+| 5 | StockResume backend response structure mismatch (nested vs flat) | Critical | Fixed |
+| 6 | FeedStock backend response missing plasmaName, totalZak, totalKg, isLow | Critical | Fixed |
+| 7 | totalKg null crash in StockResume and FeedStock | High | Fixed |
+
 ## Gaps
 
-[none yet]
+[none]
 
 ## Gaps
 

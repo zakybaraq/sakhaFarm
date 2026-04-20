@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -12,13 +12,22 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { ResponsiveTable } from '../../components/ui/ResponsiveTable';
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from '@tanstack/react-query';
 import { listAuditLogs, AuditLogEntry, AuditFilters } from '../../api/audit';
+import { listUsers } from '../../api/users';
+import { ColumnDef } from '../../types/table';
 
-// Common action types for filtering (matching backend)
-const actionTypes = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGIN_FAILED', 'LOGOUT'];
+// Common action types for filtering (matching backend - lowercase stored in DB)
+const actionTypes = [
+  { value: 'create', label: 'CREATE' },
+  { value: 'update', label: 'UPDATE' },
+  { value: 'delete', label: 'DELETE' },
+  { value: 'login', label: 'LOGIN' },
+  { value: 'login_failed', label: 'LOGIN_FAILED' },
+  { value: 'logout', label: 'LOGOUT' },
+];
 
 interface AuditLogProps {
   isAdmin?: boolean;
@@ -45,31 +54,57 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
   }, [actionFilter, userFilter, dateFrom, dateTo]);
 
   // Fetch audit logs from API
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['audit-logs', apiFilters],
+  const { data, error, isLoading } = useQuery({
+    queryKey: ['audit-logs', actionFilter, userFilter, dateFrom, dateTo],
     queryFn: () => listAuditLogs(apiFilters),
     // Require at least one filter to prevent full-table scan error
     enabled: !!(
-      apiFilters.action ||
-      apiFilters.userId ||
-      apiFilters.startDate ||
-      apiFilters.endDate
+      actionFilter ||
+      userFilter ||
+      dateFrom ||
+      dateTo
     ),
     staleTime: 30000, // 30 seconds
   });
 
-  // Transform API data to display format
-  const auditLogs: AuditLogEntry[] = data?.logs ?? [];
+  // Fetch users separately to populate dropdown with emails
+  const { data: usersData } = useQuery({
+    queryKey: ['audit-users'],
+    queryFn: () => listUsers(),
+    staleTime: 300000, // 5 minutes
+  });
+
+  // Build userId → email map
+  const userMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    usersData?.users?.forEach((u: { id: string; email: string }) => {
+      map[u.id] = u.email;
+    });
+    return map;
+  }, [usersData]);
+
+  const auditLogs = useMemo<AuditLogEntry[]>(() => data?.logs ?? [], [data]);
+
+  // Enrich audit logs with user email
+  const enrichedLogs = useMemo(() => {
+    return auditLogs.map((log) => ({
+      ...log,
+      userEmail: userMap[log.userId] || log.userId,
+    }));
+  }, [auditLogs, userMap]);
+
+  // Get unique users from real data
+  const uniqueUsers = useMemo(() => {
+    const userIds = [...new Set(auditLogs.map((log) => log.userId).filter(Boolean))];
+    return userIds.map((id) => ({ id, email: userMap[id] || id }));
+  }, [auditLogs, userMap]);
 
   const filteredLogs = useMemo(() => {
-    // If no API filters, apply client-side search
-    const noApiFilters =
-      !apiFilters.action && !apiFilters.userId && !apiFilters.startDate && !apiFilters.endDate;
-
-    return auditLogs.filter((log) => {
+    return enrichedLogs.filter((log) => {
       // Always apply search filter client-side
       const matchesSearch =
         searchText === '' ||
+        (log.userEmail?.toLowerCase().includes(searchText.toLowerCase()) ?? false) ||
         (log.userId?.toLowerCase().includes(searchText.toLowerCase()) ?? false) ||
         log.action.toLowerCase().includes(searchText.toLowerCase()) ||
         log.resource.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -78,7 +113,7 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
       // Apply action filter
       const matchesAction = !actionFilter || log.action === actionFilter;
 
-      // Apply user filter
+      // Apply user filter (compare by userId since dropdown stores userId)
       const matchesUser = !userFilter || log.userId === userFilter;
 
       // Apply date filter (client-side if API filter not used)
@@ -88,14 +123,15 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
 
       return matchesSearch && matchesAction && matchesUser && matchesDateFrom && matchesDateTo;
     });
-  }, [auditLogs, searchText, actionFilter, userFilter, dateFrom, dateTo, apiFilters]);
+  }, [enrichedLogs, searchText, actionFilter, userFilter, dateFrom, dateTo]);
 
-  const columns: GridColDef[] = [
+  const columns: ColumnDef<AuditLogEntry>[] = [
     {
-      field: 'createdAt',
-      headerName: 'Timestamp',
-      width: 180,
-      valueFormatter: (value) => {
+      accessorKey: 'createdAt',
+      header: 'Timestamp',
+      size: 180,
+      cell: ({ row }) => {
+        const value = row.original.createdAt;
         if (!value) return '';
         const date = new Date(value);
         return date.toLocaleString('id-ID', {
@@ -108,13 +144,18 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
         });
       },
     },
-    { field: 'userId', headerName: 'User', width: 200 },
     {
-      field: 'action',
-      headerName: 'Action',
-      width: 130,
-      renderCell: (params) => {
-        const action = params.value as string;
+      accessorKey: 'userEmail',
+      header: 'User',
+      size: 200,
+      cell: ({ row }) => row.original.userEmail ?? row.original.userId ?? '-',
+    },
+    {
+      accessorKey: 'action',
+      header: 'Action',
+      size: 130,
+      cell: ({ row }) => {
+        const action = row.original.action as string;
         let bgColor = '#9E9E9E';
         if (action === 'CREATE') bgColor = '#2E7D32';
         else if (action === 'UPDATE') bgColor = '#0288D1';
@@ -139,12 +180,17 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
         );
       },
     },
-    { field: 'resource', headerName: 'Entity', width: 120 },
-    { field: 'details', headerName: 'Details', flex: 1, minWidth: 250 },
+    {
+      accessorKey: 'resource',
+      header: 'Entity',
+      size: 120,
+    },
+    {
+      accessorKey: 'details',
+      header: 'Details',
+      size: 250,
+    },
   ];
-
-  // Get unique users from real data
-  const uniqueUsers = [...new Set(auditLogs.map((log) => log.userId).filter(Boolean))];
 
   // Show error state
   if (error) {
@@ -152,9 +198,7 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
       <Box sx={{ p: 3 }}>
         <Alert severity="error">
           <Typography variant="h6">Error Loading Audit Logs</Typography>
-          <Typography variant="body2">
-            Failed to load audit logs: {(error as Error).message}
-          </Typography>
+          <Typography variant="body2">Failed to load audit logs: {error.message}</Typography>
         </Alert>
       </Box>
     );
@@ -178,7 +222,7 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
   }
 
   // Check if filters are applied (backend requires at least one filter)
-  const hasFilters = actionFilter || userFilter || dateFrom || dateTo;
+  const _hasFilters = actionFilter || userFilter || dateFrom || dateTo;
 
   if (!isAdmin) {
     return (
@@ -220,8 +264,8 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
             >
               <MenuItem value="">Semua</MenuItem>
               {actionTypes.map((action) => (
-                <MenuItem key={action} value={action}>
-                  {action}
+                <MenuItem key={action.value} value={action.value}>
+                  {action.label}
                 </MenuItem>
               ))}
             </Select>
@@ -235,9 +279,9 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
               onChange={(e) => setUserFilter(e.target.value || null)}
             >
               <MenuItem value="">Semua</MenuItem>
-              {uniqueUsers.map((user) => (
-                <MenuItem key={user} value={user}>
-                  {user}
+              {uniqueUsers.map((u) => (
+                <MenuItem key={u.id} value={u.id}>
+                  {u.email}
                 </MenuItem>
               ))}
             </Select>
@@ -279,20 +323,15 @@ export function AuditLog({ isAdmin = true }: AuditLogProps) {
         </Box>
       </Paper>
 
-      <Paper sx={{ height: 500 }}>
-        <DataGrid
-          rows={filteredLogs}
+      <Paper>
+        <ResponsiveTable
           columns={columns}
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-          disableRowSelectionOnClick
-          sx={{
-            border: 'none',
-            '& .MuiDataGrid-columnHeaders': {
-              bgcolor: '#f8fafc',
-              fontWeight: 600,
-            },
-          }}
+          data={filteredLogs}
+          enableSorting
+          enableFiltering
+          enablePagination
+          initialPageSize={10}
+          className="w-full"
         />
       </Paper>
     </Box>

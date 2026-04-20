@@ -13,7 +13,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { createUnit, updateUnit, listUnits, type Unit } from '../../api/units';
+import { createUnit, updateUnit, listUnits } from '../../api/units';
 
 const unitSchema = z.object({
   name: z.string().min(1, 'Nama unit wajib diisi'),
@@ -87,7 +87,7 @@ export function UnitModal({ open, onClose, selectedId }: UnitModalProps) {
     setError(null);
     try {
       await createMutation.mutateAsync(data);
-    } catch (err) {
+    } catch (_err) {
       setError('Gagal menyimpan unit');
     } finally {
       setIsSubmitting(false);

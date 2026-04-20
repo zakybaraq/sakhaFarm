@@ -1,15 +1,29 @@
-import { db } from '../../config/database'
-import { cycles, plasmas, units, auditLogs, dailyRecordings } from '../../db/schema'
-import { eq, and, isNull, desc, count, max } from 'drizzle-orm'
+import { db } from "../../config/database";
+import {
+  cycles,
+  plasmas,
+  units,
+  auditLogs,
+  dailyRecordings,
+} from "../../db/schema";
+import { eq, and, isNull, desc, count, max } from "drizzle-orm";
 import {
   CycleNotFoundError,
   CycleCapacityExceededError,
   InvalidCycleStatusTransitionError,
   CycleNotInTenantPlasmaError,
   CycleHasRecordingsError,
-} from './cycle.errors'
+  InvalidDocTypeError,
+} from "./cycle.errors";
 
-const VALID_DOC_TYPES = ['CP', 'Patriot', 'Ayam Unggul', 'MBU'] as const
+const VALID_DOC_TYPES = [
+  "CP",
+  "Cobb",
+  "Ross",
+  "Patriot",
+  "Ayam Unggul",
+  "MBU",
+] as const;
 
 /**
  * Creates a new cycle (Chick-In) with auto-numbering, capacity validation, and DOC type check.
@@ -23,12 +37,19 @@ const VALID_DOC_TYPES = ['CP', 'Patriot', 'Ayam Unggul', 'MBU'] as const
  * @throws CycleCapacityExceededError if initialPopulation exceeds plasma capacity
  */
 export async function createCycle(
-  input: { plasmaId: number; docType: string; chickInDate: string; initialPopulation: number },
+  input: {
+    plasmaId: number;
+    docType: string;
+    chickInDate: string;
+    initialPopulation: number;
+  },
   tenantId: number,
   userId: string,
 ) {
-  if (!VALID_DOC_TYPES.includes(input.docType as (typeof VALID_DOC_TYPES)[number])) {
-    throw new InvalidDocTypeError(input.docType, [...VALID_DOC_TYPES])
+  if (
+    !VALID_DOC_TYPES.includes(input.docType as (typeof VALID_DOC_TYPES)[number])
+  ) {
+    throw new InvalidDocTypeError(input.docType, [...VALID_DOC_TYPES]);
   }
 
   return db.transaction(async (tx) => {
@@ -43,23 +64,26 @@ export async function createCycle(
           isNull(plasmas.deletedAt),
         ),
       )
-      .limit(1)
+      .limit(1);
 
     if (plasma.length === 0) {
-      throw new CycleNotInTenantPlasmaError(input.plasmaId)
+      throw new CycleNotInTenantPlasmaError(input.plasmaId);
     }
 
-    const plasmaCapacity = plasma[0].plasmas.capacity ?? 0
+    const plasmaCapacity = plasma[0].plasmas.capacity ?? 0;
     if (input.initialPopulation > plasmaCapacity) {
-      throw new CycleCapacityExceededError(input.initialPopulation, plasmaCapacity)
+      throw new CycleCapacityExceededError(
+        input.initialPopulation,
+        plasmaCapacity,
+      );
     }
 
     const cycleNumberResult = await tx
       .select({ max: max(cycles.cycleNumber) })
       .from(cycles)
-      .where(eq(cycles.plasmaId, input.plasmaId))
+      .where(eq(cycles.plasmaId, input.plasmaId));
 
-    const cycleNumber = (cycleNumberResult[0]?.max ?? 0) + 1
+    const cycleNumber = (cycleNumberResult[0]?.max ?? 0) + 1;
 
     const result = await tx.insert(cycles).values({
       plasmaId: input.plasmaId,
@@ -67,20 +91,20 @@ export async function createCycle(
       docType: input.docType,
       chickInDate: new Date(input.chickInDate),
       initialPopulation: input.initialPopulation,
-      status: 'active',
-      totalFeedKg: '0',
-    })
+      status: "active",
+      totalFeedKg: "0",
+    });
 
-    const newId = result[0].insertId
+    const newId = result[0].insertId;
 
     try {
       await tx.insert(auditLogs).values({
         userId,
-        action: 'create',
-        resource: 'cycle',
+        action: "create",
+        resource: "cycle",
         resourceId: String(newId),
-        newValue: JSON.stringify({ ...input, cycleNumber, status: 'active' }),
-      })
+        newValue: JSON.stringify({ ...input, cycleNumber, status: "active" }),
+      });
     } catch {
       // Fire-and-forget audit logging
     }
@@ -92,10 +116,10 @@ export async function createCycle(
       docType: input.docType,
       chickInDate: input.chickInDate,
       initialPopulation: input.initialPopulation,
-      status: 'active',
-      totalFeedKg: '0',
-    }
-  })
+      status: "active",
+      totalFeedKg: "0",
+    };
+  });
 }
 
 /**
@@ -106,10 +130,14 @@ export async function createCycle(
  * @param status - Optional status filter (active, completed, failed)
  * @returns Array of cycles with plasma and unit names, ordered by chickInDate descending
  */
-export async function listCycles(tenantId: number, plasmaId?: number, status?: string) {
-  const conditions = [eq(units.tenantId, tenantId), isNull(cycles.deletedAt)]
-  if (plasmaId !== undefined) conditions.push(eq(cycles.plasmaId, plasmaId))
-  if (status !== undefined) conditions.push(eq(cycles.status, status))
+export async function listCycles(
+  tenantId: number,
+  plasmaId?: number,
+  status?: string,
+) {
+  const conditions = [eq(units.tenantId, tenantId), isNull(cycles.deletedAt)];
+  if (plasmaId !== undefined) conditions.push(eq(cycles.plasmaId, plasmaId));
+  if (status !== undefined) conditions.push(eq(cycles.status, status));
 
   return db
     .select({
@@ -132,7 +160,7 @@ export async function listCycles(tenantId: number, plasmaId?: number, status?: s
     .leftJoin(plasmas, eq(cycles.plasmaId, plasmas.id))
     .leftJoin(units, eq(plasmas.unitId, units.id))
     .where(and(...conditions))
-    .orderBy(desc(cycles.chickInDate))
+    .orderBy(desc(cycles.chickInDate));
 }
 
 /**
@@ -165,14 +193,20 @@ export async function getCycle(id: number, tenantId: number) {
     .from(cycles)
     .leftJoin(plasmas, eq(cycles.plasmaId, plasmas.id))
     .leftJoin(units, eq(plasmas.unitId, units.id))
-    .where(and(eq(cycles.id, id), eq(units.tenantId, tenantId), isNull(cycles.deletedAt)))
-    .limit(1)
+    .where(
+      and(
+        eq(cycles.id, id),
+        eq(units.tenantId, tenantId),
+        isNull(cycles.deletedAt),
+      ),
+    )
+    .limit(1);
 
   if (result.length === 0) {
-    throw new CycleNotFoundError(id)
+    throw new CycleNotFoundError(id);
   }
 
-  return result[0]
+  return result[0];
 }
 
 /**
@@ -189,47 +223,62 @@ export async function getCycle(id: number, tenantId: number) {
  */
 export async function updateCycle(
   id: number,
-  input: { docType?: string; chickInDate?: string; initialPopulation?: number },
+  input: {
+    docType?: string;
+    chickInDate?: string;
+    initialPopulation?: number;
+    status?: string;
+  },
   tenantId: number,
   userId: string,
 ) {
-  const existing = await getCycle(id, tenantId)
+  const existing = await getCycle(id, tenantId);
 
-  if (existing.status !== 'active') {
-    throw new InvalidCycleStatusTransitionError(existing.status, 'update')
+  if (existing.status !== "active") {
+    throw new InvalidCycleStatusTransitionError(existing.status, "update");
   }
 
-  if (input.docType && !VALID_DOC_TYPES.includes(input.docType as (typeof VALID_DOC_TYPES)[number])) {
-    throw new InvalidDocTypeError(input.docType, [...VALID_DOC_TYPES])
+  if (
+    input.docType &&
+    !VALID_DOC_TYPES.includes(input.docType as (typeof VALID_DOC_TYPES)[number])
+  ) {
+    throw new InvalidDocTypeError(input.docType, [...VALID_DOC_TYPES]);
   }
 
   if (input.initialPopulation !== undefined && existing.capacity != null) {
     if (input.initialPopulation > existing.capacity) {
-      throw new CycleCapacityExceededError(input.initialPopulation, existing.capacity)
+      throw new CycleCapacityExceededError(
+        input.initialPopulation,
+        existing.capacity,
+      );
     }
   }
 
-  const updateData: Record<string, unknown> = {}
-  if (input.docType !== undefined) updateData.docType = input.docType
-  if (input.chickInDate !== undefined) updateData.chickInDate = new Date(input.chickInDate)
-  if (input.initialPopulation !== undefined) updateData.initialPopulation = input.initialPopulation
+  const updateData: Record<string, unknown> = {};
+  if (input.docType !== undefined) updateData.docType = input.docType;
+  if (input.chickInDate !== undefined)
+    updateData.chickInDate = new Date(input.chickInDate);
+  if (input.initialPopulation !== undefined)
+    updateData.initialPopulation = input.initialPopulation;
+  if (input.status !== undefined)
+    updateData.status = input.status.toLowerCase();
 
-  await db.update(cycles).set(updateData).where(eq(cycles.id, id))
+  await db.update(cycles).set(updateData).where(eq(cycles.id, id));
 
   try {
     await db.insert(auditLogs).values({
       userId,
-      action: 'update',
-      resource: 'cycle',
+      action: "update",
+      resource: "cycle",
       resourceId: String(id),
       oldValue: JSON.stringify(existing),
       newValue: JSON.stringify(input),
-    })
+    });
   } catch {
     // Fire-and-forget audit logging
   }
 
-  return { success: true }
+  return { success: true };
 }
 
 /**
@@ -243,32 +292,39 @@ export async function updateCycle(
  * @throws CycleNotFoundError if cycle doesn't exist
  * @throws CycleHasRecordingsError if daily recordings exist
  */
-export async function softDeleteCycle(id: number, tenantId: number, userId: string) {
-  await getCycle(id, tenantId)
+export async function softDeleteCycle(
+  id: number,
+  tenantId: number,
+  userId: string,
+) {
+  await getCycle(id, tenantId);
 
   const recordingCheck = await db
     .select({ count: count() })
     .from(dailyRecordings)
-    .where(eq(dailyRecordings.cycleId, id))
+    .where(eq(dailyRecordings.cycleId, id));
 
   if (recordingCheck[0].count > 0) {
-    throw new CycleHasRecordingsError(id, recordingCheck[0].count)
+    throw new CycleHasRecordingsError(id, recordingCheck[0].count);
   }
 
-  await db.update(cycles).set({ deletedAt: new Date() }).where(eq(cycles.id, id))
+  await db
+    .update(cycles)
+    .set({ deletedAt: new Date() })
+    .where(eq(cycles.id, id));
 
   try {
     await db.insert(auditLogs).values({
       userId,
-      action: 'delete',
-      resource: 'cycle',
+      action: "delete",
+      resource: "cycle",
       resourceId: String(id),
-    })
+    });
   } catch {
     // Fire-and-forget audit logging
   }
 
-  return { success: true }
+  return { success: true };
 }
 
 /**
@@ -288,30 +344,38 @@ export async function completeCycle(
   tenantId: number,
   userId: string,
 ) {
-  const existing = await getCycle(id, tenantId)
+  const existing = await getCycle(id, tenantId);
 
-  if (existing.status !== 'active') {
-    throw new InvalidCycleStatusTransitionError(existing.status, 'completed')
+  if (existing.status !== "active") {
+    throw new InvalidCycleStatusTransitionError(existing.status, "completed");
   }
 
   await db
     .update(cycles)
-    .set({ status: 'completed', harvestDate: new Date(input.harvestDate), finalPopulation: input.finalPopulation })
-    .where(eq(cycles.id, id))
+    .set({
+      status: "completed",
+      harvestDate: new Date(input.harvestDate),
+      finalPopulation: input.finalPopulation,
+    })
+    .where(eq(cycles.id, id));
 
   try {
     await db.insert(auditLogs).values({
       userId,
-      action: 'complete',
-      resource: 'cycle',
+      action: "complete",
+      resource: "cycle",
       resourceId: String(id),
-      newValue: JSON.stringify({ status: 'completed', harvestDate: input.harvestDate, finalPopulation: input.finalPopulation }),
-    })
+      newValue: JSON.stringify({
+        status: "completed",
+        harvestDate: input.harvestDate,
+        finalPopulation: input.finalPopulation,
+      }),
+    });
   } catch {
     // Fire-and-forget audit logging
   }
 
-  return { success: true }
+  return { success: true };
 }
 
 /**
@@ -331,28 +395,36 @@ export async function failCycle(
   tenantId: number,
   userId: string,
 ) {
-  const existing = await getCycle(id, tenantId)
+  const existing = await getCycle(id, tenantId);
 
-  if (existing.status !== 'active') {
-    throw new InvalidCycleStatusTransitionError(existing.status, 'failed')
+  if (existing.status !== "active") {
+    throw new InvalidCycleStatusTransitionError(existing.status, "failed");
   }
 
   await db
     .update(cycles)
-    .set({ status: 'failed', harvestDate: new Date(input.harvestDate), notes: input.notes ?? null })
-    .where(eq(cycles.id, id))
+    .set({
+      status: "failed",
+      harvestDate: new Date(input.harvestDate),
+      notes: input.notes ?? null,
+    })
+    .where(eq(cycles.id, id));
 
   try {
     await db.insert(auditLogs).values({
       userId,
-      action: 'fail',
-      resource: 'cycle',
+      action: "fail",
+      resource: "cycle",
       resourceId: String(id),
-      newValue: JSON.stringify({ status: 'failed', harvestDate: input.harvestDate, notes: input.notes ?? null }),
-    })
+      newValue: JSON.stringify({
+        status: "failed",
+        harvestDate: input.harvestDate,
+        notes: input.notes ?? null,
+      }),
+    });
   } catch {
     // Fire-and-forget audit logging
   }
 
-  return { success: true }
+  return { success: true };
 }

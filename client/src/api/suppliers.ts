@@ -20,15 +20,19 @@ export interface SuppliersResponse {
 }
 
 export interface ListSuppliersParams {
+  tenantId: number;
   category?: string;
   isActive?: boolean;
 }
 
-export function listSuppliers(params?: ListSuppliersParams) {
-  return apiClient<SuppliersResponse>("/suppliers");
+export function listSuppliers(params: ListSuppliersParams) {
+  const queryParams = new URLSearchParams({ tenantId: String(params.tenantId) });
+  if (params.category) queryParams.set('category', params.category);
+  if (params.isActive !== undefined) queryParams.set('isActive', String(params.isActive));
+  return apiClient<SuppliersResponse>(`/suppliers?${queryParams}`);
 }
 
-export function createSupplier(data: {
+export function createSupplier(tenantId: number, data: {
   code: string;
   name: string;
   contactPerson?: string;
@@ -36,13 +40,14 @@ export function createSupplier(data: {
   address?: string;
   category: "feed" | "vitamin" | "medicine" | "other";
 }): Promise<Supplier> {
-  return apiClient<Supplier>("/suppliers", {
+  return apiClient<Supplier>(`/suppliers?tenantId=${tenantId}`, {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
 export function updateSupplier(
+  tenantId: number,
   id: number,
   data: {
     code?: string;
@@ -54,16 +59,16 @@ export function updateSupplier(
     isActive?: number;
   },
 ): Promise<Supplier> {
-  return apiClient<Supplier>(`/suppliers/${id}`, {
+  return apiClient<Supplier>(`/suppliers/${id}?tenantId=${tenantId}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
 }
 
-export function toggleSupplier(id: number): Promise<Supplier> {
-  return apiClient<Supplier>(`/suppliers/${id}/toggle`, { method: "PUT" });
+export function toggleSupplier(tenantId: number, id: number): Promise<Supplier> {
+  return apiClient<Supplier>(`/suppliers/${id}/toggle?tenantId=${tenantId}`, { method: "PUT" });
 }
 
-export function deleteSupplier(id: number): Promise<void> {
-  return apiClient<void>(`/suppliers/${id}`, { method: "DELETE" });
+export function deleteSupplier(tenantId: number, id: number): Promise<void> {
+  return apiClient<void>(`/suppliers/${id}?tenantId=${tenantId}`, { method: "DELETE" });
 }

@@ -1,0 +1,83 @@
+- generic [ref=e1]:
+  - generic [ref=e16]:
+    - banner [ref=e17]:
+      - generic [ref=e18]:
+        - navigation [ref=e19]:
+          - list [ref=e20]:
+            - listitem [ref=e21]:
+              - paragraph [ref=e170]: Pharmaceuticals
+        - button [ref=e23] [cursor=pointer]:
+          - img [ref=e25]
+        - button "A" [ref=e27] [cursor=pointer]:
+          - generic [ref=e28]: A
+    - generic [ref=e29]:
+      - generic [ref=e31]:
+        - img [ref=e34]
+        - separator [ref=e37]
+        - list [ref=e38]:
+          - listitem [ref=e39]:
+            - button "Dashboard" [ref=e40] [cursor=pointer]:
+              - img [ref=e42]
+          - listitem [ref=e44]:
+            - button "Unit" [ref=e45] [cursor=pointer]:
+              - img [ref=e47]
+          - listitem [ref=e49]:
+            - button "Plasma" [ref=e50] [cursor=pointer]:
+              - img [ref=e52]
+          - listitem [ref=e55]:
+            - button "Cycle" [ref=e56] [cursor=pointer]:
+              - img [ref=e58]
+          - listitem [ref=e60]:
+            - button "Recording" [ref=e61] [cursor=pointer]:
+              - img [ref=e63]
+          - listitem [ref=e65]:
+            - button "Feed" [ref=e66] [cursor=pointer]:
+              - img [ref=e68]
+          - listitem [ref=e70]:
+            - button "Jenis Pakan" [ref=e71] [cursor=pointer]:
+              - img [ref=e73]
+          - listitem [ref=e75]:
+            - button "Merek Pakan" [ref=e76] [cursor=pointer]:
+              - img [ref=e78]
+          - listitem [ref=e80]:
+            - button "Produk Pakan" [ref=e81] [cursor=pointer]:
+              - img [ref=e83]
+          - listitem [ref=e85]:
+            - button "Supplier" [ref=e86] [cursor=pointer]:
+              - img [ref=e88]
+          - listitem [ref=e90]:
+            - button "Obat & Vitamin" [active] [ref=e91] [cursor=pointer]:
+              - img [ref=e93]
+          - listitem [ref=e95]:
+            - generic [ref=e97]: Reports
+          - listitem [ref=e98]:
+            - button "Performance" [ref=e99] [cursor=pointer]:
+              - img [ref=e101]
+          - listitem [ref=e103]:
+            - button "Stock Resume" [ref=e104] [cursor=pointer]:
+              - img [ref=e106]
+          - listitem [ref=e108]:
+            - button "Audit Log" [ref=e109] [cursor=pointer]:
+              - img [ref=e111]
+          - listitem [ref=e113]:
+            - button "RBAC" [ref=e114] [cursor=pointer]:
+              - img [ref=e116]
+        - separator [ref=e119]
+        - button [ref=e121] [cursor=pointer]:
+          - img [ref=e122]
+      - main [ref=e124]:
+        - generic [ref=e171]:
+          - img [ref=e172]
+          - heading "Something went wrong" [level=5] [ref=e174]
+          - paragraph [ref=e175]: useQuery is not defined
+          - generic [ref=e176]:
+            - button "Try Again" [ref=e177] [cursor=pointer]
+            - link "Back to Dashboard" [ref=e178] [cursor=pointer]:
+              - /url: /
+              - img [ref=e180]
+              - text: Back to Dashboard
+    - contentinfo [ref=e167]:
+      - generic [ref=e168]: © 2026 SakhaFarm
+      - generic [ref=e169]: v1.0.0
+  - tooltip "Obat & Vitamin":
+    - generic: Obat & Vitamin

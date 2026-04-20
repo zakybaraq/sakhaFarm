@@ -1,0 +1,45 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - navigation [ref=e6]:
+        - list [ref=e7]:
+          - listitem [ref=e8]:
+            - paragraph [ref=e9]: Pharmaceuticals
+      - button [ref=e10] [cursor=pointer]:
+        - img [ref=e12]
+      - button "A" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: A
+  - generic [ref=e16]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - img [ref=e21]
+        - generic [ref=e24]:
+          - heading "Sakha Farm" [level=6] [ref=e25]
+          - text: LIVESTOCK
+      - separator [ref=e26]
+      - list [ref=e27]:
+        - listitem [ref=e28]:
+          - button "Dashboard" [ref=e29] [cursor=pointer]:
+            - img [ref=e31]
+            - generic [ref=e34]: Dashboard
+      - separator [ref=e35]
+      - button [ref=e37] [cursor=pointer]:
+        - img [ref=e38]
+    - main [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - heading "Obat & Vitamin" [level=5] [ref=e43]
+          - button "Tambah" [ref=e44] [cursor=pointer]:
+            - img [ref=e46]
+            - text: Tambah
+        - generic [ref=e50]:
+          - generic [ref=e51]: Kode
+          - generic [ref=e52]: Nama
+          - generic [ref=e53]: Kategori
+          - generic [ref=e54]: Satuan
+          - generic [ref=e55]: Produsen
+          - generic [ref=e56]: Aktif
+          - generic [ref=e57]: Aksi
+  - contentinfo [ref=e59]:
+    - generic [ref=e60]: © 2026 SakhaFarm
+    - generic [ref=e61]: v1.0.0

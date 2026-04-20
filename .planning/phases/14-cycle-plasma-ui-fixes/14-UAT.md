@@ -1,5 +1,5 @@
 ---
-status: testing
+status: passed
 phase: 14-cycle-plasma-ui-fixes
 source: 14-01-SUMMARY.md
 started: 2026-04-21T00:00:00Z

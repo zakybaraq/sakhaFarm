@@ -1,7 +1,11 @@
-import { db } from '../../config/database'
-import { roles, permissions, rolePermissions, users } from '../../db/schema'
-import { eq, and, ne, sql } from 'drizzle-orm'
-import { RoleHasUsersError, DefaultRoleError, PermissionAssignmentError } from './rbac.errors'
+import { db } from "../../config/database";
+import { roles, permissions, rolePermissions, users } from "../../db/schema";
+import { eq, and, ne, or, isNull, sql } from "drizzle-orm";
+import {
+  RoleHasUsersError,
+  DefaultRoleError,
+  PermissionAssignmentError,
+} from "./rbac.errors";
 
 /**
  * Creates a new role scoped to a tenant.
@@ -11,15 +15,19 @@ import { RoleHasUsersError, DefaultRoleError, PermissionAssignmentError } from '
  * @param tenantId - Tenant ID (null for system-level roles)
  * @returns Created role record
  */
-export async function createRole(name: string, description: string, tenantId: number | null) {
+export async function createRole(
+  name: string,
+  description: string,
+  tenantId: number | null,
+) {
   const result = await db.insert(roles).values({
     name,
     description,
     tenantId,
     isDefault: 0,
-  })
+  });
 
-  return { name, description, tenantId, id: result[0].insertId }
+  return { name, description, tenantId, id: result[0].insertId };
 }
 
 /**
@@ -31,9 +39,19 @@ export async function createRole(name: string, description: string, tenantId: nu
  */
 export async function listRoles(tenantId: number | null) {
   if (tenantId === null) {
-    throw new Error('tenantId is required — cannot list roles without tenant context')
+    throw new Error(
+      "tenantId is required — cannot list roles without tenant context",
+    );
   }
-  return await db.select().from(roles).where(and(eq(roles.tenantId, tenantId), ne(roles.isDefault, -1)))
+  return await db
+    .select()
+    .from(roles)
+    .where(
+      and(
+        or(isNull(roles.tenantId), eq(roles.tenantId, tenantId)),
+        ne(roles.isDefault, -1),
+      ),
+    );
 }
 
 /**
@@ -43,8 +61,12 @@ export async function listRoles(tenantId: number | null) {
  * @returns Role record or undefined if not found
  */
 export async function getRole(id: number) {
-  const result = await db.select().from(roles).where(and(eq(roles.id, id), ne(roles.isDefault, -1))).limit(1)
-  return result[0]
+  const result = await db
+    .select()
+    .from(roles)
+    .where(and(eq(roles.id, id), ne(roles.isDefault, -1)))
+    .limit(1);
+  return result[0];
 }
 
 /**
@@ -55,22 +77,24 @@ export async function getRole(id: number) {
  * @param description - New description
  * @returns Updated role record
  */
-export async function updateRole(id: number, name: string, description: string) {
-  const role = await getRole(id)
+export async function updateRole(
+  id: number,
+  name: string,
+  description: string,
+) {
+  const role = await getRole(id);
   if (!role) {
-    throw new Error('Role not found')
+    throw new Error("Role not found");
   }
 
   if (role.isDefault === 1) {
-    throw new DefaultRoleError(role.name)
+    throw new DefaultRoleError(role.name);
   }
 
-  await db.update(roles)
-    .set({ name, description })
-    .where(eq(roles.id, id))
+  await db.update(roles).set({ name, description }).where(eq(roles.id, id));
 
-  const result = await db.select().from(roles).where(eq(roles.id, id)).limit(1)
-  return result[0]
+  const result = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
+  return result[0];
 }
 
 /**
@@ -83,29 +107,27 @@ export async function updateRole(id: number, name: string, description: string) 
  * @throws DefaultRoleError if role is a default/system role
  */
 export async function deleteRole(id: number) {
-  const role = await getRole(id)
+  const role = await getRole(id);
   if (!role) {
-    throw new Error('Role not found')
+    throw new Error("Role not found");
   }
 
   if (role.isDefault === 1) {
-    throw new DefaultRoleError(role.name)
+    throw new DefaultRoleError(role.name);
   }
 
   const activeUsers = await db
     .select({ count: users.id })
     .from(users)
-    .where(and(eq(users.roleId, id), eq(users.isActive, 1)))
+    .where(and(eq(users.roleId, id), eq(users.isActive, 1)));
 
   if (activeUsers.length > 0) {
-    throw new RoleHasUsersError(role.name, activeUsers.length)
+    throw new RoleHasUsersError(role.name, activeUsers.length);
   }
 
-  await db.update(roles)
-    .set({ isDefault: -1 })
-    .where(eq(roles.id, id))
+  await db.update(roles).set({ isDefault: -1 }).where(eq(roles.id, id));
 
-  return { id, deleted: true }
+  return { id, deleted: true };
 }
 
 /**
@@ -118,14 +140,18 @@ export async function deleteRole(id: number) {
  * @param category - Category grouping (e.g., "flock", "feed")
  * @returns Created permission record
  */
-export async function createPermission(name: string, description: string, category: string) {
+export async function createPermission(
+  name: string,
+  description: string,
+  category: string,
+) {
   const result = await db.insert(permissions).values({
     name,
     description,
     category,
-  })
+  });
 
-  return { name, description, category, id: result[0].insertId }
+  return { name, description, category, id: result[0].insertId };
 }
 
 /**
@@ -136,9 +162,12 @@ export async function createPermission(name: string, description: string, catego
  */
 export async function listPermissions(category?: string) {
   if (category) {
-    return await db.select().from(permissions).where(eq(permissions.category, category))
+    return await db
+      .select()
+      .from(permissions)
+      .where(eq(permissions.category, category));
   }
-  return await db.select().from(permissions)
+  return await db.select().from(permissions);
 }
 
 /**
@@ -148,8 +177,12 @@ export async function listPermissions(category?: string) {
  * @returns Permission record or undefined if not found
  */
 export async function getPermission(id: number) {
-  const result = await db.select().from(permissions).where(eq(permissions.id, id)).limit(1)
-  return result[0]
+  const result = await db
+    .select()
+    .from(permissions)
+    .where(eq(permissions.id, id))
+    .limit(1);
+  return result[0];
 }
 
 /**
@@ -160,13 +193,22 @@ export async function getPermission(id: number) {
  * @param description - New description
  * @returns Updated permission record
  */
-export async function updatePermission(id: number, name: string, description: string) {
-  await db.update(permissions)
+export async function updatePermission(
+  id: number,
+  name: string,
+  description: string,
+) {
+  await db
+    .update(permissions)
     .set({ name, description })
-    .where(eq(permissions.id, id))
+    .where(eq(permissions.id, id));
 
-  const result = await db.select().from(permissions).where(eq(permissions.id, id)).limit(1)
-  return result[0]
+  const result = await db
+    .select()
+    .from(permissions)
+    .where(eq(permissions.id, id))
+    .limit(1);
+  return result[0];
 }
 
 /**
@@ -177,34 +219,45 @@ export async function updatePermission(id: number, name: string, description: st
  * @param action - Action type (e.g., "allow", "deny")
  * @throws PermissionAssignmentError if role or permission not found, or already assigned
  */
-export async function assignPermission(roleId: number, permissionId: number, action: string) {
-  const role = await getRole(roleId)
+export async function assignPermission(
+  roleId: number,
+  permissionId: number,
+  action: string,
+) {
+  const role = await getRole(roleId);
   if (!role) {
-    throw new PermissionAssignmentError(`Role ${roleId} not found`)
+    throw new PermissionAssignmentError(`Role ${roleId} not found`);
   }
 
-  const permission = await getPermission(permissionId)
+  const permission = await getPermission(permissionId);
   if (!permission) {
-    throw new PermissionAssignmentError(`Permission ${permissionId} not found`)
+    throw new PermissionAssignmentError(`Permission ${permissionId} not found`);
   }
 
   const existing = await db
     .select()
     .from(rolePermissions)
-    .where(and(eq(rolePermissions.roleId, roleId), eq(rolePermissions.permissionId, permissionId)))
-    .limit(1)
+    .where(
+      and(
+        eq(rolePermissions.roleId, roleId),
+        eq(rolePermissions.permissionId, permissionId),
+      ),
+    )
+    .limit(1);
 
   if (existing.length > 0) {
-    throw new PermissionAssignmentError(`Permission ${permission.name} already assigned to role ${role.name}`)
+    throw new PermissionAssignmentError(
+      `Permission ${permission.name} already assigned to role ${role.name}`,
+    );
   }
 
   await db.insert(rolePermissions).values({
     roleId,
     permissionId,
     action,
-  })
+  });
 
-  return { roleId, permissionId, action }
+  return { roleId, permissionId, action };
 }
 
 /**
@@ -215,26 +268,36 @@ export async function assignPermission(roleId: number, permissionId: number, act
  * @throws PermissionAssignmentError if assignment not found
  */
 export async function removePermission(roleId: number, permissionId: number) {
-  const role = await getRole(roleId)
+  const role = await getRole(roleId);
   if (!role) {
-    throw new PermissionAssignmentError(`Role ${roleId} not found`)
+    throw new PermissionAssignmentError(`Role ${roleId} not found`);
   }
 
   const existing = await db
     .select()
     .from(rolePermissions)
-    .where(and(eq(rolePermissions.roleId, roleId), eq(rolePermissions.permissionId, permissionId)))
-    .limit(1)
+    .where(
+      and(
+        eq(rolePermissions.roleId, roleId),
+        eq(rolePermissions.permissionId, permissionId),
+      ),
+    )
+    .limit(1);
 
   if (existing.length === 0) {
-    throw new PermissionAssignmentError('Permission assignment not found')
+    throw new PermissionAssignmentError("Permission assignment not found");
   }
 
   await db
     .delete(rolePermissions)
-    .where(and(eq(rolePermissions.roleId, roleId), eq(rolePermissions.permissionId, permissionId)))
+    .where(
+      and(
+        eq(rolePermissions.roleId, roleId),
+        eq(rolePermissions.permissionId, permissionId),
+      ),
+    );
 
-  return { roleId, permissionId, removed: true }
+  return { roleId, permissionId, removed: true };
 }
 
 /**
@@ -245,12 +308,12 @@ export async function removePermission(roleId: number, permissionId: number) {
  * @returns Array of permission assignments with permission metadata
  */
 export async function getRolePermissions(roleId: number) {
-  const role = await getRole(roleId)
+  const role = await getRole(roleId);
   if (!role) {
-    throw new Error('Role not found')
+    throw new Error("Role not found");
   }
 
-  if (role.name === 'Super Admin') {
+  if (role.name === "Super Admin") {
     return await db
       .select({
         id: permissions.id,
@@ -260,7 +323,7 @@ export async function getRolePermissions(roleId: number) {
         permissionDescription: permissions.description,
         permissionCategory: permissions.category,
       })
-      .from(permissions)
+      .from(permissions);
   }
 
   return await db
@@ -274,5 +337,5 @@ export async function getRolePermissions(roleId: number) {
     })
     .from(rolePermissions)
     .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
-    .where(eq(rolePermissions.roleId, roleId))
+    .where(eq(rolePermissions.roleId, roleId));
 }

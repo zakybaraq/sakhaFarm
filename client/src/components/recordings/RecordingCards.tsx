@@ -49,7 +49,7 @@ export function CalculationCard({
 interface RecordingCalculationsDisplayProps {
   mortalityPct: string;
   survivalRate: string;
-  bwDeviation: number;
+  bwDeviation: number | null;
   projectedIP: number;
   standardBW: number;
 }
@@ -83,8 +83,8 @@ export function RecordingCalculationsDisplay({
       />
       <CalculationCard
         title={`Deviasi BW (Standar: ${standardBW}g)`}
-        value={`${bwDeviation >= 0 ? '+' : ''}${bwDeviation}g`}
-        color={bwDeviation >= 0 ? '#2E7D32' : '#D32F2F'}
+        value={bwDeviation === null ? '-' : `${bwDeviation >= 0 ? '+' : ''}${bwDeviation}g`}
+        color={bwDeviation !== null && bwDeviation >= 0 ? '#2E7D32' : '#D32F2F'}
         borderColor="#64B5F6"
         bgColor="#E3F2FD"
       />

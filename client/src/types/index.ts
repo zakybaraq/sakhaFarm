@@ -6,6 +6,7 @@
  */
 
 /** User object returned by /api/auth/me — includes roleId and tenantId for permission loading */
+// roleId === 1 indicates superadmin, roleId === 2 (or higher) = regular user
 export interface User {
   id: string;
   email: string;

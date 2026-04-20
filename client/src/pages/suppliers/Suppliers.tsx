@@ -39,15 +39,15 @@ export function SuppliersPage() {
   }>({ open: false, message: '', severity: 'success' });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['suppliers'],
-    queryFn: () => listSuppliers(),
+    queryKey: ['suppliers', user?.tenantId],
+    queryFn: () => listSuppliers({ tenantId: user?.tenantId ?? 1 }),
     enabled: !!user,
   });
 
   const suppliers = data?.suppliers || [];
 
   const deleteMutation = useMutation({
-    mutationFn: deleteSupplier,
+    mutationFn: (id: number) => deleteSupplier(user!.tenantId, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       setSelectedId(null);
@@ -68,7 +68,7 @@ export function SuppliersPage() {
 
   const toggleMutation = useMutation({
     mutationFn: async (id: number) => {
-      return toggleSupplier(id);
+      return toggleSupplier(user!.tenantId, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });

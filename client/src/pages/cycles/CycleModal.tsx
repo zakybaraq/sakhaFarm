@@ -114,7 +114,7 @@ export function CycleModal({ open, onClose, editId }: CycleModalProps) {
     setError(null);
     try {
       await mutation.mutateAsync(data);
-    } catch (err) {
+    } catch (_err) {
       setError('Gagal menyimpan siklus');
     } finally {
       setIsSubmitting(false);
@@ -150,11 +150,13 @@ export function CycleModal({ open, onClose, editId }: CycleModalProps) {
                 <FormControl fullWidth error={!!errors.plasmaId}>
                   <InputLabel>Plasma</InputLabel>
                   <Select {...field} label="Plasma" value={field.value || ''}>
-                    {plasmasData?.plasmas.map((plasma: Plasma) => (
-                      <MenuItem key={plasma.id} value={plasma.id}>
-                        {plasma.name}
-                      </MenuItem>
-                    ))}
+                    {plasmasData?.plasmas
+                      .filter((plasma: Plasma) => plasma.isActive === 1)
+                      .map((plasma: Plasma) => (
+                        <MenuItem key={plasma.id} value={plasma.id}>
+                          {plasma.name}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
               )}

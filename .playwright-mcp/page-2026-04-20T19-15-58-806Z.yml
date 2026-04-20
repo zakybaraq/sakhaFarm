@@ -1,0 +1,160 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - navigation [ref=e6]:
+        - list [ref=e7]:
+          - listitem [ref=e8]: Reports
+          - listitem [ref=e9]: /
+          - listitem [ref=e10]:
+            - paragraph [ref=e11]: Stock Resume
+      - button [ref=e12] [cursor=pointer]:
+        - img [ref=e14]
+      - button "A" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: A
+  - generic [ref=e18]:
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - img [ref=e23]
+        - generic [ref=e26]:
+          - heading "Sakha Farm" [level=6] [ref=e27]
+          - text: LIVESTOCK
+      - separator [ref=e28]
+      - list [ref=e29]:
+        - listitem [ref=e30]:
+          - button "Dashboard" [ref=e31] [cursor=pointer]:
+            - img [ref=e33]
+            - generic [ref=e36]: Dashboard
+        - listitem [ref=e37]:
+          - button "Unit" [ref=e38] [cursor=pointer]:
+            - img [ref=e40]
+            - generic [ref=e43]: Unit
+        - listitem [ref=e44]:
+          - button "Plasma" [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e51]: Plasma
+        - listitem [ref=e52]:
+          - button "Cycle" [ref=e53] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e58]: Cycle
+        - listitem [ref=e59]:
+          - button "Recording" [ref=e60] [cursor=pointer]:
+            - img [ref=e62]
+            - generic [ref=e65]: Recording
+        - listitem [ref=e66]:
+          - button "Feed" [ref=e67] [cursor=pointer]:
+            - img [ref=e69]
+            - generic [ref=e72]: Feed
+        - listitem [ref=e73]:
+          - generic [ref=e75]: Reports
+        - listitem [ref=e76]:
+          - button "Performance" [ref=e77] [cursor=pointer]:
+            - img [ref=e79]
+            - generic [ref=e82]: Performance
+        - listitem [ref=e83]:
+          - button "Stock Resume" [ref=e84] [cursor=pointer]:
+            - img [ref=e86]
+            - generic [ref=e89]: Stock Resume
+        - listitem [ref=e90]:
+          - button "Audit Log" [ref=e91] [cursor=pointer]:
+            - img [ref=e93]
+            - generic [ref=e96]: Audit Log
+        - listitem [ref=e97]:
+          - button "RBAC" [ref=e98] [cursor=pointer]:
+            - img [ref=e100]
+            - generic [ref=e104]: RBAC
+      - separator [ref=e105]
+      - button [ref=e107] [cursor=pointer]:
+        - img [ref=e108]
+    - main [ref=e110]:
+      - generic [ref=e111]:
+        - heading "Laporan Stok Pakan" [level=5] [ref=e112]
+        - generic [ref=e114]:
+          - generic [ref=e116]:
+            - generic: Pilih Unit
+            - generic [ref=e117]:
+              - combobox "Pilih Unit" [ref=e118]
+              - button "Open" [ref=e120] [cursor=pointer]:
+                - img [ref=e121]
+              - group:
+                - generic: Pilih Unit
+          - generic [ref=e124]:
+            - generic: Pilih Plasma
+            - generic [ref=e125]:
+              - combobox "Pilih Plasma" [ref=e126]
+              - button "Open" [ref=e128] [cursor=pointer]:
+                - img [ref=e129]
+              - group:
+                - generic: Pilih Plasma
+          - generic [ref=e132]:
+            - generic: Jenis Pakan
+            - generic [ref=e133]:
+              - combobox "Jenis Pakan" [ref=e134]
+              - button "Open" [ref=e136] [cursor=pointer]:
+                - img [ref=e137]
+              - group:
+                - generic: Jenis Pakan
+          - generic [ref=e139]:
+            - generic [ref=e140]: Tanggal Mulai
+            - generic [ref=e141]:
+              - textbox "Tanggal Mulai" [ref=e142]
+              - group:
+                - generic: Tanggal Mulai
+          - generic [ref=e143]:
+            - generic [ref=e144]: Tanggal Akhir
+            - generic [ref=e145]:
+              - textbox "Tanggal Akhir" [ref=e146]
+              - group:
+                - generic: Tanggal Akhir
+          - button "Export Excel" [ref=e147] [cursor=pointer]:
+            - img [ref=e149]
+            - text: Export Excel
+        - generic [ref=e152]:
+          - table [ref=e154]:
+            - rowgroup [ref=e155]:
+              - row "Unit Plasma Jenis Pakan Total Zak Total Kg" [ref=e156]:
+                - columnheader "Unit" [ref=e157]:
+                  - button "Unit" [ref=e158] [cursor=pointer]:
+                    - text: Unit
+                    - img [ref=e159]
+                - columnheader "Plasma" [ref=e161]:
+                  - button "Plasma" [ref=e162] [cursor=pointer]:
+                    - text: Plasma
+                    - img [ref=e163]
+                - columnheader "Jenis Pakan" [ref=e165]:
+                  - button "Jenis Pakan" [ref=e166] [cursor=pointer]:
+                    - text: Jenis Pakan
+                    - img [ref=e167]
+                - columnheader "Total Zak" [ref=e169]:
+                  - button "Total Zak" [ref=e170] [cursor=pointer]:
+                    - text: Total Zak
+                    - img [ref=e171]
+                - columnheader "Total Kg" [ref=e173]:
+                  - button "Total Kg" [ref=e174] [cursor=pointer]:
+                    - text: Total Kg
+                    - img [ref=e175]
+            - rowgroup [ref=e177]:
+              - row "Unit Test Alpha Updated Plasma Alpha BSP Starter 100 5.000 kg" [ref=e178]:
+                - cell "Unit Test Alpha Updated" [ref=e179]
+                - cell "Plasma Alpha" [ref=e180]
+                - cell "BSP Starter" [ref=e181]
+                - cell "100" [ref=e182]
+                - cell "5.000 kg" [ref=e183]
+          - generic [ref=e185]:
+            - paragraph [ref=e186]: "Baris per halaman:"
+            - generic [ref=e187]:
+              - 'combobox "Baris per halaman: 10" [ref=e188] [cursor=pointer]': "10"
+              - textbox: "10"
+              - img
+            - paragraph [ref=e189]: 1-1 dari 1
+            - generic [ref=e190]:
+              - button "first page" [disabled]:
+                - img
+              - button "previous page" [disabled]:
+                - img
+              - button "next page" [disabled]:
+                - img
+              - button "last page" [disabled]:
+                - img
+  - contentinfo [ref=e192]:
+    - generic [ref=e193]: © 2026 SakhaFarm
+    - generic [ref=e194]: v1.0.0

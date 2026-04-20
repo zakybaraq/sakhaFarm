@@ -1,0 +1,2 @@
+export { vitaminsMedicines, pharmaceuticalStock, pharmaceuticalBatches } from "../db/schema";
+export type { VitaminMedicine, NewVitaminMedicine, PharmaceuticalStock, NewPharmaceuticalStock, PharmaceuticalBatch, NewPharmaceuticalBatch } from "../db/schema";

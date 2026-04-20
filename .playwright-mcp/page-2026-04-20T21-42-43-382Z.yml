@@ -1,0 +1,93 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - navigation [ref=e6]:
+        - list [ref=e7]:
+          - listitem [ref=e8]:
+            - paragraph [ref=e9]: Dashboard
+      - button [ref=e10] [cursor=pointer]:
+        - img [ref=e12]
+      - button "A" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: A
+  - generic [ref=e16]:
+    - generic [ref=e18]:
+      - img [ref=e21]
+      - separator [ref=e26]
+      - list [ref=e27]:
+        - listitem [ref=e28]:
+          - button "Dashboard" [ref=e182] [cursor=pointer]:
+            - img [ref=e184]
+        - listitem [ref=e35]:
+          - button "Unit" [ref=e186] [cursor=pointer]:
+            - img [ref=e188]
+        - listitem [ref=e42]:
+          - button "Plasma" [ref=e190] [cursor=pointer]:
+            - img [ref=e192]
+        - listitem [ref=e50]:
+          - button "Cycle" [ref=e195] [cursor=pointer]:
+            - img [ref=e197]
+        - listitem [ref=e57]:
+          - button "Recording" [ref=e199] [cursor=pointer]:
+            - img [ref=e201]
+        - listitem [ref=e64]:
+          - button "Feed" [ref=e203] [cursor=pointer]:
+            - img [ref=e205]
+        - listitem [ref=e71]:
+          - button "Jenis Pakan" [ref=e207] [cursor=pointer]:
+            - img [ref=e209]
+        - listitem [ref=e78]:
+          - button "Merek Pakan" [ref=e211] [cursor=pointer]:
+            - img [ref=e213]
+        - listitem [ref=e85]:
+          - button "Produk Pakan" [ref=e215] [cursor=pointer]:
+            - img [ref=e217]
+        - listitem [ref=e92]:
+          - button "Supplier" [ref=e219] [cursor=pointer]:
+            - img [ref=e221]
+        - listitem [ref=e99]:
+          - generic [ref=e101]: Reports
+        - listitem [ref=e102]:
+          - button "Performance" [ref=e223] [cursor=pointer]:
+            - img [ref=e225]
+        - listitem [ref=e109]:
+          - button "Stock Resume" [ref=e227] [cursor=pointer]:
+            - img [ref=e229]
+        - listitem [ref=e116]:
+          - button "Audit Log" [ref=e231] [cursor=pointer]:
+            - img [ref=e233]
+        - listitem [ref=e123]:
+          - button "RBAC" [ref=e235] [cursor=pointer]:
+            - img [ref=e237]
+      - separator [ref=e131]
+      - button [active] [ref=e133] [cursor=pointer]:
+        - img [ref=e240]
+    - main [ref=e136]:
+      - generic [ref=e137]:
+        - heading "Dashboard" [level=1] [ref=e138]
+        - heading "Dashboard" [level=4] [ref=e139]
+        - generic [ref=e140]:
+          - generic [ref=e144]:
+            - generic [ref=e145]:
+              - heading "1" [level=3] [ref=e146]
+              - paragraph [ref=e147]: Active Cycles
+            - img [ref=e148]
+          - generic [ref=e153]:
+            - generic [ref=e154]:
+              - heading "—" [level=3] [ref=e155]
+              - paragraph [ref=e156]: Avg FCR
+            - img [ref=e157]
+          - generic [ref=e162]:
+            - generic [ref=e163]:
+              - heading "NaN" [level=3] [ref=e164]
+              - paragraph [ref=e165]: Avg IP
+              - text: Income Over Feed Cost
+            - img [ref=e166]
+          - generic [ref=e171]:
+            - generic [ref=e172]:
+              - heading "0" [level=3] [ref=e173]
+              - paragraph [ref=e174]: Low Stock Alerts
+              - text: All stock levels OK
+            - img [ref=e175]
+  - contentinfo [ref=e179]:
+    - generic [ref=e180]: © 2026 SakhaFarm
+    - generic [ref=e181]: v1.0.0

@@ -11,6 +11,10 @@
     "docker:down": "docker compose down"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "prettier": "^3.8.3"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "^8.21.3"
   }
 }

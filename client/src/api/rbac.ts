@@ -5,8 +5,8 @@
  * Permissions are fetched once at login and cached in memory for the session.
  */
 
-import { apiClient } from './client';
-import type { Permission } from '../types';
+import { apiClient } from "./client";
+import type { Permission } from "../types";
 
 /** RBAC role with metadata for role management UI. */
 export interface Role {
@@ -59,8 +59,8 @@ export function createRole(data: {
   name: string;
   description: string;
 }): Promise<{ success: boolean; role: Role }> {
-  return apiClient<{ success: boolean; role: Role }>('/rbac/roles', {
-    method: 'POST',
+  return apiClient<{ success: boolean; role: Role }>("/rbac/roles", {
+    method: "POST",
     body: JSON.stringify(data),
   });
 }
@@ -78,7 +78,7 @@ export function updateRole(
   data: { name?: string; description?: string },
 ): Promise<{ success: boolean }> {
   return apiClient<{ success: boolean }>(`/rbac/roles/${id}`, {
-    method: 'PUT',
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
@@ -92,7 +92,7 @@ export function updateRole(
  */
 export function deleteRole(id: number): Promise<{ success: boolean }> {
   return apiClient<{ success: boolean }>(`/rbac/roles/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 }
 
@@ -105,5 +105,46 @@ export function deleteRole(id: number): Promise<{ success: boolean }> {
  * @throws ApiError if session invalid
  */
 export function getUserPermissions(): Promise<{ permissions: Permission[] }> {
-  return apiClient<{ permissions: Permission[] }>('/auth/permissions');
+  return apiClient<{ permissions: Permission[] }>("/auth/permissions");
+}
+
+export interface RbacPermission {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+}
+
+export interface PermissionsResponse {
+  permissions: RbacPermission[];
+}
+
+export function listPermissions(): Promise<PermissionsResponse> {
+  return apiClient<PermissionsResponse>("/rbac/permissions");
+}
+
+export interface RolePermission {
+  id: number;
+  name: string;
+  action: string;
+  category: string;
+}
+
+export function getRolePermissions(
+  roleId: number,
+): Promise<{ permissions: RolePermission[] }> {
+  return apiClient<{ permissions: RolePermission[] }>(
+    `/rbac/roles/${roleId}/permissions`,
+  );
+}
+
+export function assignPermissionToRole(
+  roleId: number,
+  permissionId: number,
+  action: "assign" | "remove",
+): Promise<{ success: boolean }> {
+  return apiClient<{ success: boolean }>(`/rbac/roles/${roleId}/permissions`, {
+    method: "POST",
+    body: JSON.stringify({ permissionId, action }),
+  });
 }

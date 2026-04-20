@@ -17,6 +17,7 @@ import {
   updateSupplier,
   type Supplier,
 } from '../../api/suppliers';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CATEGORIES = ['feed', 'vitamin', 'medicine', 'other'] as const;
 
@@ -34,6 +35,7 @@ export function SupplierModal({
   suppliers,
 }: SupplierModalProps) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const existing = supplierId
     ? suppliers.find((s) => s.id === supplierId)
     : null;
@@ -73,7 +75,7 @@ export function SupplierModal({
   }, [existing, open]);
 
   const createMut = useMutation({
-    mutationFn: createSupplier,
+    mutationFn: (data: typeof form) => createSupplier(user!.tenantId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       onClose();
@@ -86,7 +88,7 @@ export function SupplierModal({
   });
 
   const updateMut = useMutation({
-    mutationFn: (data: typeof form) => updateSupplier(supplierId!, data),
+    mutationFn: (data: typeof form) => updateSupplier(user!.tenantId, supplierId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       onClose();

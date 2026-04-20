@@ -1,0 +1,1 @@
+- generic [ref=e2]: "Failed query: select `id`, `tenant_id`, `code`, `name`, `contact_person`, `phone`, `address`, `category`, `is_active`, `deleted_at`, `created_at`, `updated_at` from `suppliers` where (`suppliers`.`tenant_id` = ? and `suppliers`.`deleted_at` is null) order by `suppliers`.`name` params: 1"

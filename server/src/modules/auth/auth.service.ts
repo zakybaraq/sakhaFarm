@@ -1,13 +1,20 @@
-import { hash, verify } from '@node-rs/argon2'
-import { generateIdFromEntropySize } from 'lucia'
-import { lucia } from '../../auth/lucia'
-import { db } from '../../config/database'
-import { redis } from '../../config/redis'
-import { users, sessions, roles } from '../../db/schema'
-import { tenants } from '../../db/schema/tenants'
-import { eq, and, ne, desc, sql } from 'drizzle-orm'
-import { ARGON2_OPTIONS, BRUTE_FORCE, SUPER_ADMIN_ROLE_ID } from '../../lib/constants'
-import { validatePasswordStrength, generateTempPassword } from '../../lib/password'
+import { hash, verify } from "@node-rs/argon2";
+import { generateIdFromEntropySize } from "lucia";
+import { lucia } from "../../auth/lucia";
+import { db } from "../../config/database";
+import { redis } from "../../config/redis";
+import { users, sessions, roles } from "../../db/schema";
+import { tenants } from "../../db/schema/tenants";
+import { eq, and, ne, desc, sql } from "drizzle-orm";
+import {
+  ARGON2_OPTIONS,
+  BRUTE_FORCE,
+  SUPER_ADMIN_ROLE_ID,
+} from "../../lib/constants";
+import {
+  validatePasswordStrength,
+  generateTempPassword,
+} from "../../lib/password";
 
 /**
  * Registers a new user with Lucia Auth.
@@ -19,18 +26,21 @@ export async function registerUser(
   roleId: number,
   tenantId: number,
 ) {
-  const validationError = validatePasswordStrength(password)
+  const validationError = validatePasswordStrength(password);
   if (validationError) {
-    throw new Error(validationError)
+    throw new Error(validationError);
   }
 
-  const existingUser = await db.select().from(users).where(eq(users.email, email.toLowerCase()))
+  const existingUser = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email.toLowerCase()));
   if (existingUser.length > 0) {
-    throw new Error('Email already registered')
+    throw new Error("Email already registered");
   }
 
-  const userId = generateIdFromEntropySize(10)
-  const passwordHash = await hash(password, ARGON2_OPTIONS)
+  const userId = generateIdFromEntropySize(10);
+  const passwordHash = await hash(password, ARGON2_OPTIONS);
 
   await db.insert(users).values({
     id: userId,
@@ -42,84 +52,97 @@ export async function registerUser(
     isActive: 1,
     isLocked: 0,
     forcePasswordChange: 0,
-  })
+  });
 
-  const session = await lucia.createSession(userId, {})
-  const sessionCookie = lucia.createSessionCookie(session.id)
+  const session = await lucia.createSession(userId, {});
+  const sessionCookie = lucia.createSessionCookie(session.id);
 
-  return { userId, session, sessionCookie }
+  return { userId, session, sessionCookie };
 }
 
 /**
  * Authenticates user with email and password.
  */
 export async function loginUser(email: string, password: string) {
-  const normalizedEmail = email.toLowerCase()
-  const bruteForceKey = `bruteforce:login:${normalizedEmail}`
+  const normalizedEmail = email.toLowerCase();
+  const bruteForceKey = `bruteforce:login:${normalizedEmail}`;
 
-  const redisAttempts = await redis.get(bruteForceKey)
-  if (redisAttempts && parseInt(redisAttempts, 10) >= BRUTE_FORCE.MAX_ATTEMPTS) {
-    throw new Error('Invalid email or password')
+  const redisAttempts = await redis.get(bruteForceKey);
+  if (
+    redisAttempts &&
+    parseInt(redisAttempts, 10) >= BRUTE_FORCE.MAX_ATTEMPTS
+  ) {
+    throw new Error("Invalid email or password");
   }
 
-  const existingUser = await db.select().from(users).where(eq(users.email, normalizedEmail))
+  const existingUser = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, normalizedEmail));
 
   if (existingUser.length === 0) {
-    const pipeline = redis.pipeline()
-    pipeline.incr(bruteForceKey)
-    pipeline.expire(bruteForceKey, BRUTE_FORCE.WINDOW)
-    await pipeline.exec()
-    throw new Error('Invalid email or password')
+    const pipeline = redis.pipeline();
+    pipeline.incr(bruteForceKey);
+    pipeline.expire(bruteForceKey, BRUTE_FORCE.WINDOW);
+    await pipeline.exec();
+    throw new Error("Invalid email or password");
   }
 
-  const user = existingUser[0]
+  const user = existingUser[0];
 
   if (user.isLocked === 1) {
-    throw new Error('Invalid email or password')
+    throw new Error("Invalid email or password");
   }
 
-  const validPassword = await verify(user.passwordHash, password, ARGON2_OPTIONS)
+  const validPassword = await verify(
+    user.passwordHash,
+    password,
+    ARGON2_OPTIONS,
+  );
 
   if (!validPassword) {
-    const pipeline = redis.pipeline()
-    pipeline.incr(bruteForceKey)
-    pipeline.expire(bruteForceKey, BRUTE_FORCE.WINDOW)
-    await pipeline.exec()
+    const pipeline = redis.pipeline();
+    pipeline.incr(bruteForceKey);
+    pipeline.expire(bruteForceKey, BRUTE_FORCE.WINDOW);
+    await pipeline.exec();
 
-    const result = await db.update(users)
-      .set({ failedLoginAttempts: sql`${users.failedLoginAttempts} + 1` })
-      .where(eq(users.id, user.id))
-      .returning({ failedLoginAttempts: users.failedLoginAttempts })
+    const attempts = (user.failedLoginAttempts || 0) + 1;
+    await db
+      .update(users)
+      .set({ failedLoginAttempts: attempts })
+      .where(eq(users.id, user.id));
 
-    const attempts = result[0]?.failedLoginAttempts ?? (user.failedLoginAttempts || 0) + 1
     if (attempts >= BRUTE_FORCE.MAX_ATTEMPTS) {
-      await db.update(users).set({ isLocked: 1 }).where(eq(users.id, user.id))
+      await db.update(users).set({ isLocked: 1 }).where(eq(users.id, user.id));
     }
-    throw new Error('Invalid email or password')
+    throw new Error("Invalid email or password");
   }
 
-  await redis.del(bruteForceKey)
+  await redis.del(bruteForceKey);
 
-  const session = await lucia.createSession(user.id, {})
-  const sessionCookie = lucia.createSessionCookie(session.id)
+  const session = await lucia.createSession(user.id, {});
+  const sessionCookie = lucia.createSessionCookie(session.id);
 
-  await db.update(users).set({ lastLoginAt: new Date(), failedLoginAttempts: 0 }).where(eq(users.id, user.id))
+  await db
+    .update(users)
+    .set({ lastLoginAt: new Date(), failedLoginAttempts: 0 })
+    .where(eq(users.id, user.id));
 
-  return { user, session, sessionCookie }
+  return { user, session, sessionCookie };
 }
 
 /**
  * Logs out user by invalidating session.
  */
 export async function logoutUser(sessionId: string) {
-  await lucia.invalidateSession(sessionId)
+  await lucia.invalidateSession(sessionId);
 }
 
 /**
  * Validates session and returns user data.
  */
 export async function validateUserSession(sessionId: string) {
-  return await lucia.validateSession(sessionId)
+  return await lucia.validateSession(sessionId);
 }
 
 /**
@@ -147,13 +170,13 @@ export async function getUserProfile(userId: string) {
     .leftJoin(roles, eq(users.roleId, roles.id))
     .leftJoin(tenants, eq(users.tenantId, tenants.id))
     .where(eq(users.id, userId))
-    .limit(1)
+    .limit(1);
 
   if (result.length === 0) {
-    throw new Error('User not found')
+    throw new Error("User not found");
   }
 
-  return result[0]
+  return result[0];
 }
 
 /**
@@ -163,31 +186,46 @@ export async function getUserProfile(userId: string) {
  * @param newPassword - New password to set
  * @throws Error if current password is invalid or new password is weak
  */
-export async function changePassword(userId: string, currentPassword: string, newPassword: string) {
-  const validationError = validatePasswordStrength(newPassword)
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+) {
+  const validationError = validatePasswordStrength(newPassword);
   if (validationError) {
-    throw new Error(validationError)
+    throw new Error(validationError);
   }
 
   // Get user's current password hash for verification
-  const userResult = await db.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, userId)).limit(1)
+  const userResult = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
   if (userResult.length === 0) {
-    throw new Error('User not found')
+    throw new Error("User not found");
   }
 
   // Verify current password using Argon2
-  const validPassword = await verify(userResult[0].passwordHash, currentPassword, ARGON2_OPTIONS)
+  const validPassword = await verify(
+    userResult[0].passwordHash,
+    currentPassword,
+    ARGON2_OPTIONS,
+  );
 
   if (!validPassword) {
-    throw new Error('Current password is incorrect')
+    throw new Error("Current password is incorrect");
   }
 
   // Hash new password and update user
-  const passwordHash = await hash(newPassword, ARGON2_OPTIONS)
-  await db.update(users).set({ passwordHash, forcePasswordChange: 0 }).where(eq(users.id, userId))
+  const passwordHash = await hash(newPassword, ARGON2_OPTIONS);
+  await db
+    .update(users)
+    .set({ passwordHash, forcePasswordChange: 0 })
+    .where(eq(users.id, userId));
 
   // Invalidate all sessions (force re-login)
-  await lucia.invalidateUserSessions(userId)
+  await lucia.invalidateUserSessions(userId);
 }
 
 /**
@@ -196,27 +234,37 @@ export async function changePassword(userId: string, currentPassword: string, ne
  * @param adminUserId - Admin performing the reset
  * @returns Temporary password (must be communicated to user securely)
  */
-export async function adminResetPassword(targetUserId: string, adminUserId: string) {
+export async function adminResetPassword(
+  targetUserId: string,
+  adminUserId: string,
+) {
   // Verify admin exists and has Super Admin role (roleId = 1)
-  const admin = await db.select({ roleId: users.roleId }).from(users).where(eq(users.id, adminUserId)).limit(1)
+  const admin = await db
+    .select({ roleId: users.roleId })
+    .from(users)
+    .where(eq(users.id, adminUserId))
+    .limit(1);
   if (admin.length === 0 || admin[0].roleId !== SUPER_ADMIN_ROLE_ID) {
-    throw new Error('Only Super Admin can reset passwords')
+    throw new Error("Only Super Admin can reset passwords");
   }
 
-  const tempPassword = generateTempPassword()
-  const passwordHash = await hash(tempPassword, ARGON2_OPTIONS)
+  const tempPassword = generateTempPassword();
+  const passwordHash = await hash(tempPassword, ARGON2_OPTIONS);
 
-  await db.update(users).set({
-    passwordHash,
-    forcePasswordChange: 1,
-    failedLoginAttempts: 0,
-    isLocked: 0,
-  }).where(eq(users.id, targetUserId))
+  await db
+    .update(users)
+    .set({
+      passwordHash,
+      forcePasswordChange: 1,
+      failedLoginAttempts: 0,
+      isLocked: 0,
+    })
+    .where(eq(users.id, targetUserId));
 
   // Invalidate all sessions for target user
-  await lucia.invalidateUserSessions(targetUserId)
+  await lucia.invalidateUserSessions(targetUserId);
 
-  return tempPassword
+  return tempPassword;
 }
 
 /**
@@ -229,13 +277,13 @@ export async function getUserSessions(userId: string) {
     .select()
     .from(sessions)
     .where(eq(sessions.userId, userId))
-    .orderBy(desc(sessions.expiresAt))
+    .orderBy(desc(sessions.expiresAt));
 
-  return userSessions.map(s => ({
+  return userSessions.map((s) => ({
     id: s.id,
     expiresAt: s.expiresAt,
     isActive: s.expiresAt > new Date(),
-  }))
+  }));
 }
 
 /**
@@ -243,7 +291,7 @@ export async function getUserSessions(userId: string) {
  * @param sessionId - Session ID to revoke
  */
 export async function revokeSession(sessionId: string) {
-  await lucia.invalidateSession(sessionId)
+  await lucia.invalidateSession(sessionId);
 }
 
 /**
@@ -251,13 +299,16 @@ export async function revokeSession(sessionId: string) {
  * @param userId - User ID
  * @param currentSessionId - Session to keep active
  */
-export async function revokeAllOtherSessions(userId: string, currentSessionId: string) {
+export async function revokeAllOtherSessions(
+  userId: string,
+  currentSessionId: string,
+) {
   const userSessions = await db
     .select()
     .from(sessions)
-    .where(and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId)))
+    .where(and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId)));
 
   for (const session of userSessions) {
-    await lucia.invalidateSession(session.id)
+    await lucia.invalidateSession(session.id);
   }
 }

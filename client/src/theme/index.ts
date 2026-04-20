@@ -1,5 +1,4 @@
 import { createTheme } from '@mui/material/styles';
-import { drawerClasses } from '@mui/material/Drawer';
 
 /**
  * Minimalist MUI theme for SakhaFarm.

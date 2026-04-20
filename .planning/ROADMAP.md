@@ -4,42 +4,25 @@
 
 - **v1.0**: Core Farm Management — [Archived](./milestones/v1.0-ROADMAP.md)
 - **v1.1**: UI/UX Improvement — [Archived](./milestones/v1.1-ROADMAP.md) ✅ shipped 2026-04-20
-- **v1.2**: Bug Fixes & Data Integration — [Active]
+- **v1.2**: Bug Fixes & Data Integration — [Archived](./milestones/v1.2-ROADMAP.md) ✅ shipped 2026-04-21
+- **v1.3**: — [Active]
 
 ---
 
-<details>
-<summary>✅ v1.1 UI/UX Improvement (Phases 1–12) — SHIPPED 2026-04-20</summary>
+## v1.2 Summary (Archived)
 
-- [x] Phase 1: Sidebar Layout Fixes — completed 2026-04-18
-- [x] Phase 2: DataGrid Improvements — completed 2026-04-18
-- [x] Phase 3: Menu & Naming Cleanup — completed 2026-04-18
-- [x] Phase 4: Feature Additions — completed 2026-04-18
-- [x] Phase 5: Data Integration — completed 2026-04-18
-- [x] Phase 6: Code Cleanup — completed 2026-04-18
-- [x] Phase 7: Audit Filter UI — completed 2026-04-19
-- [x] Phase 8: Modern Responsive Table UI — completed 2026-04-20
-- [x] Phase 9: Frontend Fixes — completed 2026-04-18
-- [x] Phase 10: Nyquist Validation & Documentation — completed 2026-04-20
-- [x] Phase 11: ESLint Warning Cleanup — completed 2026-04-20
-- [x] Phase 12: E2E Dropdown & Integration Tests — completed 2026-04-20
-
-Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
-
-</details>
+- 8 phases, 13 plans, 16/16 requirements met
+- Key: Backend toggle fix, Data wiring, Feed Types/Brands/Suppliers/Vitamins CRUD, Sidebar reorganization
 
 ---
 
-## v1.2 - Bug Fixes & Data Integration
+## v1.3 - In Progress
 
-**Goal**: Fix all broken UI interactions and connect every page to real backend data. Zero dummy data, zero 500 errors, correct business logic throughout.
+**Goal**: TBD
 
 ### Phases
 
-- [ ] **Phase 13: Backend Toggle Fix** — Repair 500 errors on Units and Plasmas toggle endpoints
-- [ ] **Phase 14: Cycle & Plasma UI Fixes** — Replace cycle status toggle with read-only badge, enforce edit/delete rules, add phone column and numeric validation
-- [x] **Phase 15: Recordings, Feed & RBAC Data Integration** — Wire Recordings dropdowns, Feed dropdowns, and all RBAC tabs to real DB data — completed 2026-04-21
-- [x] **Phase 16: Reports Data Integration** — Connect Performance, Stock Resume, and Audit reports to real DB data (completed 2026-04-20)
+- [ ] **Phase 21**: TBD
 
 ## Phase Details
 

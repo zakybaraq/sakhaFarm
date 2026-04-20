@@ -1,80 +1,54 @@
 import { useState } from 'react';
 import { Box, Typography, Button, Paper, Chip } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { ResponsiveTable } from '../../components/ui/ResponsiveTable';
 import AddIcon from '@mui/icons-material/Add';
 import WarningIcon from '@mui/icons-material/Warning';
 import ErrorIcon from '@mui/icons-material/Error';
 import { SuratJalanModal } from './SuratJalanModal';
 import { LowStockAlert } from '../../components/feed/LowStockAlert';
+import { ColumnDef } from '../../types/table';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getFeedStock, type FeedStockItem } from '../../api/feed';
 
-const mockStockData = [
+const columns: ColumnDef<FeedStockItem>[] = [
   {
-    id: 1,
-    plasmaName: 'PlasmaUD Jaya',
-    feedProductName: 'BR 10',
-    totalZak: 45,
-    totalKg: 2250,
-    isLow: false,
+    accessorKey: 'plasmaName',
+    header: 'Plasma',
+    size: 150,
   },
   {
-    id: 2,
-    plasmaName: 'PlasmaUD Jaya',
-    feedProductName: 'BR 11',
-    totalZak: 15,
-    totalKg: 750,
-    isLow: true,
+    accessorKey: 'feedProductName',
+    header: 'Jenis Pakan',
+    size: 120,
   },
   {
-    id: 3,
-    plasmaName: 'PlasmaMakmur',
-    feedProductName: 'BSP',
-    totalZak: 8,
-    totalKg: 400,
-    isLow: true,
-  },
-  {
-    id: 4,
-    plasmaName: 'PlasmaMakmur',
-    feedProductName: 'BR 10',
-    totalZak: 60,
-    totalKg: 3000,
-    isLow: false,
-  },
-  {
-    id: 5,
-    plasmaName: 'PlasmaSentosa',
-    feedProductName: 'BR 11',
-    totalZak: 25,
-    totalKg: 1250,
-    isLow: false,
-  },
-];
-
-const columns: GridColDef[] = [
-  { field: 'plasmaName', headerName: 'Plasma', flex: 1, minWidth: 150 },
-  { field: 'feedProductName', headerName: 'Jenis Pakan', flex: 1, minWidth: 120 },
-  {
-    field: 'totalZak',
-    headerName: 'Total Zak',
-    width: 120,
+    accessorKey: 'totalZak',
+    header: 'Total Zak',
+    size: 120,
     align: 'right',
     headerAlign: 'right',
   },
   {
-    field: 'totalKg',
-    headerName: 'Total Kg',
-    width: 120,
+    accessorKey: 'totalKg',
+    header: 'Total Kg',
+    size: 120,
     align: 'right',
     headerAlign: 'right',
-    valueFormatter: (value: number) => `${value.toLocaleString('id-ID')} kg`,
+    cell: ({ row }) => {
+      const value = row.original.totalKg ?? 0;
+      return `${value.toLocaleString('id-ID')} kg`;
+    },
   },
   {
-    field: 'status',
-    headerName: 'Status',
-    width: 120,
-    renderCell: (params) => {
-      if (params.row.isLow) {
-        if (params.row.totalZak < 20) {
+    accessorKey: 'status',
+    header: 'Status',
+    size: 120,
+    cell: ({ row }) => {
+      const isLow = row.original.isLow;
+      const totalZak = row.original.totalZak;
+
+      if (isLow) {
+        if (totalZak < 20) {
           return (
             <Chip
               icon={<ErrorIcon sx={{ fontSize: 16 }} />}
@@ -102,10 +76,25 @@ const columns: GridColDef[] = [
 
 export function FeedStock() {
   const [modalOpen, setModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: feedData } = useQuery({
+    queryKey: ['feed-stock'],
+    queryFn: () => getFeedStock(),
+  });
+
+  const stockData = feedData?.stocks ?? [];
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
         <Typography variant="h5" sx={{ fontWeight: 600, fontSize: '24px' }}>
           Stok Pakan
         </Typography>
@@ -121,22 +110,15 @@ export function FeedStock() {
 
       <LowStockAlert />
 
-      <Paper sx={{ mt: 3, height: 500 }}>
-        <DataGrid
-          rows={mockStockData}
+      <Paper sx={{ mt: 3 }}>
+        <ResponsiveTable
           columns={columns}
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-          disableRowSelectionOnClick
-          sx={{
-            border: 'none',
-            '& .MuiDataGrid-columnHeaders': {
-              bgcolor: '#f8fafc',
-              fontWeight: 600,
-            },
-          }}
+          data={stockData}
+          enableSorting
+          enableFiltering
+          enablePagination
+          initialPageSize={10}
+          className="w-full"
         />
       </Paper>
 
@@ -144,8 +126,7 @@ export function FeedStock() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSuccess={() => {
-          // Invalidate query and refetch - will be implemented with TanStack Query
-          console.log('Surat Jalan created, refetching...');
+          queryClient.invalidateQueries({ queryKey: ['feed-stock'] });
         }}
       />
     </Box>

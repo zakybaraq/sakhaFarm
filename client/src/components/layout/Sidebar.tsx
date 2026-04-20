@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -11,6 +12,9 @@ import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
+import Collapse from "@mui/material/Collapse";
+import ExpandMore from "@mui/icons-material/ExpandMore";
+import ExpandLess from "@mui/icons-material/ExpandLess";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import BusinessIcon from "@mui/icons-material/Business";
 import AgricultureIcon from "@mui/icons-material/Agriculture";
@@ -19,6 +23,7 @@ import EditNoteIcon from "@mui/icons-material/EditNote";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -42,95 +47,57 @@ interface MenuItem {
   icon: React.ReactElement;
   path: string;
   permission: string | null;
-  isSectionHeader?: boolean;
 }
 
-const menuItems: MenuItem[] = [
-  { text: "Dashboard", icon: <DashboardIcon />, path: "/", permission: null },
+interface MenuSection {
+  id: string;
+  title: string;
+  defaultExpanded: boolean;
+  items: MenuItem[];
+}
+
+const menuStructure: MenuSection[] = [
   {
-    text: "Unit",
-    icon: <BusinessIcon />,
-    path: "/units",
-    permission: "unit.read",
+    id: "master",
+    title: "MASTER DATA",
+    defaultExpanded: true,
+    items: [
+      { text: "Unit", icon: <BusinessIcon />, path: "/units", permission: "unit.read" },
+      { text: "Plasma", icon: <AgricultureIcon />, path: "/plasmas", permission: "plasma.read" },
+      { text: "Jenis Pakan", icon: <Inventory2Icon />, path: "/feed/types", permission: "feed.read" },
+      { text: "Merek Pakan", icon: <Inventory2Icon />, path: "/feed/brands", permission: "feed.read" },
+      { text: "Produk Pakan", icon: <Inventory2Icon />, path: "/feed/products", permission: "feed.read" },
+      { text: "Supplier", icon: <LocalShippingIcon />, path: "/suppliers", permission: "supplier.read" },
+      { text: "Obat & Vitamin", icon: <MedicalServicesIcon />, path: "/pharmaceuticals", permission: "pharmaceuticals.read" },
+    ],
   },
   {
-    text: "Plasma",
-    icon: <AgricultureIcon />,
-    path: "/plasmas",
-    permission: "plasma.read",
+    id: "operations",
+    title: "OPERATIONS",
+    defaultExpanded: true,
+    items: [
+      { text: "Cycle", icon: <AutorenewIcon />, path: "/cycles", permission: "cycle.read" },
+      { text: "Recording", icon: <EditNoteIcon />, path: "/recordings", permission: "recording.read" },
+      { text: "Feed", icon: <Inventory2Icon />, path: "/feed", permission: "feed.read" },
+    ],
   },
   {
-    text: "Cycle",
-    icon: <AutorenewIcon />,
-    path: "/cycles",
-    permission: "cycle.read",
+    id: "reports",
+    title: "REPORTS",
+    defaultExpanded: false,
+    items: [
+      { text: "Performance", icon: <AssessmentIcon />, path: "/reports/performance", permission: "inventory.read" },
+      { text: "Stock Resume", icon: <AssessmentIcon />, path: "/reports/stock-resume", permission: "inventory.read" },
+      { text: "Audit Log", icon: <AssessmentIcon />, path: "/reports/audit", permission: "audit.read" },
+    ],
   },
   {
-    text: "Recording",
-    icon: <EditNoteIcon />,
-    path: "/recordings",
-    permission: "recording.read",
-  },
-  {
-    text: "Feed",
-    icon: <Inventory2Icon />,
-    path: "/feed",
-    permission: "feed.read",
-  },
-  {
-    text: "Jenis Pakan",
-    icon: <Inventory2Icon />,
-    path: "/feed/types",
-    permission: "feed.read",
-  },
-  {
-    text: "Merek Pakan",
-    icon: <Inventory2Icon />,
-    path: "/feed/brands",
-    permission: "feed.read",
-  },
-  {
-    text: "Produk Pakan",
-    icon: <Inventory2Icon />,
-    path: "/feed/products",
-    permission: "feed.read",
-  },
-  {
-    text: "Supplier",
-    icon: <LocalShippingIcon />,
-    path: "/suppliers",
-    permission: "supplier.read",
-  },
-  {
-    text: "Reports",
-    icon: <AssessmentIcon />,
-    path: "/reports",
-    permission: "inventory.read",
-    isSectionHeader: true,
-  },
-  {
-    text: "Performance",
-    icon: <AssessmentIcon />,
-    path: "/reports/performance",
-    permission: "inventory.read",
-  },
-  {
-    text: "Stock Resume",
-    icon: <AssessmentIcon />,
-    path: "/reports/stock-resume",
-    permission: "inventory.read",
-  },
-  {
-    text: "Audit Log",
-    icon: <AssessmentIcon />,
-    path: "/reports/audit",
-    permission: "audit.read",
-  },
-  {
-    text: "RBAC",
-    icon: <AdminPanelSettingsIcon />,
-    path: "/rbac",
-    permission: "rbac.read",
+    id: "settings",
+    title: "SETTINGS",
+    defaultExpanded: false,
+    items: [
+      { text: "RBAC", icon: <AdminPanelSettingsIcon />, path: "/rbac", permission: "rbac.read" },
+    ],
   },
 ];
 
@@ -142,10 +109,18 @@ function SidebarContent({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const visibleItems = menuItems.filter(
-    (item) =>
-      item.permission === null || userPermissions.includes(item.permission),
-  );
+  // Initialize expand state from menuStructure defaults
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    menuStructure.forEach((section) => {
+      initial[section.id] = section.defaultExpanded;
+    });
+    return initial;
+  });
+
+  const handleToggle = (sectionId: string) => {
+    setExpanded((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
+  };
 
   const drawerWidth = collapsed ? DRAWER_WIDTH_COLLAPSED : DRAWER_WIDTH;
 
@@ -218,76 +193,106 @@ function SidebarContent({
           minHeight: 0,
         }}
       >
-        {visibleItems.map((item) => {
-          if (item.isSectionHeader) {
-            return (
-              <ListItem key={item.text} disablePadding>
+        {menuStructure.map((section) => {
+          // Filter visible items by permission
+          const visibleItems = section.items.filter(
+            (item) =>
+              item.permission === null || userPermissions.includes(item.permission),
+          );
+
+          if (visibleItems.length === 0) return null;
+
+          const isExpanded = expanded[section.id];
+
+          return (
+            <Box key={section.id}>
+              {/* Section header with toggle */}
+              <ListItemButton
+                onClick={() => handleToggle(section.id)}
+                sx={{
+                  minHeight: 48,
+                  fontWeight: 700,
+                }}
+              >
                 <ListItemText
-                  primary={item.text}
+                  primary={section.title}
                   primaryTypographyProps={{
                     fontSize: "0.75rem",
                     fontWeight: 700,
                     color: "text.secondary",
                     textTransform: "uppercase",
-                    sx: { px: 2, py: 1 },
                   }}
                 />
-              </ListItem>
-            );
-          }
+                <ListItemIcon sx={{ minWidth: 36, color: "text.secondary" }}>
+                  {isExpanded ? <ExpandLess /> : <ExpandMore />}
+                </ListItemIcon>
+              </ListItemButton>
 
-          const isActive =
-            location.pathname === item.path ||
-            (item.path !== "/" && location.pathname.startsWith(item.path));
+              {/* Collapsible menu items */}
+              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                <List disablePadding>
+                  {visibleItems.map((item) => {
+                    const isActive =
+                      location.pathname === item.path ||
+                      (item.path !== "/" && location.pathname.startsWith(item.path));
 
-          const listItemButton = (
-            <ListItemButton
-              onClick={() => navigate(item.path)}
-              aria-label={item.text}
-              aria-current={isActive ? "page" : undefined}
-              sx={{
-                borderRadius: 1,
-                mx: 1,
-                mb: 0.5,
-                ...(isActive && {
-                  backgroundColor: "primary.main",
-                  color: "white",
-                  borderLeft: "3px solid",
-                  borderColor: "primary.dark",
-                  "&:hover": { backgroundColor: "primary.dark" },
-                }),
-                ...(!isActive && {
-                  "&:hover": { backgroundColor: "action.hover" },
-                }),
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: collapsed ? 0 : 40,
-                  color: isActive ? "white" : "text.secondary",
-                }}
-              >
-                {item.icon}
-              </ListItemIcon>
-              {!collapsed && (
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{ fontSize: "0.875rem" }}
-                />
-              )}
-            </ListItemButton>
-          );
+                    const listItemButton = (
+                      <ListItemButton
+                        onClick={() => navigate(item.path)}
+                        aria-label={item.text}
+                        aria-current={isActive ? "page" : undefined}
+                        sx={{
+                          borderRadius: 1,
+                          mx: 1,
+                          mb: 0.5,
+                          ...(isActive && {
+                            backgroundColor: "primary.main",
+                            color: "white",
+                            borderLeft: "3px solid",
+                            borderColor: "primary.dark",
+                            "&:hover": { backgroundColor: "primary.dark" },
+                          }),
+                          ...(!isActive && {
+                            "&:hover": { backgroundColor: "action.hover" },
+                          }),
+                        }}
+                      >
+                        <ListItemIcon
+                          sx={{
+                            minWidth: collapsed ? 0 : 40,
+                            color: isActive ? "white" : "text.secondary",
+                          }}
+                        >
+                          {item.icon}
+                        </ListItemIcon>
+                        {!collapsed && (
+                          <ListItemText
+                            primary={item.text}
+                            primaryTypographyProps={{ fontSize: "0.875rem" }}
+                          />
+                        )}
+                      </ListItemButton>
+                    );
 
-          return (
-            <ListItem key={item.text} disablePadding sx={{ display: "block" }}>
-              {collapsed ? (
-                <Tooltip title={item.text} placement="right">
-                  {listItemButton}
-                </Tooltip>
-              ) : (
-                listItemButton
-              )}
-            </ListItem>
+                    return (
+                      <ListItem
+                        key={item.text}
+                        disablePadding
+                        sx={{ display: "block" }}
+                      >
+                        {collapsed ? (
+                          <Tooltip title={item.text} placement="right">
+                            {listItemButton}
+                          </Tooltip>
+                        ) : (
+                          listItemButton
+                        )}
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              </Collapse>
+            </Box>
           );
         })}
       </List>

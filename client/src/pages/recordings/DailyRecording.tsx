@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { listActiveCycles } from '../../api/cycles';
+import { createRecording } from '../../api/recordings';
+import { getStandardsByDocType, type Standard } from '../../api/standards';
 import { useAuth } from '../../contexts/AuthContext';
 import { recordingSchema, type RecordingFormData } from '../../types/recording';
 import { RecordingForm } from '../../components/recordings/RecordingForm';
@@ -24,6 +26,7 @@ import { mockStandards } from '../../types/recording';
  */
 export function DailyRecording() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
@@ -61,7 +64,18 @@ export function DailyRecording() {
   // Get cycle info for standards
   const cycle = cyclesData?.cycles.find((c) => c.id === watchFields[5]);
   const docType = cycle?.docType || 'CP';
-  const standards = mockStandards[docType] || mockStandards['CP'];
+
+  // Fetch standards from API with fallback to mock
+  const { data: standardsData } = useQuery({
+    queryKey: ['standards', docType],
+    queryFn: () => getStandardsByDocType(docType),
+    enabled: !!docType,
+  });
+
+  const apiStandards = standardsData?.standards ?? [];
+  const standards = apiStandards.length > 0 
+    ? apiStandards.map((s: Standard) => s.standardBwG)
+    : mockStandards[docType] || mockStandards['CP'];
 
   // Calculate current day and standard body weight
   const currentDay = cycle
@@ -81,8 +95,15 @@ export function DailyRecording() {
   const onSubmit = async (data: RecordingFormData) => {
     setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Recording submitted:', data);
+      await createRecording({
+        cycleId: data.cycleId,
+        recordingDate: data.date,
+        dead: data.dead,
+        culled: data.culled,
+        remainingPopulation: data.remainingPopulation,
+        bodyWeightG: data.bodyWeight,
+      });
+      queryClient.invalidateQueries({ queryKey: ['performance'] });
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (err) {

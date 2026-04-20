@@ -1,0 +1,81 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - navigation [ref=e6]:
+        - list [ref=e7]:
+          - listitem [ref=e8]:
+            - paragraph [ref=e9]: Suppliers
+      - button [ref=e10] [cursor=pointer]:
+        - img [ref=e12]
+      - button "A" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: A
+  - generic [ref=e16]:
+    - generic [ref=e18]:
+      - img [ref=e21]
+      - separator [ref=e24]
+      - list [ref=e25]:
+        - listitem [ref=e26]:
+          - button "Dashboard" [ref=e27] [cursor=pointer]:
+            - img [ref=e29]
+      - separator [ref=e31]
+      - button [ref=e33] [cursor=pointer]:
+        - img [ref=e34]
+    - main [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - heading "Manajemen Supplier" [level=5] [ref=e39]
+          - button "Tambah Supplier" [ref=e40] [cursor=pointer]:
+            - img [ref=e42]
+            - text: Tambah Supplier
+        - generic [ref=e45]:
+          - table [ref=e47]:
+            - rowgroup [ref=e48]:
+              - row "Kode Nama Contact Telepon Kategori Status Aksi" [ref=e49]:
+                - columnheader "Kode" [ref=e50]:
+                  - button "Kode" [ref=e51] [cursor=pointer]:
+                    - text: Kode
+                    - img [ref=e52]
+                - columnheader "Nama" [ref=e54]:
+                  - button "Nama" [ref=e55] [cursor=pointer]:
+                    - text: Nama
+                    - img [ref=e56]
+                - columnheader "Contact" [ref=e58]:
+                  - button "Contact" [ref=e59] [cursor=pointer]:
+                    - text: Contact
+                    - img [ref=e60]
+                - columnheader "Telepon" [ref=e62]:
+                  - button "Telepon" [ref=e63] [cursor=pointer]:
+                    - text: Telepon
+                    - img [ref=e64]
+                - columnheader "Kategori" [ref=e66]:
+                  - button "Kategori" [ref=e67] [cursor=pointer]:
+                    - text: Kategori
+                    - img [ref=e68]
+                - columnheader "Status" [ref=e70]:
+                  - button "Status" [ref=e71] [cursor=pointer]:
+                    - text: Status
+                    - img [ref=e72]
+                - columnheader "Aksi" [ref=e74]
+            - rowgroup [ref=e75]:
+              - row "Tidak ada data" [ref=e76]:
+                - cell "Tidak ada data" [ref=e77]:
+                  - paragraph [ref=e78]: Tidak ada data
+          - generic [ref=e80]:
+            - paragraph [ref=e81]: "Baris per halaman:"
+            - generic [ref=e82]:
+              - 'combobox "Baris per halaman: 10" [ref=e83] [cursor=pointer]': "10"
+              - textbox: "10"
+              - img
+            - paragraph [ref=e84]: 0-0 dari 0
+            - generic [ref=e85]:
+              - button "first page" [disabled]:
+                - img
+              - button "previous page" [disabled]:
+                - img
+              - button "next page" [disabled]:
+                - img
+              - button "last page" [disabled]:
+                - img
+  - contentinfo [ref=e87]:
+    - generic [ref=e88]: © 2026 SakhaFarm
+    - generic [ref=e89]: v1.0.0

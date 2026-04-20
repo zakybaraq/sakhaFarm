@@ -1,0 +1,120 @@
+- generic [ref=e7]:
+  - banner [ref=e8]:
+    - generic [ref=e9]:
+      - navigation [ref=e10]:
+        - list [ref=e11]:
+          - listitem [ref=e12]: Reports
+          - listitem [ref=e13]: /
+          - listitem [ref=e14]:
+            - paragraph [ref=e15]: Performance
+      - button [ref=e16] [cursor=pointer]:
+        - img [ref=e18]
+      - button "A" [ref=e20] [cursor=pointer]:
+        - generic [ref=e21]: A
+  - generic [ref=e22]:
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - img [ref=e27]
+        - generic [ref=e30]:
+          - heading "Sakha Farm" [level=6] [ref=e31]
+          - text: LIVESTOCK
+      - separator [ref=e32]
+      - list [ref=e33]:
+        - listitem [ref=e34]:
+          - button "Dashboard" [ref=e35] [cursor=pointer]:
+            - img [ref=e37]
+            - generic [ref=e40]: Dashboard
+        - listitem [ref=e41]:
+          - button "Unit" [ref=e42] [cursor=pointer]:
+            - img [ref=e44]
+            - generic [ref=e47]: Unit
+        - listitem [ref=e48]:
+          - button "Plasma" [ref=e49] [cursor=pointer]:
+            - img [ref=e51]
+            - generic [ref=e55]: Plasma
+        - listitem [ref=e56]:
+          - button "Cycle" [ref=e57] [cursor=pointer]:
+            - img [ref=e59]
+            - generic [ref=e62]: Cycle
+        - listitem [ref=e63]:
+          - button "Recording" [ref=e64] [cursor=pointer]:
+            - img [ref=e66]
+            - generic [ref=e69]: Recording
+        - listitem [ref=e70]:
+          - button "Feed" [ref=e71] [cursor=pointer]:
+            - img [ref=e73]
+            - generic [ref=e76]: Feed
+        - listitem [ref=e77]:
+          - generic [ref=e79]: Reports
+        - listitem [ref=e80]:
+          - button "Performance" [ref=e81] [cursor=pointer]:
+            - img [ref=e83]
+            - generic [ref=e86]: Performance
+        - listitem [ref=e87]:
+          - button "Stock Resume" [ref=e88] [cursor=pointer]:
+            - img [ref=e90]
+            - generic [ref=e93]: Stock Resume
+        - listitem [ref=e94]:
+          - button "Audit Log" [ref=e95] [cursor=pointer]:
+            - img [ref=e97]
+            - generic [ref=e100]: Audit Log
+        - listitem [ref=e101]:
+          - button "RBAC" [ref=e102] [cursor=pointer]:
+            - img [ref=e104]
+            - generic [ref=e108]: RBAC
+      - separator [ref=e109]
+      - button [ref=e111] [cursor=pointer]:
+        - img [ref=e112]
+    - main [ref=e114]:
+      - generic [ref=e115]:
+        - heading "Laporan Performa Harian" [level=5] [ref=e116]
+        - generic [ref=e117]:
+          - generic [ref=e118]: Pilih Siklus
+          - generic [ref=e119]:
+            - combobox [ref=e120] [cursor=pointer]: 2 - Patriot
+            - textbox: "23"
+            - img
+            - group:
+              - generic: Pilih Siklus
+        - generic [ref=e121]:
+          - heading "Kurva Pertumbuhan BB (Body Weight)" [level=6] [ref=e122]
+          - generic [ref=e124]:
+            - list [ref=e125]:
+              - listitem [ref=e126]:
+                - generic [ref=e127]:
+                  - img [ref=e130]
+                  - generic [ref=e132]: Actual BW
+            - img [ref=e133]:
+              - generic [ref=e134]:
+                - generic [ref=e136]: "1.000000"
+                - generic [ref=e138]: Hari
+              - generic [ref=e141]: Berat (gram)
+        - generic [ref=e142]:
+          - heading "Trend FCR (Feed Conversion Ratio)" [level=6] [ref=e143]
+          - generic [ref=e145]:
+            - list [ref=e146]:
+              - listitem [ref=e147]:
+                - generic [ref=e148]:
+                  - img [ref=e151]
+                  - generic [ref=e153]: FCR
+            - img [ref=e154]:
+              - generic [ref=e155]:
+                - generic [ref=e157]: "1.000000"
+                - generic [ref=e159]: Hari
+              - generic [ref=e162]: FCR
+        - generic [ref=e163]:
+          - heading "Trend IP (Index Performa)" [level=6] [ref=e164]
+          - generic [ref=e166]:
+            - list [ref=e167]:
+              - listitem [ref=e168]:
+                - generic [ref=e169]:
+                  - img [ref=e172]
+                  - generic [ref=e174]: IP
+            - img [ref=e175]:
+              - generic [ref=e176]:
+                - generic [ref=e178]: "1.000000"
+                - generic [ref=e180]: Hari
+              - generic [ref=e183]: IP
+  - contentinfo [ref=e185]:
+    - generic [ref=e186]: © 2026 SakhaFarm
+    - generic [ref=e187]: v1.0.0

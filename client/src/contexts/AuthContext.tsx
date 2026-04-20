@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setPermissions([]);
     }
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- user?.id captures identity changes; full user object causes unnecessary re-renders
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
@@ -87,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- Auth context pattern: provider + hook export is standard
 export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');

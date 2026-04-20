@@ -48,6 +48,12 @@ const DEFAULT_PERMISSIONS = [
   { name: 'supplier.update', description: 'Update supplier information', category: 'supplier' },
   { name: 'supplier.delete', description: 'Delete suppliers', category: 'supplier' },
 
+  // Pharmaceuticals Module
+  { name: 'pharmaceuticals.create', description: 'Create new pharmaceuticals', category: 'pharmaceuticals' },
+  { name: 'pharmaceuticals.read', description: 'View pharmaceutical details', category: 'pharmaceuticals' },
+  { name: 'pharmaceuticals.update', description: 'Update pharmaceutical information', category: 'pharmaceuticals' },
+  { name: 'pharmaceuticals.delete', description: 'Delete pharmaceuticals', category: 'pharmaceuticals' },
+
   // Inventory Module
   { name: 'inventory.read', description: 'View inventory reports', category: 'inventory' },
   { name: 'inventory.export', description: 'Export inventory data', category: 'inventory' },
@@ -82,6 +88,8 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'cycle.create', 'cycle.read', 'cycle.update', 'cycle.complete',
     'recording.create', 'recording.read', 'recording.update',
     'feed.read', 'feed.move',
+    'supplier.read', 'supplier.create', 'supplier.update',
+    'pharmaceuticals.read', 'pharmaceuticals.create', 'pharmaceuticals.update', 'pharmaceuticals.delete',
     'inventory.read', 'inventory.export',
     'user.read',
     'audit.read',
@@ -91,6 +99,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'cycle.read',
     'recording.create', 'recording.read', 'recording.update',
     'feed.read',
+    'pharmaceuticals.read',
     'inventory.read',
   ],
   'Viewer': [
@@ -99,6 +108,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'cycle.read',
     'recording.read',
     'feed.read',
+    'pharmaceuticals.read',
     'inventory.read',
   ],
 }

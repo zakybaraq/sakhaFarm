@@ -18,7 +18,7 @@ export function useRecordingCalculations(watchFields: (number | undefined)[], st
     const totalLoss = dead + culled;
     const mortalityPct = initial > 0 ? (totalLoss / initial) * 100 : 0;
     const survivalRate = initial > 0 ? (remaining / initial) * 100 : 0;
-    const bwDeviation = bw - standardBW;
+    const bwDeviation = bw > 0 && standardBW > 0 ? bw - standardBW : null;
     const projectedIP = survivalRate > 0 ? Math.round((bw * survivalRate) / 100) : 0;
 
     return {

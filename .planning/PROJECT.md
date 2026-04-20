@@ -3,9 +3,9 @@
 ## Project Name
 **SakhaFarm** — Poultry Plasma Farm Management System
 
-## Current Milestone: v1.2 — Bug Fixes & Data Integration
+## Current Milestone: v1.3 — In Progress
 
-**Goal:** Fix all broken UI interactions and connect every page to real backend data — zero dummy data, zero 500 errors, correct business logic throughout.
+**Goal:** TBD
 
 **Target features:**
 - Fix toggle 500 errors on Units, Plasmas pages (backend service bug)

@@ -5,13 +5,12 @@ import {
   Button,
   Paper,
   Chip,
-  Switch,
   IconButton,
   Box as MuiBox,
   Alert,
   Snackbar,
 } from '@mui/material';
-import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import { ResponsiveTable } from '../../components/ui/ResponsiveTable';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -20,14 +19,19 @@ import { listCycles, deleteCycle, updateCycle, type Cycle } from '../../api/cycl
 import { listPlasmas, type Plasma } from '../../api/plasmas';
 import { useAuth } from '../../contexts/AuthContext';
 import { CycleModal } from './CycleModal';
+import { ColumnDef } from '../../types/table';
 
 export function CyclesPage() {
   const { user } = useAuth();
+  const isSuperadmin = user?.roleId === 1;
   const queryClient = useQueryClient();
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({ open: false, message: '', severity: 'success' });
 
   const { data: plasmasData } = useQuery({
     queryKey: ['plasmas'],
@@ -35,7 +39,7 @@ export function CyclesPage() {
     enabled: !!user,
   });
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['cycles'],
     queryFn: listCycles,
     enabled: !!user,
@@ -45,7 +49,6 @@ export function CyclesPage() {
     mutationFn: deleteCycle,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cycles'] });
-      setSelectedId(null);
       setSnackbar({ open: true, message: 'Siklus berhasil dihapus', severity: 'success' });
     },
     onError: (error: Error) => {
@@ -53,124 +56,119 @@ export function CyclesPage() {
     },
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const cycle = data?.cycles.find((c: Cycle) => c.id === id);
-      if (!cycle) return;
-      const newStatus = cycle.status === 'Active' ? 'Completed' : 'Active';
-      return updateCycle(id, { status: newStatus });
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cycles'] }),
-    onError: (error: Error) => {
-      setSnackbar({ open: true, message: `Gagal toggle: ${error.message}`, severity: 'error' });
-    },
-  });
-
-  const handleToggle = (id: number) => {
-    toggleMutation.mutate(id);
-  };
-
-  const handleDelete = () => {
-    if (selectedId && confirm('Apakah Anda yakin ingin menghapus siklus ini?')) {
-      deleteMutation.mutate(selectedId);
-    }
-  };
-
-  const handleSelectionChange = (newSelection: unknown) => {
-    const selected = newSelection as number[];
-    setSelectedId(selected[0] ?? null);
-  };
-
   const handleEdit = (row: Cycle) => {
     setEditId(row.id);
     setModalOpen(true);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return 'success';
-      case 'Completed':
-        return 'info';
-      case 'Failed':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
-
-  const columns: GridColDef[] = [
-    { field: 'cycleNumber', headerName: 'No. Siklus', width: 120 },
+  const columns: ColumnDef<Cycle>[] = [
     {
-      field: 'plasmaId',
-      headerName: 'Plasma',
-      width: 180,
-      valueGetter: (value, row) => {
-        const plasma = plasmasData?.plasmas.find((p: Plasma) => p.id === value);
-        return plasma?.name ?? value;
+      accessorKey: 'cycleNumber',
+      header: 'No. Siklus',
+      size: 120,
+    },
+    {
+      accessorKey: 'plasmaId',
+      header: 'Plasma',
+      size: 180,
+      cell: ({ row }) => {
+        const plasma = plasmasData?.plasmas.find((p: Plasma) => p.id === row.original.plasmaId);
+        return plasma?.name ?? row.original.plasmaId;
       },
     },
-    { field: 'docType', headerName: 'Jenis DOC', width: 120 },
-    { field: 'chickInDate', headerName: 'Tgl. Chick In', width: 140 },
-    { field: 'initialPopulation', headerName: 'Populasi Awal', width: 140 },
     {
-      field: 'isActive',
-      headerName: 'Status',
-      width: 100,
-      renderCell: (params) => (
-        <Chip
-          label={params.row.status === 'Active' ? 'Aktif' : 'Selesai'}
-          color={getStatusColor(params.row.status)}
-          size="small"
-        />
-      ),
+      accessorKey: 'docType',
+      header: 'Jenis DOC',
+      size: 120,
     },
     {
-      field: 'actions',
-      headerName: 'Aksi',
-      width: 120,
-      sortable: false,
-      renderCell: (params) => (
-        <MuiBox
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5,
-            justifyContent: 'center',
-            height: '100%',
-          }}
-        >
-          <Switch
+      accessorKey: 'chickInDate',
+      header: 'Tgl. Chick In',
+      size: 140,
+    },
+    {
+      accessorKey: 'initialPopulation',
+      header: 'Populasi Awal',
+      size: 140,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      size: 120,
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const statusLower = (status || '').toLowerCase();
+        const colorMap: Record<string, 'success' | 'info' | 'error'> = {
+          active: 'success',
+          completed: 'info',
+          failed: 'error',
+        };
+        const label = statusLower.charAt(0).toUpperCase() + statusLower.slice(1);
+        return (
+          <Chip
+            label={label}
+            color={colorMap[statusLower] || 'default'}
             size="small"
-            checked={params.row.status === 'Active'}
-            onChange={(e) => {
-              e.stopPropagation();
-              handleToggle(params.row.id);
-            }}
+            sx={{ minWidth: 80 }}
           />
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEdit(params.row);
+        );
+      },
+    },
+    {
+      accessorKey: 'actions',
+      header: 'Aksi',
+      size: 100,
+      cell: ({ row }) => {
+        const handleEditClick = () => {
+          if (!isSuperadmin) {
+            setSnackbar({ open: true, message: 'Hanya superadmin yang dapat mengedit', severity: 'error' });
+            return;
+          }
+          handleEdit(row.original);
+        };
+        const handleDeleteClick = () => {
+          if (!isSuperadmin) {
+            setSnackbar({ open: true, message: 'Hanya superadmin yang dapat menghapus', severity: 'error' });
+            return;
+          }
+          if (confirm('Apakah Anda yakin ingin menghapus siklus ini?')) {
+            deleteMutation.mutate(row.original.id);
+          }
+        };
+        return (
+          <MuiBox
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              justifyContent: 'center',
+              height: '100%',
             }}
           >
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            color="error"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (confirm('Apakah Anda yakin ingin menghapus siklus ini?')) {
-                deleteMutation.mutate(params.row.id);
-              }
-            }}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </MuiBox>
-      ),
+            <IconButton
+              size="small"
+              disabled={!isSuperadmin}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditClick();
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="small"
+              color="error"
+              disabled={!isSuperadmin}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick();
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </MuiBox>
+        );
+      },
     },
   ];
 
@@ -190,21 +188,15 @@ export function CyclesPage() {
         </Button>
       </Box>
 
-      <Paper sx={{ height: 500 }}>
-        <DataGrid
-          rows={data?.cycles ?? []}
+      <Paper>
+        <ResponsiveTable
           columns={columns}
-          loading={isLoading}
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-          disableRowSelectionOnClick
-          disableColumnResize
-          autosizeOnMount={false}
-          onRowSelectionModelChange={handleSelectionChange}
-          sx={{
-            border: 'none',
-            '& .MuiDataGrid-columnHeaders': { bgcolor: '#f8fafc', fontWeight: 600 },
-          }}
+          data={data?.cycles ?? []}
+          enableSorting
+          enableFiltering
+          enablePagination
+          initialPageSize={10}
+          className="w-full"
         />
       </Paper>
 
