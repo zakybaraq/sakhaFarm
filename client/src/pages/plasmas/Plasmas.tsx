@@ -17,6 +17,7 @@ import { ColumnDef } from '../../types/table';
 
 export function PlasmasPage() {
   const { user } = useAuth();
+  const isSuperadmin = user?.roleId === 1;
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -65,6 +66,10 @@ export function PlasmasPage() {
   });
 
   const handleToggle = (id: number) => {
+    if (!isSuperadmin) {
+      setSnackbar({ open: true, message: 'Hanya superadmin yang dapat mengubah status', severity: 'error' });
+      return;
+    }
     toggleMutation.mutate(id);
   };
 
@@ -99,6 +104,12 @@ export function PlasmasPage() {
       size: 150,
     },
     {
+      accessorKey: 'phone',
+      header: 'Telepon',
+      size: 150,
+      cell: ({ row }) => row.original.phone ?? '-',
+    },
+    {
       accessorKey: 'isActive',
       header: 'Status',
       size: 100,
@@ -106,6 +117,7 @@ export function PlasmasPage() {
         <Switch
           size="small"
           checked={!!row.original.isActive}
+          disabled={!isSuperadmin}
           onChange={(e) => {
             e.stopPropagation();
             handleToggle(row.original.id);
