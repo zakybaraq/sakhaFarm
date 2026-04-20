@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Box,
   Typography,
@@ -9,18 +9,33 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-} from '@mui/material';
-import { LineChart } from '@mui/x-charts/LineChart';
-import { getPerformance, type PerformanceRecord } from '../../api/reporting';
-import { listCycles } from '../../api/cycles';
-import { useAuth } from '../../contexts/AuthContext';
+  Alert,
+} from "@mui/material";
+import { LineChart } from "@mui/x-charts/LineChart";
+import { getPerformance, type PerformanceRecord } from "../../api/reporting";
+import { listCycles } from "../../api/cycles";
+import { useAuth } from "../../contexts/AuthContext";
 
+/**
+ * Performance Report Page — Daily growth metrics per cycle.
+ *
+ * Shows body weight curve, FCR trend, and IP (Index Performa) charts
+ * calculated from daily recording entries. Data is scoped to the user's tenant.
+ *
+ * Features:
+ * - Cycle selection dropdown (auto-selects first cycle on load)
+ * - Real-time data fetching via TanStack Query
+ * - Loading and error states
+ * - Day number calculated from chick-in date (harvest day = day 1)
+ *
+ * @returns The performance dashboard with three line charts (BW, FCR, IP)
+ */
 export function Performance() {
   const { user } = useAuth();
   const [selectedCycleId, setSelectedCycleId] = useState<number | null>(null);
 
   const { data: cyclesData, isLoading: cyclesLoading } = useQuery({
-    queryKey: ['cycles'],
+    queryKey: ["cycles"],
     queryFn: listCycles,
   });
 
@@ -32,9 +47,15 @@ export function Performance() {
     }
   }, [cycles, selectedCycleId]);
 
-  const { data: performanceData, isLoading: performanceLoading } = useQuery({
-    queryKey: ['performance', selectedCycleId],
-    queryFn: () => getPerformance(user?.tenantId ?? 1, { cycleId: selectedCycleId! }),
+  const {
+    data: performanceData,
+    isLoading: performanceLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["performance", selectedCycleId],
+    queryFn: () =>
+      getPerformance(user?.tenantId ?? 1, { cycleId: selectedCycleId! }),
     enabled: !!selectedCycleId && !!user,
   });
 
@@ -45,7 +66,8 @@ export function Performance() {
   const bwData = records.map((r) => {
     const day = selectedCycle
       ? Math.floor(
-          (new Date(r.date).getTime() - new Date(selectedCycle.chickInDate).getTime()) /
+          (new Date(r.date).getTime() -
+            new Date(selectedCycle.chickInDate).getTime()) /
             (1000 * 60 * 60 * 24),
         ) + 1
       : 1;
@@ -55,7 +77,8 @@ export function Performance() {
   const fcrData = records.map((r) => {
     const day = selectedCycle
       ? Math.floor(
-          (new Date(r.date).getTime() - new Date(selectedCycle.chickInDate).getTime()) /
+          (new Date(r.date).getTime() -
+            new Date(selectedCycle.chickInDate).getTime()) /
             (1000 * 60 * 60 * 24),
         ) + 1
       : 1;
@@ -66,7 +89,8 @@ export function Performance() {
     .map((r) => {
       const day = selectedCycle
         ? Math.floor(
-            (new Date(r.date).getTime() - new Date(selectedCycle.chickInDate).getTime()) /
+            (new Date(r.date).getTime() -
+              new Date(selectedCycle.chickInDate).getTime()) /
               (1000 * 60 * 60 * 24),
           ) + 1
         : 1;
@@ -76,7 +100,7 @@ export function Performance() {
 
   if (cyclesLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
         <CircularProgress />
       </Box>
     );
@@ -84,14 +108,17 @@ export function Performance() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ fontWeight: 600, fontSize: '24px', mb: 3 }}>
+      <Typography
+        variant="h5"
+        sx={{ fontWeight: 600, fontSize: "24px", mb: 3 }}
+      >
         Laporan Performa Harian
       </Typography>
 
       <FormControl sx={{ minWidth: 200, mb: 3 }}>
         <InputLabel>Pilih Siklus</InputLabel>
         <Select
-          value={selectedCycleId ?? ''}
+          value={selectedCycleId ?? ""}
           label="Pilih Siklus"
           onChange={(e) => setSelectedCycleId(e.target.value as number)}
         >
@@ -104,12 +131,16 @@ export function Performance() {
       </FormControl>
 
       {performanceLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
           <CircularProgress />
         </Box>
+      ) : isError ? (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          Gagal memuat data performa: {error?.message ?? "Unknown error"}
+        </Alert>
       ) : records.length === 0 ? (
-        <Typography sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-          Belum ada data recording
+        <Typography sx={{ p: 3, textAlign: "center", color: "text.secondary" }}>
+          Belum ada data recording untuk siklus ini
         </Typography>
       ) : (
         <>
@@ -120,9 +151,11 @@ export function Performance() {
             <Box sx={{ height: 300 }}>
               <LineChart
                 dataset={bwData}
-                xAxis={[{ dataKey: 'day', label: 'Hari' }]}
-                yAxis={[{ label: 'Berat (gram)' }]}
-                series={[{ dataKey: 'actual', label: 'Actual BW', color: '#2E7D32' }]}
+                xAxis={[{ dataKey: "day", label: "Hari" }]}
+                yAxis={[{ label: "Berat (gram)" }]}
+                series={[
+                  { dataKey: "actual", label: "Actual BW", color: "#2E7D32" },
+                ]}
                 grid={{ vertical: true, horizontal: true }}
                 height={280}
               />
@@ -136,9 +169,9 @@ export function Performance() {
             <Box sx={{ height: 300 }}>
               <LineChart
                 dataset={fcrData}
-                xAxis={[{ dataKey: 'day', label: 'Hari' }]}
-                yAxis={[{ label: 'FCR' }]}
-                series={[{ dataKey: 'fcr', label: 'FCR', color: '#2E7D32' }]}
+                xAxis={[{ dataKey: "day", label: "Hari" }]}
+                yAxis={[{ label: "FCR" }]}
+                series={[{ dataKey: "fcr", label: "FCR", color: "#2E7D32" }]}
                 grid={{ vertical: true, horizontal: true }}
                 height={280}
               />
@@ -146,7 +179,9 @@ export function Performance() {
           </Paper>
 
           {ipData.length === 0 ? (
-            <Typography sx={{ p: 3, textAlign: 'center', color: 'text.secondary', mt: 3 }}>
+            <Typography
+              sx={{ p: 3, textAlign: "center", color: "text.secondary", mt: 3 }}
+            >
               Data IP belum tersedia
             </Typography>
           ) : (
@@ -157,9 +192,9 @@ export function Performance() {
               <Box sx={{ height: 300 }}>
                 <LineChart
                   dataset={ipData}
-                  xAxis={[{ dataKey: 'day', label: 'Hari' }]}
-                  yAxis={[{ label: 'IP' }]}
-                  series={[{ dataKey: 'ip', label: 'IP', color: '#2E7D32' }]}
+                  xAxis={[{ dataKey: "day", label: "Hari" }]}
+                  yAxis={[{ label: "IP" }]}
+                  series={[{ dataKey: "ip", label: "IP", color: "#2E7D32" }]}
                   grid={{ vertical: true, horizontal: true }}
                   height={280}
                 />
