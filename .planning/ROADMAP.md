@@ -75,8 +75,10 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
   2. Deviasi BW is blank (or shows a dash) on the Recordings page when no recording data exists; it only shows a calculated value when recordings are present
   3. The feed type dropdown on the Feed page lists products fetched from the DB feed products table; no hardcoded options remain
   4. All three RBAC tabs (Roles, Permissions, Role-Permission assignment) load data from the API and display correct rows without errors
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 2 plans
+Plans:
+- [x] 15-01-PLAN.md — Wire Recordings page to DB standards, fix Deviasi BW dash display
+- [x] 15-02-PLAN.md — Wire Feed page and RBAC tabs to real DB APIs
 
 ### Phase 16: Reports Data Integration
 **Goal**: All three report pages display real data from the database with no dummy placeholders
