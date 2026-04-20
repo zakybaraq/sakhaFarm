@@ -169,7 +169,7 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
    **Plans**: 1 plan
    **Plans:**
 
-3/3 plans complete
+4/3 plans complete
 
    **UI hint**: yes
 
@@ -180,7 +180,7 @@ Full details: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md)
 | 13. Backend Toggle Fix                       | 0/1            | Not started | -          |
 | 14. Cycle & Plasma UI Fixes                  | 1/1            | Not started | -          |
 | 15. Recordings, Feed & RBAC Data Integration | 2/2            | Completed   | 2026-04-21 |
-| 16. Reports Data Integration                 | 3/3 | Complete   | 2026-04-20 |
+| 16. Reports Data Integration                 | 4/3 | Complete   | 2026-04-20 |
 | 17. Feed Types & Brands Management           | 3/3            | Complete    | 2026-04-20 |
 | 18. Supplier Management                      | 2/2            | Planned     | -          |
 | 19. Vitamins/Medicines Management            | 2/2            | Ready to execute | -          |
