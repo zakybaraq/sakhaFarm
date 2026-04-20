@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Box, Typography, Button, Paper, Chip } from '@mui/material';
-import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import { Box, Typography, Button, Paper } from '@mui/material';
+import { ResponsiveTable } from '../../components/ui/ResponsiveTable';
 import AddIcon from '@mui/icons-material/Add';
 import Switch from '@mui/material/Switch';
 import EditIcon from '@mui/icons-material/Edit';
@@ -13,13 +13,18 @@ import { useAuth } from '../../contexts/AuthContext';
 import { PlasmaModal } from './PlasmaModal';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
+import { ColumnDef } from '../../types/table';
 
 export function PlasmasPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({ open: false, message: '', severity: 'success' });
 
   const { data: unitsData } = useQuery({
     queryKey: ['units'],
@@ -27,7 +32,7 @@ export function PlasmasPage() {
     enabled: !!user,
   });
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['plasmas'],
     queryFn: () => listPlasmas(),
     enabled: !!user,
@@ -49,7 +54,7 @@ export function PlasmasPage() {
     mutationFn: async (id: number) => {
       const plasma = data?.plasmas.find((p) => p.id === id);
       if (!plasma) return;
-      return updatePlasma(id, { isDeleted: !plasma.isDeleted });
+      return updatePlasma(id, { isActive: plasma.isActive ? 0 : 1 });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['plasmas'] });
@@ -68,48 +73,51 @@ export function PlasmasPage() {
     setModalOpen(true);
   };
 
-  const handleDelete = () => {
-    if (selectedId && confirm('Apakah Anda yakin ingin menghapus plasma ini?')) {
-      deleteMutation.mutate(selectedId);
-    }
-  };
-
-  const handleSelectionChange = (newSelection: unknown) => {
-    const selected = newSelection as number[];
-    setSelectedId(selected[0] ?? null);
-  };
-
-  const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Nama Plasma', flex: 1, minWidth: 200 },
+  const columns: ColumnDef<Plasma>[] = [
     {
-      field: 'unitId',
-      headerName: 'Unit',
-      width: 150,
-      valueGetter: (value, row) => {
-        const unit = unitsData?.units.find((u: Unit) => u.id === value);
-        return unit?.name ?? value;
+      accessorKey: 'name',
+      header: 'Nama Plasma',
+      size: 200,
+    },
+    {
+      accessorKey: 'unitId',
+      header: 'Unit',
+      size: 150,
+      cell: ({ row }) => {
+        const unit = unitsData?.units.find((u: Unit) => u.id === row.original.unitId);
+        return unit?.name ?? row.original.unitId;
       },
     },
-    { field: 'farmerName', headerName: 'Nama Peternak', flex: 1, minWidth: 200 },
-    { field: 'capacity', headerName: 'Kapasitas (Ekor)', width: 150 },
     {
-      field: 'isActive',
-      headerName: 'Status',
-      width: 100,
-      renderCell: (params) => (
-        <Chip
-          label={params.row.isDeleted ? 'Nonaktif' : 'Aktif'}
-          color={params.row.isDeleted ? 'default' : 'success'}
+      accessorKey: 'farmerName',
+      header: 'Nama Peternak',
+      size: 200,
+    },
+    {
+      accessorKey: 'capacity',
+      header: 'Kapasitas (Ekor)',
+      size: 150,
+    },
+    {
+      accessorKey: 'isActive',
+      header: 'Status',
+      size: 100,
+      cell: ({ row }) => (
+        <Switch
           size="small"
+          checked={!!row.original.isActive}
+          onChange={(e) => {
+            e.stopPropagation();
+            handleToggle(row.original.id);
+          }}
         />
       ),
     },
     {
-      field: 'actions',
-      headerName: 'Aksi',
-      width: 120,
-      sortable: false,
-      renderCell: (params) => (
+      accessorKey: 'actions',
+      header: 'Aksi',
+      size: 100,
+      cell: ({ row }) => (
         <Box
           sx={{
             display: 'flex',
@@ -119,19 +127,11 @@ export function PlasmasPage() {
             height: '100%',
           }}
         >
-          <Switch
-            size="small"
-            checked={!params.row.isDeleted}
-            onChange={(e) => {
-              e.stopPropagation();
-              handleToggle(params.row.id);
-            }}
-          />
           <IconButton
             size="small"
             onClick={(e) => {
               e.stopPropagation();
-              handleEdit(params.row);
+              handleEdit(row.original);
             }}
           >
             <EditIcon fontSize="small" />
@@ -142,7 +142,7 @@ export function PlasmasPage() {
             onClick={(e) => {
               e.stopPropagation();
               if (confirm('Apakah Anda yakin ingin menghapus plasma ini?')) {
-                deleteMutation.mutate(params.row.id);
+                deleteMutation.mutate(row.original.id);
               }
             }}
           >
@@ -169,21 +169,15 @@ export function PlasmasPage() {
         </Button>
       </Box>
 
-      <Paper sx={{ height: 500 }}>
-        <DataGrid
-          rows={data?.plasmas ?? []}
+      <Paper>
+        <ResponsiveTable
           columns={columns}
-          loading={isLoading}
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-          disableRowSelectionOnClick
-          disableColumnResize
-          autosizeOnMount={false}
-          onRowSelectionModelChange={handleSelectionChange}
-          sx={{
-            border: 'none',
-            '& .MuiDataGrid-columnHeaders': { bgcolor: '#f8fafc', fontWeight: 600 },
-          }}
+          data={data?.plasmas ?? []}
+          enableSorting
+          enableFiltering
+          enablePagination
+          initialPageSize={10}
+          className="w-full"
         />
       </Paper>
 

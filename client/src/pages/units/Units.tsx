@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Box, Typography, Button, Paper, Chip } from '@mui/material';
-import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import { Box, Typography, Button, Paper } from '@mui/material';
+import { ResponsiveTable } from '../../components/ui/ResponsiveTable';
 import AddIcon from '@mui/icons-material/Add';
 import Switch from '@mui/material/Switch';
 import EditIcon from '@mui/icons-material/Edit';
@@ -12,15 +12,20 @@ import { useAuth } from '../../contexts/AuthContext';
 import { UnitModal } from './UnitModal';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
+import { ColumnDef } from '../../types/table';
 
 export function UnitsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({ open: false, message: '', severity: 'success' });
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['units'],
     queryFn: listUnits,
     enabled: !!user,
@@ -42,7 +47,7 @@ export function UnitsPage() {
     mutationFn: async (id: number) => {
       const unit = data?.units.find((u) => u.id === id);
       if (!unit) return;
-      return updateUnit(id, { isDeleted: !unit.isDeleted });
+      return updateUnit(id, { isActive: unit.isActive ? 0 : 1 });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['units'] });
@@ -61,39 +66,42 @@ export function UnitsPage() {
     setModalOpen(true);
   };
 
-  const handleDelete = () => {
-    if (selectedId && confirm('Apakah Anda yakin ingin menghapus unit ini?')) {
-      deleteMutation.mutate(selectedId);
-    }
-  };
-
-  const handleSelectionChange = (newSelection: unknown) => {
-    const selected = newSelection as number[];
-    setSelectedId(selected[0] ?? null);
-  };
-
-  const columns: GridColDef[] = [
-    { field: 'code', headerName: 'Kode Unit', width: 120 },
-    { field: 'name', headerName: 'Nama Unit', flex: 1, minWidth: 200 },
-    { field: 'location', headerName: 'Lokasi', flex: 1, minWidth: 200 },
+  const columns: ColumnDef<Unit>[] = [
     {
-      field: 'isActive',
-      headerName: 'Status',
-      width: 100,
-      renderCell: (params) => (
-        <Chip
-          label={params.row.isDeleted ? 'Nonaktif' : 'Aktif'}
-          color={params.row.isDeleted ? 'default' : 'success'}
+      accessorKey: 'code',
+      header: 'Kode Unit',
+      size: 120,
+    },
+    {
+      accessorKey: 'name',
+      header: 'Nama Unit',
+      size: 200,
+    },
+    {
+      accessorKey: 'location',
+      header: 'Lokasi',
+      size: 200,
+    },
+    {
+      accessorKey: 'isActive',
+      header: 'Status',
+      size: 100,
+      cell: ({ row }) => (
+        <Switch
           size="small"
+          checked={!!row.original.isActive}
+          onChange={(e) => {
+            e.stopPropagation();
+            handleToggle(row.original.id);
+          }}
         />
       ),
     },
     {
-      field: 'actions',
-      headerName: 'Aksi',
-      width: 120,
-      sortable: false,
-      renderCell: (params) => (
+      accessorKey: 'actions',
+      header: 'Aksi',
+      size: 100,
+      cell: ({ row }) => (
         <Box
           sx={{
             display: 'flex',
@@ -103,19 +111,11 @@ export function UnitsPage() {
             height: '100%',
           }}
         >
-          <Switch
-            size="small"
-            checked={!params.row.isDeleted}
-            onChange={(e) => {
-              e.stopPropagation();
-              handleToggle(params.row.id);
-            }}
-          />
           <IconButton
             size="small"
             onClick={(e) => {
               e.stopPropagation();
-              handleEdit(params.row);
+              handleEdit(row.original);
             }}
           >
             <EditIcon fontSize="small" />
@@ -126,7 +126,7 @@ export function UnitsPage() {
             onClick={(e) => {
               e.stopPropagation();
               if (confirm('Apakah Anda yakin ingin menghapus unit ini?')) {
-                deleteMutation.mutate(params.row.id);
+                deleteMutation.mutate(row.original.id);
               }
             }}
           >
@@ -153,21 +153,15 @@ export function UnitsPage() {
         </Button>
       </Box>
 
-      <Paper sx={{ height: 500 }}>
-        <DataGrid
-          rows={data?.units ?? []}
+      <Paper>
+        <ResponsiveTable
           columns={columns}
-          loading={isLoading}
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-          disableRowSelectionOnClick
-          disableColumnResize
-          autosizeOnMount={false}
-          onRowSelectionModelChange={handleSelectionChange}
-          sx={{
-            border: 'none',
-            '& .MuiDataGrid-columnHeaders': { bgcolor: '#f8fafc', fontWeight: 600 },
-          }}
+          data={data?.units ?? []}
+          enableSorting
+          enableFiltering
+          enablePagination
+          initialPageSize={10}
+          className="w-full"
         />
       </Paper>
 
