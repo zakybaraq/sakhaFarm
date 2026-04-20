@@ -17,6 +17,7 @@ import { DailyRecording } from './pages/recordings/DailyRecording';
 import { AuditLog } from './pages/admin/AuditLog';
 import { RbacManager } from './pages/rbac/RbacManager';
 import { UsersPage } from './pages/admin/Users';
+import { SuppliersPage } from './pages/suppliers/Suppliers';
 
 export function App() {
   return (
@@ -44,6 +45,7 @@ export function App() {
         <Route path="/reports/audit" element={<AuditLog />} />
         <Route path="/rbac" element={<RbacManager />} />
         <Route path="/users" element={<UsersPage />} />
+        <Route path="/suppliers" element={<SuppliersPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
