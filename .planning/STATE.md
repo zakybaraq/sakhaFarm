@@ -1,26 +1,27 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: - UI/UX Improvement
-status: Ready to execute
-last_updated: "2026-04-18T14:57:00.000Z"
+milestone: v1.2
+milestone_name: Bug Fixes & Data Integration
+status: Roadmap defined
+last_updated: "2026-04-20T20:00:00.000Z"
 progress:
-  total_phases: 9
-  completed_phases: 5
-  total_plans: 20
-  completed_plans: 15
-  percent: 60
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # STATE.md — Sakha Farm Management System
 
 ## Current State
 
-**Status**: Phase 5 In Progress (2 complete, 1 blocked)
-**Active Milestone**: v1.0 — Core Farm Management
-**Active Phase**: Data Integration (Phase 5 — 2/3 plans complete, audit API blocker)
+**Status**: v1.2 Milestone — In Progress (0/4 phases)
+**Active Milestone**: v1.2 — Bug Fixes & Data Integration
+**Active Phase**: Phase 13 — Backend Toggle Fix
 
-## Progress
+### v1.0 Phases (Archived — Complete)
+
   | Phase | Status | Notes |
   |-------|--------|-------|
   | 1. Project Setup & Database Schema | ✅ Complete | 15/15 UAT tests pass |
@@ -30,9 +31,35 @@ progress:
   | 5. Data Integration | ✅ Complete | 3/3 plans executed |
   | 6. Feed Inventory Management | ✅ Complete | 2/2 plans executed |
   | 7. Inventory Resume & Reporting | ✅ Complete | 1/1 plan executed, 11 tests added |
-  | 8. Frontend — Layout & Dashboard | ✅ Complete | 3/3 plans executed, auth + layout + KPI dashboard |
-  | 9. Frontend — Inventory & Reporting UI | ✅ Complete | 3/3 plans executed, 9/9 tasks, 9 pages, 1 component |
+  | 8. Frontend — Layout & Dashboard | ✅ Complete | 3/3 plans executed |
+  | 9. Frontend — Inventory & Reporting UI | ✅ Complete | 3/3 plans executed |
   | 10. Testing, Cybersecurity & Docs | ⏳ Pending | Vitest + security tests |
+
+### v1.1 Phases (Complete)
+
+  | Phase | Status | Notes |
+  |-------|--------|-------|
+  | 1. Sidebar Layout Fixes | ✅ Complete | UAT verified |
+  | 2. DataGrid Improvements | ✅ Complete | UAT verified, 8 pages updated |
+  | 3. Menu & Naming Cleanup | ✅ Complete | Duplicate menus removed |
+  | 4. Feature Additions | ✅ Complete | Toggle + edit + dropdown |
+  | 5. Data Integration | ✅ Complete | 3/3 plans (RBAC, Recording, Audit API) |
+  | 6. Code Cleanup | ✅ Complete | ESLint + JSDoc + refactor |
+  | 7. Audit Filter UI | ✅ Complete | Verification passed (4/4 criteria) |
+  | 8. Modern Responsive Table UI | ✅ Complete | TanStack Table v8, code review 9/9 findings fixed |
+  | 9. Frontend Fixes | ✅ Complete | Toggle→Status column refactor, delete icons, Reports menu, RBAC fix |
+  | 10. Nyquist Validation & Documentation | ✅ Complete | 9 Nyquist docs created (5 verification + 4 validation), all PASSED |
+  | 11. ESLint Warning Cleanup | ✅ Complete | 0 ESLint warnings, 0 TypeScript errors, all 9 decisions implemented |
+  | 12. E2E Dropdown & Integration Tests | ✅ Complete | MSW infrastructure + 17 client integration tests (server tests deferred) |
+
+### v1.2 Phases (Active)
+
+  | Phase | Status | Notes |
+  |-------|--------|-------|
+  | 13. Backend Toggle Fix | ⏳ Not started | Fixes TOGGLE-01, TOGGLE-02 — unblocks all UI work |
+  | 14. Cycle & Plasma UI Fixes | ⏳ Not started | Fixes TOGGLE-03, TOGGLE-04, PLASMA-01, PLASMA-02 |
+  | 15. Recordings, Feed & RBAC Data Integration | ⏳ Not started | Fixes REC-01, REC-02, FEED-01, FEED-02, RBAC-01, RBAC-02, RBAC-03 |
+  | 16. Reports Data Integration | ⏳ Not started | Fixes REPORT-01, REPORT-02, REPORT-03 |
 
 ## Tech Stack
 
@@ -78,15 +105,37 @@ progress:
 
 - Excel reference file: `/Users/zakybaraq/Apps/sakhaFarm/REKAP RECORDING SAKHA FARM KUNINGAN 2026.xlsx`
 - User will provide Excel/CSV sheets for feed types (BR, GF, B-Series)
+- Known file modified at v1.2 start: `server/src/modules/unit/unit.service.ts` (toggle 500 likely here)
 
 ## Research Completed
 
 - Poultry farming domain (plasma-inti model, FCR/IP formulas, breed standards)
 - Elysia.js + Drizzle ORM patterns (project structure, transactions, multi-tenancy, auth)
 
+## Deferred Items
+
+Items acknowledged and deferred at v1.1 milestone close on 2026-04-20:
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | react-key-warnings-breadcrumbs | unknown (stale — resolved in Phase 8/11) |
+| debug | tanstack-table-gettableprops-error | investigating (stale — TanStack migration complete) |
+| debug | typescript-error-rbac-manager | unknown (stale — TypeScript errors fixed in Phase 11) |
+| uat_gap | Phase 01 (1-UAT.md) | unknown status flag — 0 pending scenarios, UAT passed |
+| uat_gap | Phase 02 (2-UAT.md) | unknown status flag — 0 pending scenarios, UAT passed |
+| uat_gap | Phase 03 (3-UAT.md) | unknown status flag — 0 pending scenarios, UAT passed |
+| uat_gap | Phase 04 (04-UAT.md) | unknown status flag — 0 pending scenarios, UAT passed |
+| uat_gap | Phase 05 (05-UAT.md) | unknown status flag — 0 pending scenarios, UAT passed |
+| uat_gap | Phase 06 (06-UAT.md) | unknown status flag — 0 pending scenarios, UAT passed |
+| uat_gap | Phase 10 (10-UAT.md) | unknown status flag — 0 pending scenarios, UAT passed |
+| uat_gap | Phase 11 (11-UAT.md) | unknown status flag — 0 pending scenarios, UAT passed |
+| uat_gap | Phase 12 (12-UAT.md) | unknown status flag — 0 pending scenarios, UAT passed |
+
+Known deferred items at v1.1 close: 12 (3 stale debug sessions + 9 UAT status-field false positives)
+
 ## Next Action
 
-Run `/gsd-execute-phase 5` to resume (05-03 blocked by missing backend audit endpoint)
+Run `/gsd-plan-phase 13` to plan Phase 13: Backend Toggle Fix.
 
 ## Completed Plans
 

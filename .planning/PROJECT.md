@@ -3,6 +3,23 @@
 ## Project Name
 **SakhaFarm** — Poultry Plasma Farm Management System
 
+## Current Milestone: v1.2 — Bug Fixes & Data Integration
+
+**Goal:** Fix all broken UI interactions and connect every page to real backend data — zero dummy data, zero 500 errors, correct business logic throughout.
+
+**Target features:**
+- Fix toggle 500 errors on Units, Plasmas pages (backend service bug)
+- Replace cycle status toggle with read-only badge; clarify edit/delete rules
+- Fix phone number: add column to Plasmas table, enforce numeric input
+- Fix Recordings page: cycle dropdown + Deviasi BW calculation guard
+- Connect Feed page dropdowns (feed type, supplier) to DB
+- Fix Performance report (real FCR/IP data from recordings)
+- Connect Stock Resume dropdowns to DB
+- Fix Audit report to show real data
+- Fix RBAC roles tab + audit other tabs
+
+---
+
 ## Problem Statement
 Data manajemen peternakan ayam plasma saat ini tersebar di banyak sheet Excel yang sulit dikelola, termasuk: identitas & siklus, recording harian (deplesi, penimbangan), logistik & pakan, serta inventory per unit. Diperlukan sistem terpusat yang mengotomatisasi perhitungan FCR, IP, deviasi bobot, dan tracking stok pakan.
 
