@@ -88,7 +88,8 @@
 - Ensure excellent UI/UX on all screen sizes (desktop, tablet, mobile)
 - Preserve all existing table functionality (sort, filter, pagination)
 
-**Status**: Pending
+**Status**: Done ✅
+**Plans**: [08-01-PLAN.md](./phases/08-responsive-table-ui/08-01-PLAN.md) — Responsive table implementation
 
 **Plans**:
 - [08-01-PLAN.md](./phases/08-responsive-table-ui/08-01-PLAN.md) — Responsive table implementation
@@ -100,11 +101,44 @@
 - Create Reports menu with appropriate submenus
 - Fix RBAC roles data not showing (superadmin issue)
 
-**Status**: Pending
+**Status**: Done ✅
+**Plans**: [09-01-PLAN.md](./phases/09-frontend-fixes/09-01-PLAN.md) — Frontend fixes
 
 **Plans**:
 - [09-01-PLAN.md](./phases/09-frontend-fixes/09-01-PLAN.md) — Frontend fixes
 
 ---
+
+### Phase 10: Nyquist Validation & Documentation
+**Goal**: Add VERIFICATION.md and VALIDATION.md to phases that are missing them (1-4, 6).
+- Create VERIFICATION.md for Phase 1 (Sidebar Layout)
+- Create VERIFICATION.md for Phase 2 (DataGrid Improvements)
+- Create VERIFICATION.md for Phase 3 (Menu & Naming Cleanup)
+- Create VERIFICATION.md for Phase 4 (Feature Additions)
+- Create VALIDATION.md for Phase 6 (Code Cleanup)
+**Status**: Pending
+
+### Phase 11: ESLint Warning Cleanup
+**Goal**: Fix all ESLint warnings (unused variables, hooks dependencies, mixed exports).
+- Fix ~25+ unused variable warnings across the codebase
+- Fix 4 React hooks dependency warnings
+- Fix 2 React Refresh mixed export warnings
+- Ensure `bun run lint` passes with 0 warnings
+**Status**: Planned
+**Plans:** 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Auto-fix prettier + remove dead code + prefix unused vars
+- [ ] 11-02-PLAN.md — Fix hooks deps + mixed exports + any type + final verification
+
+### Phase 12: E2E Dropdown & Integration Tests
+**Goal**: Add basic integration tests for dropdown relationships and API flows.
+- Add tests for Unit→Plasma dropdown in PlasmaModal
+- Add tests for Plasma→Cycle dropdown in CycleModal
+- Add tests for React Query API flows (basic smoke tests)
+- Add tests for toggle/edit flows in Units, Plasmas, Cycles
+**Status**: Pending
+
+---
 _Started: 2026-04-18_
-_Next: `/gsd-execute-phase 6` to execute Phase 6_
+_Next: `/gsd-execute-phase 11` to execute ESLint cleanup_
